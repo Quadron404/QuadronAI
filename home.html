@@ -3,19 +3,19 @@
 <head>
 <title>Quadron AI</title>
 <style>
-body{ background:#0a0a0a; color:#ffd900; font-family:Arial; text-align:center; margin:0; }
-header{ display:flex; justify-content:space-between; padding:15px; background:#000; border-bottom:2px solid #ffd900; align-items:center; }
-#rightControls{ display:flex; align-items:center; gap:10px; position:relative; }
-#profilePic{ width:34px; height:34px; border-radius:50%; border:2px solid #ffd900; box-shadow:0 0 10px #ffd900; object-fit:cover; display:none; cursor:pointer; }
-#profilePanel{ position:absolute; top:50px; right:0; background:#111; border:1px solid #ffd900; padding:15px; display:none; width:200px; box-shadow:0 0 15px #ffd900; }
-#profileEmail{ font-size:13px; margin-bottom:12px; color:#ccc; word-break:break-all; }
-#logoutBtn{ background:#ffd900; color:black; border:none; padding:8px 12px; cursor:pointer; border-radius:6px; box-shadow:0 0 12px #ffd900; width:100%; }
-button{ background:#ffd900; color:black; border:none; padding:10px 18px; cursor:pointer; border-radius:6px; box-shadow:0 0 10px #ffd900; }
-#chat{ width:80%; max-width:700px; margin:auto; margin-top:20px; }
-#messages{ background:#111; border:1px solid #ffd900; height:420px; overflow:auto; padding:10px; text-align:left; white-space:pre-wrap; }
-input{ width:70%; padding:10px; background:black; color:#ffd900; border:1px solid #ffd900; }
-#loader{ display:none; margin:10px; color:#ffd900; }
-.footer{ margin-top:20px; font-size:12px; color:#aaa; }
+body{background:#0a0a0a;color:#ffd900;font-family:Arial;text-align:center;margin:0;}
+header{display:flex;justify-content:space-between;padding:15px;background:#000;border-bottom:2px solid #ffd900;align-items:center;}
+#rightControls{display:flex;align-items:center;gap:10px;position:relative;}
+#profilePic{width:34px;height:34px;border-radius:50%;border:2px solid #ffd900;box-shadow:0 0 10px #ffd900;object-fit:cover;display:none;cursor:pointer;}
+#profilePanel{position:absolute;top:50px;right:0;background:#111;border:1px solid #ffd900;padding:15px;display:none;width:200px;box-shadow:0 0 15px #ffd900;}
+#profileEmail{font-size:13px;margin-bottom:12px;color:#ccc;word-break:break-all;}
+#logoutBtn{background:#ffd900;color:black;border:none;padding:8px 12px;cursor:pointer;border-radius:6px;box-shadow:0 0 12px #ffd900;width:100%;}
+button{background:#ffd900;color:black;border:none;padding:10px 18px;cursor:pointer;border-radius:6px;box-shadow:0 0 10px #ffd900;}
+#chat{width:80%;max-width:700px;margin:auto;margin-top:20px;}
+#messages{background:#111;border:1px solid #ffd900;height:420px;overflow:auto;padding:10px;text-align:left;white-space:pre-wrap;}
+input{width:70%;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;}
+#loader{display:none;margin:10px;color:#ffd900;}
+.footer{margin-top:20px;font-size:12px;color:#aaa;}
 </style>
 </head>
 <body>
@@ -25,7 +25,7 @@ input{ width:70%; padding:10px; background:black; color:#ffd900; border:1px soli
 <div id="rightControls">
 <button onclick="location.href='voice.html'">Voice Mode</button>
 <button onclick="location.href='quadron7.html'">Quadron 7</button>
-<img id="profilePic" onclick="document.getElementById('profilePanel').style.display='block'">
+<img id="profilePic" onclick="const p=document.getElementById('profilePanel'); p.style.display=p.style.display==='block'?'none':'block'">
 <div id="profilePanel">
 <div id="profileEmail"></div>
 <button id="logoutBtn" onclick="logout()">Logout</button>
@@ -56,22 +56,22 @@ if(storedUser){
 function logout(){ localStorage.removeItem("quadronUser"); window.location.href = "index.html"; }
 
 async function askAI(message){
-  try{
+  try {
     const res = await fetch("/api/chat", {
-      method:"POST",
-      headers: {"Content-Type":"application/json"},
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
       body: JSON.stringify({message})
     });
-    const data = await res.json();
-    if(data.success) return data.data[0].text;
-    return data.error || "Quadron is silent.";
-  } catch(err){ return "ERROR: Connection failed"; }
+    const result = await res.json();
+    if(result.success) return result.data[0].text;
+    return result.error || "Quadron is ignoring you.";
+  } catch(e) { return "Connection Error."; }
 }
 
 window.onload = async function(){
   const box = document.getElementById("messages");
   document.getElementById("loader").style.display = "block";
-  const reply = await askAI(username ? `User name is ${username}. Sarcastic greeting.` : "Sarcastic greeting.");
+  const reply = await askAI(username ? `User name is ${username}. Give a sarcastic greeting.` : "Give a sarcastic greeting.");
   document.getElementById("loader").style.display = "none";
   const p = document.createElement("p");
   p.innerHTML = "<b>Quadron:</b> ";
