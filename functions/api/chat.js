@@ -1,57 +1,52 @@
-export async function onRequestPost(context) {
-  const { request, env } = context;
+// functions/api/chat.js
+import { GroqClient } from 'groq-cloud-sdk';
 
+const client = new GroqClient({
+  apiKey: process.env.GROQ_API_KEY, // must be set in Cloudflare Pages environment
+});
+
+export default async function handler(req, res) {
   try {
-    // 1. Check if the Secret exists in Cloudflare Settings
-    if (!env.GROQ_API_KEY) {
-      return new Response(JSON.stringify({ error: "GROQ_API_KEY is missing in Cloudflare dashboard." }), { status: 500 });
+    // Friendly GET response for browser visits
+    if (req.method === 'GET') {
+      return res
+        .status(200)
+        .send("Quadron AI POST endpoint. Send JSON with { message: '...' } to get a reply.");
     }
 
-    // 2. Parse User Input
-    const body = await request.json();
-    const userMessage = body.message;
-
-    if (!userMessage) {
-      return new Response(JSON.stringify({ error: "No message provided." }), { status: 400 });
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'POST requests only' });
     }
 
-    // 3. Call Groq via Native Fetch (No imports needed)
-    const groqResponse = await fetch("https://api.groq.com", {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer " + env.GROQ_API_KEY,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: [
-          { role: "system", content: "You are Quadron, a sarcastic AI." },
-          { role: "user", content: userMessage }
-        ]
-      })
-    });
+    const { message } = req.body;
+    if (!message || message.trim() === '') {
+      return res.status(400).json({ error: 'Message is required.' });
+    }
 
-    const result = await groqResponse.json();
+    if (!process.env.GROQ_API_KEY) {
+      return res.status(500).json({ error: 'Server misconfigured: GROQ_API_KEY missing.' });
+    }
+
+    // System prompt for sarcastic AI
+    const systemPrompt = "You are Quadron, a sarcastic AI.";
     
-    // Handle Groq-side errors
-    if (result.error) {
-      return new Response(JSON.stringify({ error: result.error.message }), { status: 500 });
-    }
-
-    const aiText = result.choices[0].message.content;
-
-    // 4. Return to UI (Fixed formatting for your home.html)
-    return new Response(JSON.stringify({
-      success: true,
-      data:
-    }), {
-      headers: { "Content-Type": "application/json" }
+    const data = await client.inference({
+      model: 'gpt-oss-120b', 
+      input: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: message }
+      ]
     });
+
+    const reply = data.output ? data.output.join("\n") : "Quadron couldn't respond.";
+
+    return res.status(200).json({ success: true, data: [{ text: reply }] });
 
   } catch (err) {
-    return new Response(JSON.stringify({ 
-      error: "API request failed", 
-      message: err.message 
-    }), { status: 500 });
+    console.error('GROQ AI error:', err);
+    return res.status(500).json({
+      error: 'GROQ API request failed',
+      message: err.message
+    });
   }
 }
