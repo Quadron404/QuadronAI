@@ -3,9 +3,8 @@
 export async function onRequest(context) {
   const { request, env } = context;
 
-  // Handle GET (browser)
   if (request.method === "GET") {
-    return new Response("Quadron API working. Use POST.", { status: 200 });
+    return new Response("Quadron API working", { status: 200 });
   }
 
   if (request.method !== "POST") {
@@ -19,7 +18,13 @@ export async function onRequest(context) {
       return new Response(JSON.stringify({ error: "Message required" }), { status: 400 });
     }
 
-    // 🔥 Call Groq API directly
+    // 🔍 DEBUG: check if API key exists
+    if (!env.GROQ_API_KEY) {
+      return new Response(JSON.stringify({
+        error: "GROQ_API_KEY is missing in Cloudflare"
+      }), { status: 500 });
+    }
+
     const apiRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -27,7 +32,7 @@ export async function onRequest(context) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "llama3-8b-8192",   // ⚠️ changed to safer model
+        model: "llama3-8b-8192",
         messages: [
           { role: "system", content: "You are Quadron, a sarcastic AI." },
           { role: "user", content: message }
@@ -37,26 +42,20 @@ export async function onRequest(context) {
 
     const data = await apiRes.json();
 
-    // 🔍 DEBUG (IMPORTANT)
+    // 🔥 SHOW REAL ERROR FROM GROQ
     if (!apiRes.ok) {
       return new Response(JSON.stringify({
-        error: "Groq API error",
+        error: "Groq API failed",
+        status: apiRes.status,
         details: data
       }), { status: 500 });
     }
 
     const reply = data?.choices?.[0]?.message?.content;
 
-    if (!reply) {
-      return new Response(JSON.stringify({
-        error: "Empty AI response",
-        full: data
-      }), { status: 500 });
-    }
-
     return new Response(JSON.stringify({
       success: true,
-      data: [{ text: reply }]
+      data: [{ text: reply || "No reply text" }]
     }), { status: 200 });
 
   } catch (err) {
