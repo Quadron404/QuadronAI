@@ -1,51 +1,49 @@
-// functions/api/chat.js
 import { GroqClient } from 'groq-cloud-sdk';
 
-const client = new GroqClient({
-  apiKey: process.env.GROQ_API_KEY, // must be set in Cloudflare env
-});
+export async function onRequestPost(context) {
+  const { request, env } = context;
 
-export default async function handler(req, res) {
   try {
-    if (req.method !== 'POST') {
-      return res.status(405).json({ error: 'POST requests only.' });
+    // 1. Check API Key
+    if (!env.GROQ_API_KEY) {
+      return new Response(JSON.stringify({ error: "GROQ_API_KEY is missing in Cloudflare dashboard." }), { status: 500 });
     }
 
-    const { message } = req.body;
-    if (!message || message.trim() === '') {
-      return res.status(400).json({ error: 'Message is required.' });
+    // 2. Parse Request Body
+    const { message } = await request.json();
+    if (!message) {
+      return new Response(JSON.stringify({ error: "Message is required." }), { status: 400 });
     }
 
-    if (!process.env.GROQ_API_KEY) {
-      return res.status(500).json({ error: 'Server misconfigured: GROQ_API_KEY missing.' });
-    }
+    // 3. Initialize Groq
+    const client = new GroqClient({
+      apiKey: env.GROQ_API_KEY,
+    });
 
-    // System prompt + user message
     const systemPrompt = "You are Quadron, a sarcastic AI.";
-    const userPrompt = message;
 
-    // Call GPT-OSS-120B (or whichever GPT model your Groq API supports)
+    // 4. Call Groq API
     const data = await client.inference({
-      model: 'gpt-oss-120b',
+      model: 'gpt-oss-120b', // Ensure this model name is correct for Groq
       input: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt }
+        { role: "user", content: message }
       ]
     });
 
-    // The AI model may return data.output as array of text strings
     const reply = data.output ? data.output.join("\n") : "Quadron couldn't respond";
 
-    return res.status(200).json({
+    return new Response(JSON.stringify({
       success: true,
-      data: [{ text: reply }]
+      data:
+    }), {
+      headers: { "Content-Type": "application/json" }
     });
 
-  } catch(err) {
-    console.error('GROQ AI error:', err);
-    return res.status(500).json({
-      error: 'GROQ API request failed',
+  } catch (err) {
+    return new Response(JSON.stringify({
+      error: "GROQ API request failed",
       message: err.message
-    });
+    }), { status: 500 });
   }
 }
