@@ -1,57 +1,125 @@
-// functions/api/chat.js
-import { GroqClient } from 'groq-cloud-sdk';
+<!DOCTYPE html>
+<html>
+<head>
+<title>Quadron AI</title>
+<style>
+body{background:#0a0a0a;color:#ffd900;font-family:Arial;text-align:center;margin:0;}
+header{display:flex;justify-content:space-between;padding:15px;background:#000;border-bottom:2px solid #ffd900;align-items:center;}
+#rightControls{display:flex;align-items:center;gap:10px;position:relative;}
+#profilePic{width:34px;height:34px;border-radius:50%;border:2px solid #ffd900;box-shadow:0 0 10px #ffd900;object-fit:cover;display:none;cursor:pointer;}
+#profilePanel{position:absolute;top:50px;right:0;background:#111;border:1px solid #ffd900;padding:15px;display:none;width:200px;box-shadow:0 0 15px #ffd900;}
+#profileEmail{font-size:13px;margin-bottom:12px;color:#ccc;word-break:break-all;}
+#logoutBtn{background:#ffd900;color:black;border:none;padding:8px 12px;cursor:pointer;border-radius:6px;box-shadow:0 0 12px #ffd900;width:100%;}
+button{background:#ffd900;color:black;border:none;padding:10px 18px;cursor:pointer;border-radius:6px;box-shadow:0 0 10px #ffd900;}
+#chat{width:80%;max-width:700px;margin:auto;margin-top:20px;}
+#messages{background:#111;border:1px solid #ffd900;height:420px;overflow:auto;padding:10px;text-align:left;white-space:pre-wrap;}
+input{width:70%;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;}
+#loader{display:none;margin:10px;color:#ffd900;}
+.footer{margin-top:20px;font-size:12px;color:#aaa;}
+</style>
+</head>
+<body>
 
-// Initialize Groq client with API key
-const client = new GroqClient({
-  apiKey: process.env.GROQ_API_KEY,
-});
+<header>
+<h2>Quadron AI</h2>
+<div id="rightControls">
+<button onclick="location.href='voice.html'">Voice Mode</button>
+<button onclick="location.href='quadron7.html'">Quadron 7</button>
+<img id="profilePic">
+<div id="profilePanel">
+<div id="profileEmail"></div>
+<button id="logoutBtn" onclick="logout()">Logout</button>
+</div>
+</div>
+</header>
 
-export default async function handler(req, res) {
-  try {
-    // GET requests show friendly message in browser
-    if (req.method === 'GET') {
-      return res
-        .status(200)
-        .send("Quadron AI POST endpoint. Send JSON with { message: '...' } to get a sarcastic reply.");
-    }
+<div id="chat">
+<div id="messages"></div>
+<div id="loader">Quadron thinking...</div>
+<input id="msg" placeholder="Type message">
+<button onclick="send()">Send</button>
+</div>
 
-    // Only allow POST for AI messages
-    if (req.method !== 'POST') {
-      return res.status(405).json({ error: 'POST requests only' });
-    }
+<div class="footer">Quadron AI is great</div>
 
-    // Read message from request
-    const { message } = req.body;
-    if (!message || message.trim() === '') {
-      return res.status(400).json({ error: 'Message is required.' });
-    }
-
-    if (!process.env.GROQ_API_KEY) {
-      return res.status(500).json({ error: 'Server misconfigured: GROQ_API_KEY missing.' });
-    }
-
-    // System prompt ensures sarcastic personality
-    const systemPrompt = "You are Quadron, a sarcastic AI.";
-
-    // Call Groq API for inference
-    const data = await client.inference({
-      model: 'gpt-oss-120b',
-      input: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: message }
-      ]
-    });
-
-    // Return AI response
-    const reply = data.output ? data.output.join("\n") : "Quadron couldn't respond.";
-
-    return res.status(200).json({ success: true, data: [{ text: reply }] });
-
-  } catch (err) {
-    console.error('GROQ AI error:', err);
-    return res.status(500).json({
-      error: 'GROQ API request failed',
-      message: err.message
-    });
-  }
+<script>
+// USER MEMORY
+let username=null, userEmail=null;
+const storedUser=localStorage.getItem("quadronUser");
+if(storedUser){
+  const user=JSON.parse(storedUser);
+  username=user.name;
+  userEmail=user.email;
+  const pic=document.getElementById("profilePic");
+  pic.src=user.picture || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+  pic.style.display="block";
+  document.getElementById("profileEmail").innerText=userEmail;
 }
+
+// LOGOUT
+function logout(){ localStorage.removeItem("quadronUser"); window.location.href="index.html"; }
+
+// ASK AI
+async function askAI(message){
+  try{
+    const res = await fetch("/api/chat",{ 
+      method:"POST", 
+      headers:{"Content-Type":"application/json"}, 
+      body:JSON.stringify({message}) 
+    });
+    const text = await res.text();
+    if(!text) return "Quadron couldn't respond";
+
+    let data;
+    try{ data=JSON.parse(text); } catch(e){ return "ERROR: Invalid JSON → " + text; }
+    if(data.data && Array.isArray(data.data) && data.data.length>0) 
+      return data.data.map(d=>d.text).join("\n\n");
+    if(data.error) return data.error + (data.message ? ": " + data.message : "");
+    return "Quadron couldn't respond";
+  } catch(err){ console.error(err); return "ERROR: Connection failed"; }
+}
+
+// INITIAL GREETING
+window.onload=async function(){
+  const box=document.getElementById("messages");
+  let intro=username ? `User name is ${username}. Give a smart sarcastic greeting.` : "Give a sarcastic greeting.";
+  document.getElementById("loader").style.display="block";
+  const reply=await askAI(intro);
+  document.getElementById("loader").style.display="none";
+  const p=document.createElement("p");
+  p.innerHTML="<b>Quadron:</b> ";
+  box.appendChild(p);
+  typeText(reply,p);
+}
+
+// SEND MESSAGE
+async function send(){
+  const input=document.getElementById("msg");
+  const text=input.value.trim();
+  if(!text) return;
+  const box=document.getElementById("messages");
+  box.innerHTML+=`<p><b>You:</b> ${text}</p>`;
+  input.value="";
+  document.getElementById("loader").style.display="block";
+  const reply=await askAI(text);
+  document.getElementById("loader").style.display="none";
+  const p=document.createElement("p");
+  p.innerHTML="<b>Quadron:</b> ";
+  box.appendChild(p);
+  typeText(reply,p);
+  box.scrollTop=box.scrollHeight;
+}
+
+// TYPE EFFECT
+function typeText(text,element){
+  let i=0;
+  const interval=setInterval(()=>{
+    element.innerHTML+=text.charAt(i);
+    i++;
+    if(i>=text.length) clearInterval(interval);
+  },20);
+}
+</script>
+
+</body>
+</html>
