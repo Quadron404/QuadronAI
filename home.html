@@ -175,7 +175,7 @@ localStorage.removeItem("quadronUser")
 window.location.href="index.html"
 }
 
-// SAFE FETCH FUNCTION
+// 🔥 IMPROVED SAFE FETCH (FULL DEBUG)
 async function askAI(message){
 
 try{
@@ -186,23 +186,32 @@ headers:{"Content-Type":"application/json"},
 body:JSON.stringify({message})
 })
 
-if(!res.ok){
-return "Server error (" + res.status + ")"
-}
-
+// read raw response FIRST
 const text = await res.text()
 
 if(!text){
-return "Empty response from server"
+return "ERROR: Empty response from server"
 }
 
-const data = JSON.parse(text)
+let data
 
-return data.reply || "No reply from AI"
+try{
+data = JSON.parse(text)
+}catch(e){
+return "ERROR: Invalid JSON → " + text
+}
+
+// if backend returned error
+if(!res.ok){
+return "ERROR " + res.status + ": " + (data.error || text)
+}
+
+// success
+return data.reply || "ERROR: No reply from AI"
 
 }catch(err){
 console.error(err)
-return "Connection failed"
+return "ERROR: Connection failed"
 }
 
 }
@@ -256,21 +265,19 @@ box.appendChild(p)
 
 typeText(reply,p)
 
-box.scrollTop = box.scrollHeight
+box.scrollTop=box.scrollHeight
 }
 
-// TYPING EFFECT
+// TYPE EFFECT
 function typeText(text,element){
 
 let i=0
 
 const interval=setInterval(()=>{
-element.innerHTML += text.charAt(i)
+element.innerHTML+=text.charAt(i)
 i++
-
 if(i>=text.length) clearInterval(interval)
-
-},15)
+},20)
 
 }
 
