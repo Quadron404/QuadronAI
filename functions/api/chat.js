@@ -1,12 +1,10 @@
-import { GroqClient } from 'groq-cloud-sdk';
-
 export async function onRequestPost(context) {
   const { request, env } = context;
 
   try {
-    // 1. Check if Secret is set in Cloudflare
+    // 1. Check if the secret exists
     if (!env.GROQ_API_KEY) {
-      return new Response(JSON.stringify({ error: "GROQ_API_KEY missing in Cloudflare dashboard." }), { status: 500 });
+      return new Response(JSON.stringify({ error: "GROQ_API_KEY is missing in Cloudflare settings." }), { status: 500 });
     }
 
     // 2. Parse User Input
@@ -15,25 +13,32 @@ export async function onRequestPost(context) {
       return new Response(JSON.stringify({ error: "Message is required." }), { status: 400 });
     }
 
-    // 3. Initialize Groq
-    const client = new GroqClient({
-      apiKey: env.GROQ_API_KEY,
+    // 3. Call Groq via Native Fetch (No imports needed)
+    const groqResponse = await fetch("https://api.groq.com", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${env.GROQ_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          { role: "system", content: "You are Quadron, a sarcastic AI." },
+          { role: "user", content: message }
+        ]
+      })
     });
 
-    const systemPrompt = "You are Quadron, a sarcastic AI.";
+    const data = await groqResponse.json();
+    
+    // Check if Groq returned an error
+    if (data.error) {
+      return new Response(JSON.stringify({ error: data.error.message }), { status: 500 });
+    }
 
-    // 4. Call Groq API
-    const data = await client.inference({
-      model: 'gpt-oss-120b', 
-      input: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: message }
-      ]
-    });
+    const reply = data.choices[0]?.message?.content || "Quadron is speechless.";
 
-    const reply = data.output ? data.output.join("\n") : "Quadron couldn't respond";
-
-    // 5. Return JSON in the format the frontend expects
+    // 4. Return formatted response to UI
     return new Response(JSON.stringify({
       success: true,
       data:
@@ -43,7 +48,7 @@ export async function onRequestPost(context) {
 
   } catch (err) {
     return new Response(JSON.stringify({
-      error: "GROQ API request failed",
+      error: "Connection to AI failed",
       message: err.message
     }), { status: 500 });
   }
