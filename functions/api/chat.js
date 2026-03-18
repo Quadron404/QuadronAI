@@ -1,14 +1,12 @@
 // functions/api/chat.js
 import { GroqClient } from 'groq-cloud-sdk';
 
-// Initialize Groq client with your API key from environment variables
 const client = new GroqClient({
-  apiKey: process.env.GROQ_API_KEY,
+  apiKey: process.env.GROQ_API_KEY, // must be set in Cloudflare env
 });
 
 export default async function handler(req, res) {
   try {
-    // Only allow POST requests
     if (req.method !== 'POST') {
       return res.status(405).json({ error: 'POST requests only.' });
     }
@@ -18,41 +16,36 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Message is required.' });
     }
 
-    // Ensure API key is set
     if (!process.env.GROQ_API_KEY) {
       return res.status(500).json({ error: 'Server misconfigured: GROQ_API_KEY missing.' });
     }
 
-    // GROQ query – adjust _type if needed to match your dataset
-    const query = `*[_type=="messages" && text match "${message}"]{text}`;
+    // System prompt + user message
+    const systemPrompt = "You are Quadron, a sarcastic AI.";
+    const userPrompt = message;
 
-    try {
-      const data = await client.fetch(query);
+    // Call GPT-OSS-120B (or whichever GPT model your Groq API supports)
+    const data = await client.inference({
+      model: 'gpt-oss-120b',
+      input: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ]
+    });
 
-      // If no documents found, return friendly warning
-      if (!data || data.length === 0) {
-        return res.status(200).json({
-          success: true,
-          warning: 'No matching messages found in Groq dataset.',
-          data: [{ text: `I couldn't find anything for "${message}" in the dataset.` }],
-        });
-      }
+    // The AI model may return data.output as array of text strings
+    const reply = data.output ? data.output.join("\n") : "Quadron couldn't respond";
 
-      // Return messages found
-      return res.status(200).json({ success: true, data });
+    return res.status(200).json({
+      success: true,
+      data: [{ text: reply }]
+    });
 
-    } catch (groqError) {
-      // Catch Groq-specific errors
-      console.error('Groq API error:', groqError);
-      return res.status(500).json({
-        error: 'GROQ API request failed',
-        message: groqError.message || 'Unknown Groq error',
-      });
-    }
-
-  } catch (err) {
-    // Catch any other errors
-    console.error('chat.js error:', err);
-    return res.status(500).json({ error: 'Internal server error', message: err.message });
+  } catch(err) {
+    console.error('GROQ AI error:', err);
+    return res.status(500).json({
+      error: 'GROQ API request failed',
+      message: err.message
+    });
   }
 }
