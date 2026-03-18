@@ -1,0 +1,50 @@
+.voice-panel{
+display:flex;
+justify-content:space-around;
+margin-top:20px;
+flex-wrap:wrap;
+}
+
+.voice-card{
+padding:15px;
+border-radius:12px;
+cursor:pointer;
+width:160px;
+text-align:center;
+transition:0.3s;
+}
+
+.voice-card:hover{
+transform:scale(1.05);
+}
+
+#voice0{box-shadow:0 0 15px red}
+#voice1{box-shadow:0 0 15px blue}
+#voice2{box-shadow:0 0 15px orange}
+#voice3{box-shadow:0 0 15px pink}
+
+.active{
+outline:3px solid white;
+}
+
+.voice-orb{
+width:120px;
+height:120px;
+border-radius:50%;
+margin:auto;
+margin-top:20px;
+background:radial-gradient(circle,#00aaff,#001f3f);
+box-shadow:0 0 40px #00aaff;
+}
+
+.voice-orb.speaking{
+animation:voicePulse 1s infinite;
+}
+
+@keyframes voicePulse{
+
+0%{transform:scale(1)}
+50%{transform:scale(1.15)}
+100%{transform:scale(1)}
+
+}

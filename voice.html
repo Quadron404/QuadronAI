@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quadron Voice Mode</title>
+
+<style>
+
+body{
+background:#050505;
+font-family:Arial, Helvetica, sans-serif;
+margin:0;
+overflow:hidden;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+height:100vh;
+color:white;
+}
+
+/* wave canvas */
+
+#waveCanvas{
+width:900px;
+max-width:90%;
+height:220px;
+}
+
+/* captions */
+
+#caption{
+position:absolute;
+bottom:120px;
+font-size:34px;
+font-weight:bold;
+color:#ffe600;
+text-shadow:
+0 0 10px #ffe600,
+0 0 25px #ffd000,
+0 0 50px #ffc400;
+}
+
+/* footer */
+
+#footer{
+position:absolute;
+bottom:20px;
+font-size:13px;
+opacity:.65;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<canvas id="waveCanvas"></canvas>
+
+<div id="caption"></div>
+
+<div id="footer">
+English-only voice mode , using other languages would be devastating
+</div>
+
+<script>
+
+/* ---------------- WAVE VISUALIZER ---------------- */
+
+const canvas = document.getElementById("waveCanvas")
+const ctx = canvas.getContext("2d")
+
+canvas.width = 900
+canvas.height = 220
+
+let phase = 0
+let speaking = false
+
+function drawWave(){
+
+ctx.clearRect(0,0,canvas.width,canvas.height)
+
+let amp = speaking ? 42 : 18
+
+function wave(speed,opacity,width){
+
+ctx.beginPath()
+ctx.lineWidth = width
+ctx.strokeStyle = `rgba(255,230,0,${opacity})`
+
+ctx.shadowBlur = 35
+ctx.shadowColor = "#ffe600"
+
+for(let x=0;x<canvas.width;x++){
+
+let y = canvas.height/2 +
+Math.sin((x+phase)*speed)*amp
+
+ctx.lineTo(x,y)
+
+}
+
+ctx.stroke()
+
+}
+
+wave(.02,.9,3)
+wave(.025,.5,2)
+wave(.03,.3,1)
+
+phase += 2
+
+requestAnimationFrame(drawWave)
+
+}
+
+drawWave()
+
+/* ---------------- SPEECH SYSTEM ---------------- */
+
+const caption = document.getElementById("caption")
+
+let currentUtterance = null
+
+function stopSpeech(){
+
+if(currentUtterance){
+speechSynthesis.cancel()
+currentUtterance = null
+}
+
+caption.innerText = ""
+speaking = false
+
+}
+
+function speak(text){
+
+stopSpeech()
+
+let words = text.split(" ")
+let index = 0
+
+let utter = new SpeechSynthesisUtterance(text)
+
+utter.lang = "en-US"
+utter.rate = 1
+
+currentUtterance = utter
+speaking = true
+
+/* captions synchronized with spoken words */
+
+utter.onboundary = function(event){
+
+if(event.name === "word"){
+caption.innerText = words[index] || ""
+index++
+}
+
+}
+
+utter.onend = function(){
+
+caption.innerText = ""
+speaking = false
+currentUtterance = null
+
+}
+
+speechSynthesis.speak(utter)
+
+}
+
+/* ---------------- VOICE INPUT ---------------- */
+
+const SpeechRecognition =
+window.SpeechRecognition ||
+window.webkitSpeechRecognition
+
+const recognition = new SpeechRecognition()
+
+recognition.lang = "en-US"
+recognition.continuous = true
+recognition.interimResults = true
+
+let transcriptBuffer = ""
+let silenceTimer = null
+
+function startRecognition(){
+
+try{
+recognition.start()
+}catch(e){}
+
+}
+
+recognition.onresult = function(event){
+
+let result = event.results[event.results.length-1]
+let text = result[0].transcript.trim()
+
+/* interrupt AI immediately when user starts speaking */
+
+if(speaking){
+stopSpeech()
+}
+
+/* collect current speech */
+
+transcriptBuffer = text
+
+/* wait for silence */
+
+clearTimeout(silenceTimer)
+
+silenceTimer = setTimeout(async ()=>{
+
+if(!transcriptBuffer) return
+
+let speech = transcriptBuffer
+transcriptBuffer = ""
+
+try{
+
+let response = await fetch("http://localhost:3000/chat",{
+
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+message:speech
+})
+
+})
+
+let data = await response.json()
+
+speak(data.reply)
+
+}catch(e){
+
+console.log("API error",e)
+
+}
+
+},1000)
+
+}
+
+recognition.onend = function(){
+setTimeout(startRecognition,400)
+}
+
+recognition.onerror = function(){
+setTimeout(startRecognition,800)
+}
+
+startRecognition()
+
+</script>
+
+</body>
+</html>

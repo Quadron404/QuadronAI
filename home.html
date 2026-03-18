@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>Quadron AI</title>
+
+<style>
+body{
+background:#0a0a0a;
+color:#ffd900;
+font-family:Arial;
+text-align:center;
+margin:0;
+}
+
+header{
+display:flex;
+justify-content:space-between;
+padding:15px;
+background:#000;
+border-bottom:2px solid #ffd900;
+align-items:center;
+}
+
+#rightControls{
+display:flex;
+align-items:center;
+gap:10px;
+position:relative;
+}
+
+#profilePic{
+width:34px;
+height:34px;
+border-radius:50%;
+border:2px solid #ffd900;
+box-shadow:0 0 10px #ffd900;
+object-fit:cover;
+display:none;
+cursor:pointer;
+}
+
+#profilePanel{
+position:absolute;
+top:50px;
+right:0;
+background:#111;
+border:1px solid #ffd900;
+padding:15px;
+display:none;
+width:200px;
+box-shadow:0 0 15px #ffd900;
+}
+
+#profileEmail{
+font-size:13px;
+margin-bottom:12px;
+color:#ccc;
+word-break:break-all;
+}
+
+#logoutBtn{
+background:#ffd900;
+color:black;
+border:none;
+padding:8px 12px;
+cursor:pointer;
+border-radius:6px;
+box-shadow:0 0 12px #ffd900;
+width:100%;
+}
+
+button{
+background:#ffd900;
+color:black;
+border:none;
+padding:10px 18px;
+cursor:pointer;
+border-radius:6px;
+box-shadow:0 0 10px #ffd900;
+}
+
+#chat{
+width:80%;
+max-width:700px;
+margin:auto;
+margin-top:20px;
+}
+
+#messages{
+background:#111;
+border:1px solid #ffd900;
+height:420px;
+overflow:auto;
+padding:10px;
+text-align:left;
+}
+
+input{
+width:70%;
+padding:10px;
+background:black;
+color:#ffd900;
+border:1px solid #ffd900;
+}
+
+#loader{
+display:none;
+margin:10px;
+}
+
+.footer{
+margin-top:20px;
+font-size:12px;
+color:#aaa;
+}
+</style>
+
+</head>
+
+<body>
+
+<header>
+<h2>Quadron AI</h2>
+
+<div id="rightControls">
+<button onclick="location.href='voice.html'">Voice Mode</button>
+<button onclick="location.href='quadron7.html'">Quadron 7</button>
+
+<img id="profilePic">
+
+<div id="profilePanel">
+<div id="profileEmail"></div>
+<button id="logoutBtn" onclick="logout()">Logout</button>
+</div>
+</div>
+</header>
+
+<div id="chat">
+<div id="messages"></div>
+
+<div id="loader">Quadron thinking...</div>
+
+<input id="msg" placeholder="Type message">
+<button onclick="send()">Send</button>
+</div>
+
+<div class="footer">
+Quadron AI can make mistakes
+</div>
+
+<script>
+
+// USER MEMORY
+let username=null
+let userEmail=null
+
+const storedUser=localStorage.getItem("quadronUser")
+
+if(storedUser){
+const user=JSON.parse(storedUser)
+username=user.name
+userEmail=user.email
+
+const pic=document.getElementById("profilePic")
+pic.src=user.picture || "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+pic.style.display="block"
+
+document.getElementById("profileEmail").innerText=userEmail
+}
+
+// LOGOUT
+function logout(){
+localStorage.removeItem("quadronUser")
+window.location.href="index.html"
+}
+
+// SAFE FETCH FUNCTION
+async function askAI(message){
+
+try{
+
+const res = await fetch("/api/chat",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({message})
+})
+
+if(!res.ok){
+return "Server error (" + res.status + ")"
+}
+
+const text = await res.text()
+
+if(!text){
+return "Empty response from server"
+}
+
+const data = JSON.parse(text)
+
+return data.reply || "No reply from AI"
+
+}catch(err){
+console.error(err)
+return "Connection failed"
+}
+
+}
+
+// INITIAL GREETING
+window.onload = async function(){
+
+const box=document.getElementById("messages")
+
+let intro="Give a sarcastic greeting."
+
+if(username){
+intro="User name is "+username+". Give a smart sarcastic greeting."
+}
+
+document.getElementById("loader").style.display="block"
+
+const reply = await askAI(intro)
+
+document.getElementById("loader").style.display="none"
+
+const p=document.createElement("p")
+p.innerHTML="<b>Quadron:</b> "
+box.appendChild(p)
+
+typeText(reply,p)
+}
+
+// SEND MESSAGE
+async function send(){
+
+const input=document.getElementById("msg")
+const text=input.value.trim()
+
+if(!text) return
+
+const box=document.getElementById("messages")
+
+box.innerHTML += "<p><b>You:</b> "+text+"</p>"
+
+input.value=""
+document.getElementById("loader").style.display="block"
+
+const reply = await askAI(text)
+
+document.getElementById("loader").style.display="none"
+
+const p=document.createElement("p")
+p.innerHTML="<b>Quadron:</b> "
+box.appendChild(p)
+
+typeText(reply,p)
+
+box.scrollTop = box.scrollHeight
+}
+
+// TYPING EFFECT
+function typeText(text,element){
+
+let i=0
+
+const interval=setInterval(()=>{
+element.innerHTML += text.charAt(i)
+i++
+
+if(i>=text.length) clearInterval(interval)
+
+},15)
+
+}
+
+</script>
+
+</body>
+</html>
