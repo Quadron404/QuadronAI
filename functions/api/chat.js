@@ -1,125 +1,40 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Quadron AI</title>
-<style>
-body{background:#0a0a0a;color:#ffd900;font-family:Arial;text-align:center;margin:0;}
-header{display:flex;justify-content:space-between;padding:15px;background:#000;border-bottom:2px solid #ffd900;align-items:center;}
-#rightControls{display:flex;align-items:center;gap:10px;position:relative;}
-#profilePic{width:34px;height:34px;border-radius:50%;border:2px solid #ffd900;box-shadow:0 0 10px #ffd900;object-fit:cover;display:none;cursor:pointer;}
-#profilePanel{position:absolute;top:50px;right:0;background:#111;border:1px solid #ffd900;padding:15px;display:none;width:200px;box-shadow:0 0 15px #ffd900;}
-#profileEmail{font-size:13px;margin-bottom:12px;color:#ccc;word-break:break-all;}
-#logoutBtn{background:#ffd900;color:black;border:none;padding:8px 12px;cursor:pointer;border-radius:6px;box-shadow:0 0 12px #ffd900;width:100%;}
-button{background:#ffd900;color:black;border:none;padding:10px 18px;cursor:pointer;border-radius:6px;box-shadow:0 0 10px #ffd900;}
-#chat{width:80%;max-width:700px;margin:auto;margin-top:20px;}
-#messages{background:#111;border:1px solid #ffd900;height:420px;overflow:auto;padding:10px;text-align:left;white-space:pre-wrap;}
-input{width:70%;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;}
-#loader{display:none;margin:10px;color:#ffd900;}
-.footer{margin-top:20px;font-size:12px;color:#aaa;}
-</style>
-</head>
-<body>
-
-<header>
-<h2>Quadron AI</h2>
-<div id="rightControls">
-<button onclick="location.href='voice.html'">Voice Mode</button>
-<button onclick="location.href='quadron7.html'">Quadron 7</button>
-<img id="profilePic">
-<div id="profilePanel">
-<div id="profileEmail"></div>
-<button id="logoutBtn" onclick="logout()">Logout</button>
-</div>
-</div>
-</header>
-
-<div id="chat">
-<div id="messages"></div>
-<div id="loader">Quadron thinking...</div>
-<input id="msg" placeholder="Type message">
-<button onclick="send()">Send</button>
-</div>
-
-<div class="footer">Quadron AI is great</div>
-
-<script>
-// USER MEMORY
-let username=null, userEmail=null;
-const storedUser=localStorage.getItem("quadronUser");
-if(storedUser){
-  const user=JSON.parse(storedUser);
-  username=user.name;
-  userEmail=user.email;
-  const pic=document.getElementById("profilePic");
-  pic.src=user.picture || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-  pic.style.display="block";
-  document.getElementById("profileEmail").innerText=userEmail;
-}
-
-// LOGOUT
-function logout(){ localStorage.removeItem("quadronUser"); window.location.href="index.html"; }
-
-// ASK AI
-async function askAI(message){
-  try{
-    const res = await fetch("/api/chat",{ 
-      method:"POST", 
-      headers:{"Content-Type":"application/json"}, 
-      body:JSON.stringify({message}) 
-    });
-    const text = await res.text();
-    if(!text) return "Quadron couldn't respond";
-
-    let data;
-    try{ data=JSON.parse(text); } catch(e){ return "ERROR: Invalid JSON → " + text; }
-    if(data.data && Array.isArray(data.data) && data.data.length>0) 
-      return data.data.map(d=>d.text).join("\n\n");
-    if(data.error) return data.error + (data.message ? ": " + data.message : "");
-    return "Quadron couldn't respond";
-  } catch(err){ console.error(err); return "ERROR: Connection failed"; }
-}
-
-// INITIAL GREETING
-window.onload=async function(){
-  const box=document.getElementById("messages");
-  let intro=username ? `User name is ${username}. Give a smart sarcastic greeting.` : "Give a sarcastic greeting.";
-  document.getElementById("loader").style.display="block";
-  const reply=await askAI(intro);
-  document.getElementById("loader").style.display="none";
-  const p=document.createElement("p");
-  p.innerHTML="<b>Quadron:</b> ";
-  box.appendChild(p);
-  typeText(reply,p);
-}
-
-// SEND MESSAGE
-async function send(){
-  const input=document.getElementById("msg");
-  const text=input.value.trim();
-  if(!text) return;
-  const box=document.getElementById("messages");
-  box.innerHTML+=`<p><b>You:</b> ${text}</p>`;
-  input.value="";
-  document.getElementById("loader").style.display="block";
-  const reply=await askAI(text);
-  document.getElementById("loader").style.display="none";
-  const p=document.createElement("p");
-  p.innerHTML="<b>Quadron:</b> ";
-  box.appendChild(p);
-  typeText(reply,p);
-  box.scrollTop=box.scrollHeight;
-}
-
-// TYPE EFFECT
-function typeText(text,element){
-  let i=0;
-  const interval=setInterval(()=>{
-    element.innerHTML+=text.charAt(i);
-    i++;
-    if(i>=text.length) clearInterval(interval);
-  },20);
-}
-</script>
-
-</body>
-</html>
+2026-03-18T13:57:55.123273Z	Cloning repository...
+2026-03-18T13:57:55.723152Z	From https://github.com/Quadron404/QuadronAI
+2026-03-18T13:57:55.7236Z	 * branch            f40e753726910c7924bd2a25a28e57aa868db2ba -> FETCH_HEAD
+2026-03-18T13:57:55.723713Z	
+2026-03-18T13:57:55.749098Z	HEAD is now at f40e753 Update chat.js
+2026-03-18T13:57:55.749489Z	
+2026-03-18T13:57:55.798815Z	
+2026-03-18T13:57:55.799301Z	Using v2 root directory strategy
+2026-03-18T13:57:55.813002Z	Success: Finished cloning repository files
+2026-03-18T13:57:58.314121Z	Checking for configuration in a Wrangler configuration file (BETA)
+2026-03-18T13:57:58.314688Z	
+2026-03-18T13:57:59.422831Z	No Wrangler configuration file found. Continuing.
+2026-03-18T13:57:59.423215Z	No build command specified. Skipping build step.
+2026-03-18T13:57:59.423793Z	Found Functions directory at /functions. Uploading.
+2026-03-18T13:57:59.431514Z	 ⛅️ wrangler 3.101.0
+2026-03-18T13:57:59.431667Z	-------------------
+2026-03-18T13:58:00.352281Z	✘ [ERROR] The JSX syntax extension is not currently enabled
+2026-03-18T13:58:00.35276Z	
+2026-03-18T13:58:00.352814Z	    ../../../buildhome/repo/functions/api/chat.js:1:0:
+2026-03-18T13:58:00.352865Z	      1 │ <!DOCTYPE html>
+2026-03-18T13:58:00.352904Z	        ╵ ^
+2026-03-18T13:58:00.352939Z	
+2026-03-18T13:58:00.352975Z	  The esbuild loader for this file is currently set to "js" but it must be set to "jsx" to be able to parse JSX syntax. You can use "loader: { '.js': 'jsx' }" to do that.
+2026-03-18T13:58:00.353015Z	
+2026-03-18T13:58:00.353065Z	✘ [ERROR] Expected identifier but found "!"
+2026-03-18T13:58:00.353118Z	
+2026-03-18T13:58:00.353173Z	    ../../../buildhome/repo/functions/api/chat.js:1:1:
+2026-03-18T13:58:00.353353Z	      1 │ <!DOCTYPE html>
+2026-03-18T13:58:00.353408Z	        ╵  ^
+2026-03-18T13:58:00.353445Z	
+2026-03-18T13:58:00.359221Z	
+2026-03-18T13:58:00.418725Z	[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mBuild failed with 2 errors:[0m
+2026-03-18T13:58:00.419087Z	
+2026-03-18T13:58:00.419225Z	  ../../../buildhome/repo/functions/api/chat.js:1:0: ERROR: The JSX syntax extension is not currently enabled
+2026-03-18T13:58:00.419316Z	  ../../../buildhome/repo/functions/api/chat.js:1:1: ERROR: Expected identifier but found "!"
+2026-03-18T13:58:00.419561Z	
+2026-03-18T13:58:00.419675Z	
+2026-03-18T13:58:00.433036Z	🪵  Logs were written to "/root/.config/.wrangler/logs/wrangler-2026-03-18_13-58-00_023.log"
+2026-03-18T13:58:00.510773Z	Failed building Pages Functions.
+2026-03-18T13:58:02.003981Z	Failed: generating Pages Functions failed. Check the logs above for more information. If this continues for an unknown reason, contact support: https://cfl.re/3WgEyrH
