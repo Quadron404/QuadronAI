@@ -93,6 +93,7 @@ button{
   overflow:auto;
   padding:10px;
   text-align:left;
+  white-space:pre-wrap; /* keep newlines from API */
 }
 
 input{
@@ -146,17 +147,15 @@ input{
 </div>
 
 <div class="footer">
-Quadron AI is great
+Quadron AI is good
 </div>
 
 <script>
-
 // USER MEMORY
 let username = null;
 let userEmail = null;
 
 const storedUser = localStorage.getItem("quadronUser");
-
 if(storedUser){
   const user = JSON.parse(storedUser);
   username = user.name;
@@ -175,9 +174,8 @@ function logout(){
   window.location.href = "index.html";
 }
 
-// 🔥 IMPROVED SAFE FETCH (FULL DEBUG)
+// FETCH API and handle exact response
 async function askAI(message){
-
   try{
     const res = await fetch("/api/chat", {
       method:"POST",
@@ -186,30 +184,27 @@ async function askAI(message){
     });
 
     const text = await res.text();
-
-    if(!text){
-      return "Quadron has nothing to say.";
-    }
+    if(!text) return "Quadron has nothing to say.";
 
     let data;
     try{
       data = JSON.parse(text);
-    }catch(e){
+    } catch(e){
       return "ERROR: Invalid JSON → " + text;
     }
 
-    // Handle warnings or empty data
-    if(data.warning){
-      return data.warning;
+    // If API returns array of messages
+    if(data.data && Array.isArray(data.data) && data.data.length > 0){
+      return data.data.map(d => d.text).join("\n\n"); // preserve multiple responses
     }
 
-    if(data.data && data.data.length > 0){
-      return data.data.map(d => d.text).join("\n");
-    }
+    // If API returns warning or error
+    if(data.warning) return data.warning;
+    if(data.error) return data.error + (data.message ? ": " + data.message : "");
 
     return "Quadron has nothing to say.";
 
-  }catch(err){
+  } catch(err){
     console.error(err);
     return "ERROR: Connection failed";
   }
@@ -219,22 +214,15 @@ async function askAI(message){
 window.onload = async function(){
   const box = document.getElementById("messages");
 
-  let intro = "Give a sarcastic greeting.";
-
-  if(username){
-    intro = "User name is " + username + ". Give a smart sarcastic greeting.";
-  }
+  let intro = username ? `User name is ${username}. Give a smart sarcastic greeting.` : "Give a sarcastic greeting.";
 
   document.getElementById("loader").style.display = "block";
-
   const reply = await askAI(intro);
-
   document.getElementById("loader").style.display = "none";
 
   const p = document.createElement("p");
   p.innerHTML = "<b>Quadron:</b> ";
   box.appendChild(p);
-
   typeText(reply, p);
 }
 
@@ -245,19 +233,16 @@ async function send(){
   if(!text) return;
 
   const box = document.getElementById("messages");
-  box.innerHTML += "<p><b>You:</b> " + text + "</p>";
-
+  box.innerHTML += `<p><b>You:</b> ${text}</p>`;
   input.value = "";
+
   document.getElementById("loader").style.display = "block";
-
   const reply = await askAI(text);
-
   document.getElementById("loader").style.display = "none";
 
   const p = document.createElement("p");
   p.innerHTML = "<b>Quadron:</b> ";
   box.appendChild(p);
-
   typeText(reply, p);
 
   box.scrollTop = box.scrollHeight;
@@ -265,14 +250,13 @@ async function send(){
 
 // TYPE EFFECT
 function typeText(text, element){
-  let i = 0;
+  let i=0;
   const interval = setInterval(()=>{
     element.innerHTML += text.charAt(i);
     i++;
     if(i >= text.length) clearInterval(interval);
   }, 20);
 }
-
 </script>
 
 </body>
