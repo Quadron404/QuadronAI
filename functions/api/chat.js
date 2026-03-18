@@ -1,57 +1,75 @@
 // functions/api/chat.js
-import { GroqClient } from 'groq-cloud-sdk';
 
-// Initialize Groq client with API key
-const client = new GroqClient({
-  apiKey: process.env.GROQ_API_KEY,
-});
+export async function onRequest(context) {
+  const { request, env } = context;
 
-export default async function handler(req, res) {
+  // Handle GET (so browser won't show login page)
+  if (request.method === "GET") {
+    return new Response(
+      "Quadron AI endpoint working. Use POST with { message: '...' }",
+      { status: 200 }
+    );
+  }
+
+  if (request.method !== "POST") {
+    return new Response(
+      JSON.stringify({ error: "POST only" }),
+      { status: 405 }
+    );
+  }
+
   try {
-    // GET requests show friendly message in browser
-    if (req.method === 'GET') {
-      return res
-        .status(200)
-        .send("Quadron AI POST endpoint. Send JSON with { message: '...' } to get a sarcastic reply.");
+    const body = await request.json();
+    const message = body.message;
+
+    if (!message) {
+      return new Response(
+        JSON.stringify({ error: "Message required" }),
+        { status: 400 }
+      );
     }
 
-    // Only allow POST for AI messages
-    if (req.method !== 'POST') {
-      return res.status(405).json({ error: 'POST requests only' });
+    if (!env.GROQ_API_KEY) {
+      return new Response(
+        JSON.stringify({ error: "Missing GROQ_API_KEY" }),
+        { status: 500 }
+      );
     }
 
-    // Read message from request
-    const { message } = req.body;
-    if (!message || message.trim() === '') {
-      return res.status(400).json({ error: 'Message is required.' });
-    }
-
-    if (!process.env.GROQ_API_KEY) {
-      return res.status(500).json({ error: 'Server misconfigured: GROQ_API_KEY missing.' });
-    }
-
-    // System prompt ensures sarcastic personality
-    const systemPrompt = "You are Quadron, a sarcastic AI.";
-
-    // Call Groq API for inference
-    const data = await client.inference({
-      model: 'gpt-oss-120b',
-      input: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: message }
-      ]
+    // 🔥 REAL GROQ API CALL (CORRECT FORMAT)
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${env.GROQ_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "llama3-70b-8192", // reliable working model
+        messages: [
+          { role: "system", content: "You are Quadron, a sarcastic AI." },
+          { role: "user", content: message }
+        ]
+      })
     });
 
-    // Return AI response
-    const reply = data.output ? data.output.join("\n") : "Quadron couldn't respond.";
+    const data = await response.json();
 
-    return res.status(200).json({ success: true, data: [{ text: reply }] });
+    // ✅ CORRECT RESPONSE EXTRACTION
+    const reply =
+      data?.choices?.[0]?.message?.content || "No response from AI";
+
+    return new Response(
+      JSON.stringify({ success: true, data: [{ text: reply }] }),
+      { status: 200 }
+    );
 
   } catch (err) {
-    console.error('GROQ AI error:', err);
-    return res.status(500).json({
-      error: 'GROQ API request failed',
-      message: err.message
-    });
+    return new Response(
+      JSON.stringify({
+        error: "Server error",
+        message: err.message
+      }),
+      { status: 500 }
+    );
   }
 }
