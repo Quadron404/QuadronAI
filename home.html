@@ -122,7 +122,70 @@ text-decoration:underline;
 text-decoration-color:#ffd900;
 cursor:pointer;
 }
+/* 🔥 MOBILE APP STYLE FIX */
+@media (max-width: 600px){
 
+/* header */
+header{
+flex-direction:row;
+padding:10px;
+}
+
+header h2{
+font-size:18px;
+}
+
+/* buttons */
+button{
+padding:8px 10px;
+font-size:12px;
+}
+
+/* chat container */
+#chat{
+width:100%;
+padding:0 5px;
+margin-top:5px;
+}
+
+/* messages box */
+#messages{
+height:65vh;
+font-size:14px;
+border-radius:8px;
+}
+
+/* input area like chatgpt */
+input{
+width:68%;
+padding:10px;
+font-size:14px;
+border-radius:6px;
+}
+
+/* keep input + send aligned */
+#chat input, #chat button{
+margin-top:5px;
+}
+
+/* footer */
+.footer{
+font-size:10px;
+margin-bottom:10px;
+}
+
+/* profile panel */
+#profilePanel{
+width:150px;
+right:5px;
+}
+
+/* prevent zoom issues */
+html{
+font-size:16px;
+}
+
+}
 </style>
 
 </head>
