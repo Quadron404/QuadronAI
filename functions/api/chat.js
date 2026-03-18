@@ -1,64 +1,58 @@
 // functions/api/chat.js
 import { GroqClient } from 'groq-cloud-sdk';
 
-// Initialize Groq client with your API key
+// Initialize Groq client with your API key from environment variables
 const client = new GroqClient({
   apiKey: process.env.GROQ_API_KEY,
 });
 
 export default async function handler(req, res) {
-  // Only allow POST requests
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'POST requests only.' });
-  }
-
   try {
-    const { message } = req.body;
+    // Only allow POST requests
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'POST requests only.' });
+    }
 
+    const { message } = req.body;
     if (!message || message.trim() === '') {
       return res.status(400).json({ error: 'Message is required.' });
     }
 
-    // Check that API key is set
+    // Ensure API key is set
     if (!process.env.GROQ_API_KEY) {
       return res.status(500).json({ error: 'Server misconfigured: GROQ_API_KEY missing.' });
     }
 
-    // GROQ query (update _type if your dataset uses a different type)
+    // GROQ query – adjust _type if needed to match your dataset
     const query = `*[_type=="messages" && text match "${message}"]{text}`;
 
     try {
       const data = await client.fetch(query);
 
-      // If query returned nothing
+      // If no documents found, return friendly warning
       if (!data || data.length === 0) {
         return res.status(200).json({
           success: true,
-          warning: 'Query succeeded but returned no results. Check dataset and _type in Groq Cloud.',
+          warning: 'No matching messages found in Groq dataset.',
+          data: [{ text: `I couldn't find anything for "${message}" in the dataset.` }],
         });
       }
 
-      // Success: return messages
-      return res.status(200).json({
-        success: true,
-        data, // Array of { text }
-      });
+      // Return messages found
+      return res.status(200).json({ success: true, data });
 
     } catch (groqError) {
-      // Detailed Groq API error
+      // Catch Groq-specific errors
       console.error('Groq API error:', groqError);
       return res.status(500).json({
         error: 'GROQ API request failed',
-        message: groqError.message,
+        message: groqError.message || 'Unknown Groq error',
       });
     }
 
   } catch (err) {
-    // Catch any other server errors
+    // Catch any other errors
     console.error('chat.js error:', err);
-    return res.status(500).json({
-      error: 'Internal server error',
-      message: err.message,
-    });
+    return res.status(500).json({ error: 'Internal server error', message: err.message });
   }
 }
