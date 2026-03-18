@@ -2,7 +2,6 @@
 <html>
 <head>
 <title>Quadron AI</title>
-
 <style>
 body{
   background:#0a0a0a;
@@ -104,13 +103,11 @@ input{
   color:#aaa;
 }
 </style>
-
 </head>
 <body>
 
 <header>
 <h2>Quadron AI</h2>
-
 <div id="rightControls">
 <button onclick="location.href='voice.html'">Voice Mode</button>
 <button onclick="location.href='quadron7.html'">Quadron 7</button>
@@ -125,7 +122,7 @@ input{
 <div id="chat">
 <div id="messages"></div>
 <div id="loader">Quadron thinking...</div>
-<input id="msg" placeholder="Type message">
+<input id="msg" placeholder="Type message" onkeypress="if(event.key==='Enter') send()">
 <button onclick="send()">Send</button>
 </div>
 
@@ -160,19 +157,14 @@ async function askAI(message){
       headers: {"Content-Type":"application/json"},
       body: JSON.stringify({message})
     });
-    const text = await res.text();
-    if(!text) return "Quadron couldn't respond";
+    
+    const data = await res.json();
 
-    let data;
-    try { data = JSON.parse(text); } catch(e){
-      return "ERROR: Invalid JSON → " + text;
+    if(data.success && data.data) {
+      return data.data[0].text;
     }
 
-    if(data.data && Array.isArray(data.data) && data.data.length > 0){
-      return data.data.map(d => d.text).join("\n\n");
-    }
-
-    if(data.error) return data.error + (data.message ? ": " + data.message : "");
+    if(data.error) return "Error: " + data.error;
 
     return "Quadron couldn't respond";
   } catch(err){
@@ -222,6 +214,5 @@ function typeText(text, element){
   }, 20);
 }
 </script>
-
 </body>
 </html>
