@@ -1,108 +1,45 @@
-export async function onRequest(context) {
-  // Allow only POST
-  if (context.request.method !== "POST") {
-    return new Response(JSON.stringify({
-      error: "Method Not Allowed",
-      hint: "Use POST request"
-    }), {
-      status: 405,
-      headers: { "Content-Type": "application/json" }
-    });
+// functions/api/chat.js
+
+import fetch from 'node-fetch';
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed. Use POST.' });
   }
 
   try {
-    // Parse user input
-    let body;
-    try {
-      body = await context.request.json();
-    } catch (e) {
-      return new Response(JSON.stringify({
-        error: "Invalid JSON body",
-        details: e.message
-      }), { status: 400 });
-    }
-
-    const message = body.message;
+    const { message } = req.body;
 
     if (!message) {
-      return new Response(JSON.stringify({
-        error: "No message provided"
-      }), { status: 400 });
+      return res.status(400).json({ error: 'Message is required.' });
     }
 
-    // Check API key
-    const apiKey = context.env.GROQ_API_KEY;
-
-    if (!apiKey) {
-      return new Response(JSON.stringify({
-        error: "Missing GROQ_API_KEY",
-        fix: "Go to Cloudflare Pages → Settings → Environment Variables → Add GROQ_API_KEY"
-      }), { status: 500 });
+    const GROQ_API_KEY = process.env.GROQ_API_KEY;
+    if (!GROQ_API_KEY) {
+      return res.status(500).json({ error: 'Server missing GROQ_API_KEY.' });
     }
 
-    // Call Groq API
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
+    // Example: send query to Groq or any GROQ-enabled backend
+    const query = encodeURIComponent(`*[_type == "messages" && text match "${message}"]{text}`);
+    const url = `https://groqapi.example.com/v1/data/query?query=${query}`;
+
+    const response = await fetch(url, {
       headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "llama3-8b-8192",
-        messages: [
-          { role: "system", content: "You are Quadron AI, sarcastic, smart, futuristic." },
-          { role: "user", content: message }
-        ]
-      })
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
+        'Content-Type': 'application/json'
+      }
     });
 
-    // If API fails
     if (!response.ok) {
-      const errText = await response.text();
-      return new Response(JSON.stringify({
-        error: "Groq API request failed",
-        status: response.status,
-        details: errText
-      }), { status: 500 });
+      const text = await response.text();
+      return res.status(response.status).json({ error: 'GROQ API request failed', details: text });
     }
 
-    // Parse API response
-    let data;
-    try {
-      data = await response.json();
-    } catch (e) {
-      return new Response(JSON.stringify({
-        error: "Failed to parse API response",
-        details: e.message
-      }), { status: 500 });
-    }
+    const data = await response.json();
 
-    // Extract reply safely
-    const reply = data?.choices?.[0]?.message?.content;
-
-    if (!reply) {
-      return new Response(JSON.stringify({
-        error: "No reply from AI",
-        full_response: data
-      }), { status: 500 });
-    }
-
-    // SUCCESS
-    return new Response(JSON.stringify({
-      reply: reply
-    }), {
-      headers: { "Content-Type": "application/json" }
-    });
-
-  } catch (err) {
-    // Catch ANY unexpected error
-    return new Response(JSON.stringify({
-      error: "Server crash",
-      details: err.message,
-      stack: err.stack
-    }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" }
-    });
+    res.status(200).json({ success: true, data });
+  } catch (error) {
+    console.error('chat.js error:', error);
+    res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 }
