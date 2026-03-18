@@ -25,7 +25,7 @@ input{width:70%;padding:10px;background:black;color:#ffd900;border:1px solid #ff
 <div id="rightControls">
 <button onclick="location.href='voice.html'">Voice Mode</button>
 <button onclick="location.href='quadron7.html'">Quadron 7</button>
-<img id="profilePic" onclick="const p=document.getElementById('profilePanel'); p.style.display=p.style.display==='block'?'none':'block'">
+<img id="profilePic">
 <div id="profilePanel">
 <div id="profileEmail"></div>
 <button id="logoutBtn" onclick="logout()">Logout</button>
@@ -36,73 +36,90 @@ input{width:70%;padding:10px;background:black;color:#ffd900;border:1px solid #ff
 <div id="chat">
 <div id="messages"></div>
 <div id="loader">Quadron thinking...</div>
-<input id="msg" placeholder="Type message" onkeypress="if(event.key==='Enter') send()">
+<input id="msg" placeholder="Type message">
 <button onclick="send()">Send</button>
 </div>
+
 <div class="footer">Quadron AI is great</div>
 
 <script>
-let username = null;
-const storedUser = localStorage.getItem("quadronUser");
+// USER MEMORY
+let username=null, userEmail=null;
+const storedUser=localStorage.getItem("quadronUser");
 if(storedUser){
-  const user = JSON.parse(storedUser);
-  username = user.name;
-  const pic = document.getElementById("profilePic");
-  pic.src = user.picture || "https://cdn-icons-png.flaticon.com";
-  pic.style.display = "block";
-  document.getElementById("profileEmail").innerText = user.email;
+  const user=JSON.parse(storedUser);
+  username=user.name;
+  userEmail=user.email;
+  const pic=document.getElementById("profilePic");
+  pic.src=user.picture || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+  pic.style.display="block";
+  document.getElementById("profileEmail").innerText=userEmail;
 }
 
-function logout(){ localStorage.removeItem("quadronUser"); window.location.href = "index.html"; }
+// LOGOUT
+function logout(){ localStorage.removeItem("quadronUser"); window.location.href="index.html"; }
 
+// ASK AI
 async function askAI(message){
-  try {
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({message})
+  try{
+    const res = await fetch("/api/chat",{ 
+      method:"POST", 
+      headers:{"Content-Type":"application/json"}, 
+      body:JSON.stringify({message}) 
     });
-    const result = await res.json();
-    if(result.success) return result.data[0].text;
-    return result.error || "Quadron is ignoring you.";
-  } catch(e) { return "Connection Error."; }
+    const text = await res.text();
+    if(!text) return "Quadron couldn't respond";
+
+    let data;
+    try{ data=JSON.parse(text); } catch(e){ return "ERROR: Invalid JSON → " + text; }
+    if(data.data && Array.isArray(data.data) && data.data.length>0) 
+      return data.data.map(d=>d.text).join("\n\n");
+    if(data.error) return data.error + (data.message ? ": " + data.message : "");
+    return "Quadron couldn't respond";
+  } catch(err){ console.error(err); return "ERROR: Connection failed"; }
 }
 
-window.onload = async function(){
-  const box = document.getElementById("messages");
-  document.getElementById("loader").style.display = "block";
-  const reply = await askAI(username ? `User name is ${username}. Give a sarcastic greeting.` : "Give a sarcastic greeting.");
-  document.getElementById("loader").style.display = "none";
-  const p = document.createElement("p");
-  p.innerHTML = "<b>Quadron:</b> ";
+// INITIAL GREETING
+window.onload=async function(){
+  const box=document.getElementById("messages");
+  let intro=username ? `User name is ${username}. Give a smart sarcastic greeting.` : "Give a sarcastic greeting.";
+  document.getElementById("loader").style.display="block";
+  const reply=await askAI(intro);
+  document.getElementById("loader").style.display="none";
+  const p=document.createElement("p");
+  p.innerHTML="<b>Quadron:</b> ";
   box.appendChild(p);
-  typeText(reply, p);
+  typeText(reply,p);
 }
 
+// SEND MESSAGE
 async function send(){
-  const input = document.getElementById("msg");
-  const text = input.value.trim();
+  const input=document.getElementById("msg");
+  const text=input.value.trim();
   if(!text) return;
-  const box = document.getElementById("messages");
-  box.innerHTML += `<p><b>You:</b> ${text}</p>`;
-  input.value = "";
-  document.getElementById("loader").style.display = "block";
-  const reply = await askAI(text);
-  document.getElementById("loader").style.display = "none";
-  const p = document.createElement("p");
-  p.innerHTML = "<b>Quadron:</b> ";
+  const box=document.getElementById("messages");
+  box.innerHTML+=`<p><b>You:</b> ${text}</p>`;
+  input.value="";
+  document.getElementById("loader").style.display="block";
+  const reply=await askAI(text);
+  document.getElementById("loader").style.display="none";
+  const p=document.createElement("p");
+  p.innerHTML="<b>Quadron:</b> ";
   box.appendChild(p);
-  typeText(reply, p);
-  box.scrollTop = box.scrollHeight;
+  typeText(reply,p);
+  box.scrollTop=box.scrollHeight;
 }
 
-function typeText(text, element){
+// TYPE EFFECT
+function typeText(text,element){
   let i=0;
-  const interval = setInterval(()=>{
-    element.innerHTML += text.charAt(i); i++;
-    if(i >= text.length) clearInterval(interval);
-  }, 20);
+  const interval=setInterval(()=>{
+    element.innerHTML+=text.charAt(i);
+    i++;
+    if(i>=text.length) clearInterval(interval);
+  },20);
 }
 </script>
+
 </body>
 </html>
