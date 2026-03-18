@@ -9,7 +9,73 @@
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
 <style>
+/* 🔥 MOBILE LAYOUT TRANSFORMATION */
+@media (max-width: 700px){
 
+body{
+flex-direction:column;
+height:100vh;
+}
+
+/* 🔺 TOP AREA (RIGHT PANEL NOW ON TOP) */
+#rightPanel{
+height:40vh;
+width:100%;
+order:1;
+}
+
+/* reduce glow size for mobile */
+#rightPanel::after{
+right:-300px;
+width:700px;
+}
+
+/* scale text */
+#quadronText{
+font-size:60px;
+transform:translateX(0);
+animation:none;
+}
+
+/* 🔻 BOTTOM LOGIN PANEL */
+#leftPanel{
+width:100%;
+height:60vh;
+min-width:unset;
+
+order:2;
+
+justify-content:flex-start;
+padding-top:30px;
+
+border-top:2px solid #ffe600;
+
+/* smooth mobile feel */
+box-shadow:0 -10px 40px rgba(255,230,0,0.15);
+}
+
+/* adjust login box */
+#loginBox{
+width:90%;
+max-width:350px;
+}
+
+/* buttons */
+.loginBtn{
+padding:12px;
+font-size:14px;
+}
+
+/* spacing fixes */
+#loginBox h2{
+margin-bottom:20px;
+}
+
+#skip{
+font-size:13px;
+}
+
+}
 body{
 margin:0;
 height:100vh;
