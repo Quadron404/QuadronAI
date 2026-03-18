@@ -3,28 +3,35 @@
 export async function onRequest(context) {
   const { request, env } = context;
 
+  // Allow browser test
   if (request.method === "GET") {
-    return new Response("Quadron API working", { status: 200 });
+    return new Response("Quadron API is live. Use POST.", { status: 200 });
   }
 
   if (request.method !== "POST") {
-    return new Response(JSON.stringify({ error: "POST only" }), { status: 405 });
+    return new Response(JSON.stringify({ error: "Only POST allowed" }), {
+      status: 405,
+      headers: { "Content-Type": "application/json" }
+    });
   }
 
   try {
     const { message } = await request.json();
 
     if (!message) {
-      return new Response(JSON.stringify({ error: "Message required" }), { status: 400 });
+      return new Response(JSON.stringify({ error: "Message is required" }), {
+        status: 400
+      });
     }
 
-    // 🔍 DEBUG: check if API key exists
+    // ✅ Ensure API key exists
     if (!env.GROQ_API_KEY) {
       return new Response(JSON.stringify({
-        error: "GROQ_API_KEY is missing in Cloudflare"
+        error: "Missing GROQ_API_KEY in Cloudflare"
       }), { status: 500 });
     }
 
+    // 🔥 GROQ API CALL
     const apiRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -32,17 +39,23 @@ export async function onRequest(context) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "llama3-8b-8192",
+        model: "llama-3.1-8b-instant",
         messages: [
-          { role: "system", content: "You are Quadron, a sarcastic AI." },
-          { role: "user", content: message }
+          {
+            role: "system",
+            content: "You are Quadron, a sharp, sarcastic AI assistant. Keep responses witty but useful."
+          },
+          {
+            role: "user",
+            content: message
+          }
         ]
       })
     });
 
     const data = await apiRes.json();
 
-    // 🔥 SHOW REAL ERROR FROM GROQ
+    // ❌ Show real Groq error
     if (!apiRes.ok) {
       return new Response(JSON.stringify({
         error: "Groq API failed",
@@ -53,14 +66,23 @@ export async function onRequest(context) {
 
     const reply = data?.choices?.[0]?.message?.content;
 
+    if (!reply) {
+      return new Response(JSON.stringify({
+        error: "Empty AI response",
+        full: data
+      }), { status: 500 });
+    }
+
     return new Response(JSON.stringify({
-      success: true,
-      data: [{ text: reply || "No reply text" }]
-    }), { status: 200 });
+      reply: reply
+    }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    });
 
   } catch (err) {
     return new Response(JSON.stringify({
-      error: "Server crash",
+      error: "Server error",
       message: err.message
     }), { status: 500 });
   }
