@@ -3,9 +3,9 @@
 export async function onRequest(context) {
   const { request, env } = context;
 
-  // Allow browser test
+  // Allow GET (for testing in browser)
   if (request.method === "GET") {
-    return new Response("Quadron API is live. Use POST.", { status: 200 });
+    return new Response("Quadron API is working. Use POST.", { status: 200 });
   }
 
   if (request.method !== "POST") {
@@ -19,19 +19,16 @@ export async function onRequest(context) {
     const { message } = await request.json();
 
     if (!message) {
-      return new Response(JSON.stringify({ error: "Message is required" }), {
-        status: 400
-      });
+      return new Response(JSON.stringify({ error: "Message required" }), { status: 400 });
     }
 
-    // ✅ Ensure API key exists
     if (!env.GROQ_API_KEY) {
       return new Response(JSON.stringify({
-        error: "Missing GROQ_API_KEY in Cloudflare"
+        error: "Missing GROQ_API_KEY"
       }), { status: 500 });
     }
 
-    // 🔥 GROQ API CALL
+    // 🔥 CALL GROQ API
     const apiRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -43,7 +40,7 @@ export async function onRequest(context) {
         messages: [
           {
             role: "system",
-            content: "You are Quadron, a sharp, sarcastic AI assistant. Keep responses witty but useful."
+            content: "You are Quadron, a sarcastic AI assistant. Be witty but helpful."
           },
           {
             role: "user",
@@ -64,11 +61,16 @@ export async function onRequest(context) {
       }), { status: 500 });
     }
 
-    const reply = data?.choices?.[0]?.message?.content;
+    // ✅ SAFE RESPONSE EXTRACTION
+    const reply =
+      data?.choices?.[0]?.message?.content ||
+      data?.choices?.[0]?.text ||
+      data?.output?.[0]?.content?.[0]?.text ||
+      null;
 
     if (!reply) {
       return new Response(JSON.stringify({
-        error: "Empty AI response",
+        error: "Could not extract reply",
         full: data
       }), { status: 500 });
     }
@@ -82,7 +84,7 @@ export async function onRequest(context) {
 
   } catch (err) {
     return new Response(JSON.stringify({
-      error: "Server error",
+      error: "Server crash",
       message: err.message
     }), { status: 500 });
   }
