@@ -113,11 +113,16 @@ margin:10px;
 margin-top:20px;
 font-size:12px;
 color:#aaa;
-display:flex;
-justify-content:center;
-align-items:center;
-gap:10px;
 }
+
+/* 🔥 clickable terms style */
+.footer a{
+color:#ffd900;
+text-decoration:underline;
+text-decoration-color:#ffd900;
+cursor:pointer;
+}
+
 </style>
 
 </head>
@@ -149,10 +154,10 @@ gap:10px;
 <button onclick="send()">Send</button>
 </div>
 
-<!-- 🔥 UPDATED FOOTER -->
+<!-- 🔥 FINAL FOOTER -->
 <div class="footer">
-<span>Quadron AI</span>
-<button onclick="openTerms()">Terms & Conditions</button>
+Quadron AI • 
+<a href="terms.html" target="_blank">Terms & Conditions</a>
 </div>
 
 <script>
@@ -181,12 +186,7 @@ localStorage.removeItem("quadronUser")
 window.location.href="index.html"
 }
 
-// 🔥 TERMS BUTTON ACTION
-function openTerms(){
-window.open("terms.html","_blank")
-}
-
-// 🔥 API CALL
+// API CALL
 async function askAI(message){
 
 try{
