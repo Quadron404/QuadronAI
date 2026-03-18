@@ -9,73 +9,9 @@
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
 <style>
-/* 🔥 MOBILE LAYOUT TRANSFORMATION */
-@media (max-width: 700px){
 
-body{
-flex-direction:column;
-height:100vh;
-}
+/* ================= BASE (DESKTOP) ================= */
 
-/* 🔺 TOP AREA (RIGHT PANEL NOW ON TOP) */
-#rightPanel{
-height:40vh;
-width:100%;
-order:1;
-}
-
-/* reduce glow size for mobile */
-#rightPanel::after{
-right:-300px;
-width:700px;
-}
-
-/* scale text */
-#quadronText{
-font-size:60px;
-transform:translateX(0);
-animation:none;
-}
-
-/* 🔻 BOTTOM LOGIN PANEL */
-#leftPanel{
-width:100%;
-height:60vh;
-min-width:unset;
-
-order:2;
-
-justify-content:flex-start;
-padding-top:30px;
-
-border-top:2px solid #ffe600;
-
-/* smooth mobile feel */
-box-shadow:0 -10px 40px rgba(255,230,0,0.15);
-}
-
-/* adjust login box */
-#loginBox{
-width:90%;
-max-width:350px;
-}
-
-/* buttons */
-.loginBtn{
-padding:12px;
-font-size:14px;
-}
-
-/* spacing fixes */
-#loginBox h2{
-margin-bottom:20px;
-}
-
-#skip{
-font-size:13px;
-}
-
-}
 body{
 margin:0;
 height:100vh;
@@ -89,7 +25,6 @@ color:white;
 /* LEFT LOGIN PANEL */
 
 #leftPanel{
-
 width:40%;
 min-width:380px;
 
@@ -99,7 +34,6 @@ justify-content:center;
 align-items:center;
 
 background:#000;
-
 }
 
 #loginBox{
@@ -115,56 +49,44 @@ margin-bottom:35px;
 /* buttons */
 
 .loginBtn{
-
 width:100%;
 padding:14px;
-
 margin:10px 0;
 
 background:#050505;
-
 border:2px solid #ffe600;
-
 border-radius:8px;
 
 color:#ffe600;
-
 font-size:15px;
 
 cursor:pointer;
-
 transition:.25s;
-
 }
 
 .loginBtn:hover{
-
 background:#ffe600;
 color:black;
 
 box-shadow:
 0 0 20px #ffe600,
 0 0 60px rgba(255,230,0,.8);
-
 }
 
 #skip{
-
 margin-top:18px;
 font-size:14px;
 opacity:.7;
 cursor:pointer;
-
 }
 
 #skip:hover{
 opacity:1;
 }
 
-/* RIGHT SIDE AREA */
+/* RIGHT PANEL */
 
 #rightPanel{
-
 flex:1;
 display:flex;
 justify-content:center;
@@ -174,15 +96,12 @@ position:relative;
 overflow:hidden;
 
 background:black;
-
 }
 
-/* ULTRA BRIGHT LIGHT SOURCE */
+/* LIGHT GLOW */
 
 #rightPanel::after{
-
 content:"";
-
 position:absolute;
 
 right:-200px;
@@ -191,10 +110,7 @@ top:-25%;
 width:1000px;
 height:150%;
 
-/* much stronger light beam */
-
 background:radial-gradient(circle at right,
-
 rgba(255,240,0,1) 0%,
 rgba(255,230,0,1) 8%,
 rgba(255,210,0,.95) 18%,
@@ -202,16 +118,12 @@ rgba(255,200,0,.8) 30%,
 rgba(255,190,0,.55) 45%,
 rgba(255,170,0,.3) 60%,
 rgba(255,160,0,.12) 75%,
-transparent 85%
-
-);
-
+transparent 85%);
 }
 
 /* QUADRON TEXT */
 
 #quadronText{
-
 font-size:130px;
 font-weight:bold;
 
@@ -223,35 +135,110 @@ text-shadow:
 0 0 60px rgba(255,255,255,.8);
 
 transform:translateX(120%);
-
 animation:slideQuadron 3.2s ease-out forwards;
-
 }
 
 @keyframes slideQuadron{
-
 0%{
 transform:translateX(120%);
 opacity:0;
 }
-
 100%{
 transform:translateX(0);
 opacity:1;
+}
+}
+
+/* ================= MOBILE FIX ================= */
+
+@media (max-width:700px){
+
+body{
+flex-direction:column;
+}
+
+/* TOP AREA */
+
+#rightPanel{
+height:40vh;
+width:100%;
+order:1;
+}
+
+#rightPanel::after{
+right:-300px;
+width:700px;
+}
+
+#quadronText{
+font-size:60px;
+transform:none;
+animation:none;
+}
+
+/* BOTTOM LOGIN PANEL */
+
+#leftPanel{
+width:100%;
+height:60vh;
+min-width:unset;
+
+order:2;
+
+display:flex;
+justify-content:center;
+align-items:center;
+
+border-top:2px solid #ffe600;
+box-shadow:0 -10px 40px rgba(255,230,0,0.15);
+}
+
+/* CENTER CONTENT PERFECTLY */
+
+#loginBox{
+width:90%;
+max-width:350px;
+margin:0 auto;
+text-align:center;
+}
+
+/* FIX BUTTON ALIGNMENT */
+
+.loginBtn{
+width:100%;
+margin:10px auto;
+display:block;
+padding:12px;
+font-size:14px;
+}
+
+/* FIX GOOGLE BUTTON ALIGN */
+
+.g_id_signin{
+display:flex;
+justify-content:center;
+}
+
+/* TEXT SPACING */
+
+#loginBox h2{
+margin-bottom:20px;
+}
+
+#skip{
+font-size:13px;
 }
 
 }
 
 </style>
-
 </head>
 
 <body>
 
-<!-- LEFT LOGIN SIDE -->
+<!-- LEFT LOGIN -->
 
 <div id="leftPanel">
-
 <div id="loginBox">
 
 <h2>Log into your account</h2>
@@ -269,7 +256,7 @@ data-shape="pill"
 data-text="signin_with">
 </div>
 
-<!-- CLOUDFLARE TURNSTILE -->
+<!-- CAPTCHA -->
 
 <div class="cf-turnstile"
 data-sitekey="0x4AAAAAACqOZECQ4_L5eg0G"
@@ -283,15 +270,12 @@ style="margin:20px 0;">
 <div id="skip" onclick="guestLogin()">Continue as guest</div>
 
 </div>
-
 </div>
 
 <!-- RIGHT SIDE -->
 
 <div id="rightPanel">
-
 <div id="quadronText">Quadron</div>
-
 </div>
 
 <script>
@@ -299,52 +283,40 @@ style="margin:20px 0;">
 /* GOOGLE LOGIN */
 
 function handleCredentialResponse(response){
+const jwt = response.credential
+const payload = JSON.parse(atob(jwt.split('.')[1]))
 
-const jwt=response.credential
-const payload=JSON.parse(atob(jwt.split('.')[1]))
-
-const user={
-name:payload.name,
-email:payload.email,
-picture:payload.picture
+const user = {
+name: payload.name,
+email: payload.email,
+picture: payload.picture
 }
 
-localStorage.setItem("quadronUser",JSON.stringify(user))
-
+localStorage.setItem("quadronUser", JSON.stringify(user))
 enterSite()
-
 }
 
 /* EMAIL LOGIN */
 
 function emailLogin(){
-
-let email=prompt("Enter your email")
-
+let email = prompt("Enter your email")
 if(!email) return
 
-localStorage.setItem("quadronUser",JSON.stringify({email:email}))
-
+localStorage.setItem("quadronUser", JSON.stringify({email:email}))
 enterSite()
-
 }
 
-/* SKIP LOGIN */
+/* GUEST LOGIN */
 
 function guestLogin(){
-
 localStorage.setItem("quadronUser","guest")
-
 enterSite()
-
 }
 
 /* REDIRECT */
 
 function enterSite(){
-
-window.location.href="home.html"
-
+window.location.href = "home.html"
 }
 
 </script>
