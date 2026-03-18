@@ -2,39 +2,45 @@ export async function onRequestPost(context) {
   const { request, env } = context;
 
   try {
-    // 1. Validate API Key
+    // 1. Check for API Key in Cloudflare Secrets
     if (!env.GROQ_API_KEY) {
-      return new Response(JSON.stringify({ error: "GROQ_API_KEY is missing in Cloudflare." }), { status: 500 });
+      return new Response(JSON.stringify({ error: "GROQ_API_KEY is missing in Cloudflare settings." }), { status: 500 });
     }
 
-    // 2. Parse User Message
+    // 2. Parse User Input
     const body = await request.json();
-    if (!body.message) {
-      return new Response(JSON.stringify({ error: "No message found." }), { status: 400 });
+    const userMessage = body.message;
+
+    if (!userMessage) {
+      return new Response(JSON.stringify({ error: "No message provided." }), { status: 400 });
     }
 
-    // 3. Call Groq API via Fetch
+    // 3. Call Groq API via Native Fetch (No imports needed)
     const groqResponse = await fetch("https://api.groq.com", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${env.GROQ_API_KEY}`,
+        "Authorization": "Bearer " + env.GROQ_API_KEY,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
         model: "llama-3.1-8b-instant",
         messages: [
           { role: "system", content: "You are Quadron, a sarcastic AI." },
-          { role: "user", content: body.message }
+          { role: "user", content: userMessage }
         ]
       })
     });
 
     const result = await groqResponse.json();
     
-    // 4. Extract Text
-    const aiReply = result.choices && result.choices[0] ? result.choices[0].message.content : "Quadron is silent.";
+    // Handle API errors
+    if (result.error) {
+      return new Response(JSON.stringify({ error: result.error.message }), { status: 500 });
+    }
 
-    // 5. Return JSON to UI (Fixed the empty 'data' field here)
+    const aiText = result.choices[0].message.content;
+
+    // 4. Return to UI (FIXED: data is no longer empty)
     return new Response(JSON.stringify({
       success: true,
       data:
