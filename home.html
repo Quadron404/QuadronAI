@@ -20,19 +20,17 @@ header{
 display:flex;
 justify-content:space-between;
 align-items:center;
-padding:12px 15px;
+padding:12px;
 background:#000;
 border-bottom:2px solid #ffd900;
-z-index:2;
-position:relative;
 }
 
 #menuBtn{
-font-size:26px;
+font-size:24px;
 cursor:pointer;
 }
 
-/* OVERLAY BLUR */
+/* OVERLAY */
 #overlay{
 position:fixed;
 top:0;
@@ -43,110 +41,122 @@ backdrop-filter:blur(6px);
 background:rgba(0,0,0,0.4);
 opacity:0;
 pointer-events:none;
-transition:0.3s;
+transition:.3s;
 z-index:998;
 }
-
 #overlay.active{
 opacity:1;
 pointer-events:auto;
 }
 
-/* SIDE PANEL (FIXED FULL HIDE) */
+/* SIDE PANEL */
 #sidePanel{
 position:fixed;
 top:0;
 right:0;
-width:260px;
+width:270px;
 height:100%;
 background:#111;
-border-left:2px solid #ffd900;
-box-shadow:-5px 0 20px #000;
 transform:translateX(100%);
-transition:0.35s ease;
-padding:20px;
+transition:.3s;
+padding:15px;
 display:flex;
 flex-direction:column;
 justify-content:space-between;
 z-index:999;
 }
-
 #sidePanel.open{
 transform:translateX(0);
 }
 
-/* MENU LIST */
-.menuList{
-display:flex;
-flex-direction:column;
-gap:8px;
-}
-
-/* MENU ITEM (PRO STYLE) */
+/* MENU ITEM */
 .menuItem{
 display:flex;
 align-items:center;
-gap:12px;
-padding:12px;
+gap:10px;
+padding:10px;
 border-radius:8px;
 cursor:pointer;
-transition:0.25s;
+transition:.2s;
 }
-
 .menuItem:hover{
 background:rgba(255,217,0,0.1);
-box-shadow:0 0 15px #ffd900;
+box-shadow:0 0 12px #ffd900;
 }
 
-/* ICON STYLE */
 .menuIcon{
-width:20px;
-height:20px;
+width:18px;
+height:18px;
 background:#ffd900;
 border-radius:4px;
-box-shadow:0 0 10px #ffd900;
 }
 
-/* PROFILE SECTION */
-#profileSection{
-border-top:1px solid #555;
-padding-top:15px;
+/* PROFILE (TOP MENU) */
+#menuProfile{
 display:flex;
-flex-direction:column;
 align-items:center;
+gap:10px;
+cursor:pointer;
+padding:10px;
+border-bottom:1px solid #444;
 }
 
-#profilePic{
-width:60px;
-height:60px;
+#menuProfile img{
+width:40px;
+height:40px;
 border-radius:50%;
 border:2px solid #ffd900;
-margin-bottom:10px;
-object-fit:cover;
-display:none;
 }
 
-#profileName{
-font-size:14px;
-margin-bottom:4px;
-}
-
-#profileEmail{
+#menuProfileText{
+display:flex;
+flex-direction:column;
 font-size:12px;
-color:#aaa;
-margin-bottom:10px;
-text-align:center;
-word-break:break-all;
 }
 
-#logoutBtn{
-background:#ffd900;
-color:black;
-border:none;
-padding:8px;
-width:100%;
-border-radius:6px;
+/* PERSONALITY LIST */
+.subMenu{
+margin-left:10px;
+display:none;
+flex-direction:column;
+}
+
+.subMenu .menuItem{
+font-size:13px;
+}
+
+.selectedTick{
+margin-left:auto;
+color:#ffd900;
+}
+
+/* TOGGLE SWITCH */
+.switch{
+margin-left:auto;
+position:relative;
+width:40px;
+height:20px;
+background:#333;
+border-radius:20px;
 cursor:pointer;
+}
+.switch::after{
+content:"";
+position:absolute;
+width:16px;
+height:16px;
+background:#999;
+border-radius:50%;
+top:2px;
+left:2px;
+transition:.2s;
+}
+.switch.active{
+background:#ffd900;
+}
+.switch.active::after{
+left:22px;
+background:#000;
 }
 
 /* CHAT */
@@ -155,6 +165,7 @@ width:100%;
 max-width:800px;
 margin:auto;
 padding:10px;
+box-sizing:border-box;
 }
 
 #messages{
@@ -163,18 +174,20 @@ border:1px solid #ffd900;
 height:65vh;
 overflow:auto;
 padding:10px;
-text-align:left;
 border-radius:10px;
 }
 
+/* INPUT FIX (IMPORTANT) */
 #inputArea{
 display:flex;
 gap:8px;
 margin-top:10px;
+width:100%;
 }
 
 input{
 flex:1;
+min-width:0;
 padding:12px;
 background:black;
 color:#ffd900;
@@ -183,34 +196,35 @@ border-radius:6px;
 }
 
 button{
-background:#ffd900;
-color:black;
-border:none;
 padding:12px;
-border-radius:6px;
-cursor:pointer;
-box-shadow:0 0 10px #ffd900;
+white-space:nowrap;
 }
 
-#loader{
-display:none;
-margin:10px;
-text-align:center;
-}
-
+/* FOOTER */
 .footer{
 text-align:center;
 font-size:12px;
-color:#aaa;
 margin:10px;
 }
-
-/* MOBILE */
-@media (max-width:600px){
-#messages{
-height:70vh;
-font-size:14px;
+.footer a{
+color:#ffd900;
+text-decoration:none;
+text-shadow:0 0 8px #ffd900;
 }
+
+/* PROFILE PAGE */
+#profilePage{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:#000;
+display:none;
+flex-direction:column;
+align-items:center;
+padding:20px;
+z-index:2000;
 }
 
 </style>
@@ -223,38 +237,57 @@ font-size:14px;
 <div id="menuBtn" onclick="openMenu()">☰</div>
 </header>
 
-<!-- BLUR -->
 <div id="overlay" onclick="closeMenu()"></div>
 
 <!-- SIDE PANEL -->
 <div id="sidePanel">
 
-<div class="menuList">
+<div>
 
-<div class="menuItem" onclick="newChat()">
-<div class="menuIcon"></div>
-New Chat
-</div>
-
-<div class="menuItem" onclick="location.href='voice.html'; closeMenu();">
-<div class="menuIcon"></div>
-Voice Mode
-</div>
-
-<div class="menuItem" onclick="location.href='quadron7.html'; closeMenu();">
-<div class="menuIcon"></div>
-Quadron 7
-</div>
-
-</div>
-
-<div id="profileSection">
+<!-- USER -->
+<div id="menuProfile" onclick="openProfilePage()">
 <img id="profilePic">
+<div id="menuProfileText">
 <div id="profileName"></div>
 <div id="profileEmail"></div>
-<button id="logoutBtn" onclick="logout()">Logout</button>
+</div>
 </div>
 
+<!-- MENU ITEMS -->
+<div class="menuItem" onclick="newChat()"><div class="menuIcon"></div>New Chat</div>
+<div class="menuItem"><div class="menuIcon"></div>Voice Mode</div>
+<div class="menuItem"><div class="menuIcon"></div>Quadron 7</div>
+
+<!-- PERSONALITY -->
+<div class="menuItem" onclick="togglePersonality()">
+<div class="menuIcon"></div>Personality Swap
+</div>
+
+<div class="subMenu" id="personalityMenu"></div>
+
+<!-- TRUTH PROTOCOL -->
+<div class="menuItem">
+<div class="menuIcon"></div>Truth Protocol
+<div class="switch" id="truthToggle" onclick="toggleTruth(event)"></div>
+</div>
+
+</div>
+
+</div>
+
+<!-- PROFILE PAGE -->
+<div id="profilePage">
+<img id="profilePicBig" style="width:80px;border-radius:50%;border:2px solid #ffd900;">
+<h3 id="profileNameBig"></h3>
+<p id="profileEmailBig"></p>
+
+<p style="text-align:center;">
+Quadron AI can make mistakes , By using it you agree our 
+<a href="terms.html" style="color:#ffd900;">Terms & Conditions</a>
+</p>
+
+<button onclick="logout()">Logout</button>
+<button onclick="closeProfilePage()">Back</button>
 </div>
 
 <!-- CHAT -->
@@ -269,140 +302,155 @@ Quadron 7
 </div>
 
 <div class="footer">
-Quadron AI developed by Rawat Systems •
-<a href="terms.html" target="_blank">Terms & Conditions</a>
+Quadron AI can make mistakes , By using it you agree our 
+<a href="terms.html">Terms & Conditions</a>
 </div>
 
 <script>
 
-/* MENU CONTROL */
+/* MENU */
 function openMenu(){
-document.getElementById("sidePanel").classList.add("open")
-document.getElementById("overlay").classList.add("active")
+sidePanel.classList.add("open")
+overlay.classList.add("active")
+}
+function closeMenu(){
+sidePanel.classList.remove("open")
+overlay.classList.remove("active")
 }
 
-function closeMenu(){
-document.getElementById("sidePanel").classList.remove("open")
-document.getElementById("overlay").classList.remove("active")
+/* PROFILE PAGE */
+function openProfilePage(){
+document.getElementById("profilePage").style.display="flex"
+closeMenu()
+}
+function closeProfilePage(){
+document.getElementById("profilePage").style.display="none"
+}
+
+/* USER */
+let username=null,userEmail=null
+
+const user=JSON.parse(localStorage.getItem("quadronUser")||"{}")
+
+if(user.email){
+username=user.name
+userEmail=user.email
+
+profilePic.src=user.picture||"https://cdn-icons-png.flaticon.com/512/149/149071.png"
+profilePic.style.display="block"
+
+profileName.innerText=username
+profileEmail.innerText=userEmail
+
+profilePicBig.src=profilePic.src
+profileNameBig.innerText=username
+profileEmailBig.innerText=userEmail
+}
+
+/* PERSONALITY */
+const personalities=["Alpha","Beta","Gamma","Omega","Delta","Sigma","Zeta","Quadron Main"]
+let selectedPersonality="Quadron Main"
+
+function togglePersonality(){
+let menu=document.getElementById("personalityMenu")
+menu.style.display = menu.style.display==="flex"?"none":"flex"
+}
+
+const pMenu=document.getElementById("personalityMenu")
+
+personalities.forEach(p=>{
+let div=document.createElement("div")
+div.className="menuItem"
+div.innerHTML='<div class="menuIcon"></div>'+p+'<span class="selectedTick">'+(p==="Quadron Main"?"✔":"")+'</span>'
+div.onclick=()=>{
+selectedPersonality=p
+updatePersonalityUI()
+}
+pMenu.appendChild(div)
+})
+
+function updatePersonalityUI(){
+[...pMenu.children].forEach(el=>{
+el.querySelector(".selectedTick").innerText=
+el.innerText.includes(selectedPersonality)?"✔":""
+})
+}
+
+/* TRUTH */
+let truthMode=false
+function toggleTruth(e){
+e.stopPropagation()
+truthMode=!truthMode
+document.getElementById("truthToggle").classList.toggle("active",truthMode)
 }
 
 /* NEW CHAT */
 function newChat(){
-document.getElementById("messages").innerHTML=""
+messages.innerHTML=""
 closeMenu()
-}
-
-/* USER */
-let username=null
-let userEmail=null
-
-const storedUser=localStorage.getItem("quadronUser")
-
-if(storedUser){
-const user=JSON.parse(storedUser)
-username=user.name
-userEmail=user.email
-
-const pic=document.getElementById("profilePic")
-pic.src=user.picture || "https://cdn-icons-png.flaticon.com/512/149/149071.png"
-pic.style.display="block"
-
-document.getElementById("profileName").innerText=username || ""
-document.getElementById("profileEmail").innerText=userEmail || ""
 }
 
 /* LOGOUT */
 function logout(){
 localStorage.removeItem("quadronUser")
-window.location.href="index.html"
+location.href="index.html"
 }
 
-/* API (UNCHANGED) */
+/* TIME GREETING */
+function getTimeContext(){
+let h=new Date().getHours()
+if(h<12)return "morning"
+if(h<18)return "afternoon"
+return "night"
+}
+
+/* API */
 async function askAI(message){
 
-try{
-const res = await fetch("/api/chat",{
+let personalityPrompt=`Respond as ${selectedPersonality} personality: ultra intelligent, sarcastic, universe aware.`
+let truthPrompt= truthMode ? "Use pure logic, no emotions, no sugarcoating, only sharp sarcasm." : ""
+
+let fullPrompt = `
+${personalityPrompt}
+${truthPrompt}
+User message: ${message}
+`
+
+const res=await fetch("/api/chat",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({message})
+body:JSON.stringify({message:fullPrompt})
 })
 
-const text = await res.text()
-if(!text) return "ERROR: Empty response"
-
-let data
-try{ data = JSON.parse(text) }
-catch{ return "RAW RESPONSE: " + text }
-
-if(!res.ok){
-return "ERROR: " + (data.error || JSON.stringify(data))
-}
-
-return data.reply || "No reply"
-
-}catch{
-return "ERROR: Connection failed"
-}
-
+let data=await res.json()
+return data.reply
 }
 
 /* INIT */
-window.onload = async function(){
+window.onload=async function(){
 
-const box=document.getElementById("messages")
+let intro=`It is ${getTimeContext()}. Give a short sarcastic greeting.`
 
-let intro="Say a sarcastic hello."
+let reply=await askAI(intro)
 
-if(username){
-intro="User name is "+username+". Give a witty sarcastic greeting under 25 words."
-}
-
-document.getElementById("loader").style.display="block"
-const reply = await askAI(intro)
-document.getElementById("loader").style.display="none"
-
-const p=document.createElement("p")
-p.innerHTML="<b>Quadron:</b> "
-box.appendChild(p)
-
-typeText(reply,p)
+let p=document.createElement("p")
+p.innerHTML="<b>Quadron:</b> "+reply
+messages.appendChild(p)
 }
 
 /* SEND */
 async function send(){
 
-const input=document.getElementById("msg")
-const text=input.value.trim()
-if(!text) return
+let text=msg.value.trim()
+if(!text)return
 
-const box=document.getElementById("messages")
+messages.innerHTML+=`<p><b>You:</b> ${text}</p>`
+msg.value=""
 
-box.innerHTML += "<p><b>You:</b> "+text+"</p>"
+let reply=await askAI(text)
 
-input.value=""
-document.getElementById("loader").style.display="block"
-
-const reply = await askAI(text)
-
-document.getElementById("loader").style.display="none"
-
-const p=document.createElement("p")
-p.innerHTML="<b>Quadron:</b> "
-box.appendChild(p)
-
-typeText(reply,p)
-
-box.scrollTop=box.scrollHeight
-}
-
-/* TYPE EFFECT */
-function typeText(text,element){
-let i=0
-const interval=setInterval(()=>{
-element.innerHTML+=text.charAt(i)
-i++
-if(i>=text.length) clearInterval(interval)
-},20)
+messages.innerHTML+=`<p><b>Quadron:</b> ${reply}</p>`
+messages.scrollTop=messages.scrollHeight
 }
 
 </script>
