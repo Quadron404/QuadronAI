@@ -23,45 +23,87 @@ align-items:center;
 padding:12px 15px;
 background:#000;
 border-bottom:2px solid #ffd900;
+z-index:2;
+position:relative;
 }
 
-/* HAMBURGER */
 #menuBtn{
 font-size:26px;
 cursor:pointer;
 }
 
-/* SIDE PANEL */
+/* OVERLAY BLUR */
+#overlay{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+backdrop-filter:blur(6px);
+background:rgba(0,0,0,0.4);
+opacity:0;
+pointer-events:none;
+transition:0.3s;
+z-index:998;
+}
+
+#overlay.active{
+opacity:1;
+pointer-events:auto;
+}
+
+/* SIDE PANEL (FIXED FULL HIDE) */
 #sidePanel{
 position:fixed;
 top:0;
-right:-280px;
+right:0;
 width:260px;
 height:100%;
 background:#111;
 border-left:2px solid #ffd900;
 box-shadow:-5px 0 20px #000;
-transition:.3s ease;
+transform:translateX(100%);
+transition:0.35s ease;
 padding:20px;
 display:flex;
 flex-direction:column;
 justify-content:space-between;
-z-index:1000;
+z-index:999;
 }
 
 #sidePanel.open{
-right:0;
+transform:translateX(0);
 }
 
-/* MENU ITEMS */
+/* MENU LIST */
+.menuList{
+display:flex;
+flex-direction:column;
+gap:8px;
+}
+
+/* MENU ITEM (PRO STYLE) */
 .menuItem{
-background:#ffd900;
-color:black;
-padding:10px;
-margin-bottom:10px;
-border-radius:6px;
+display:flex;
+align-items:center;
+gap:12px;
+padding:12px;
+border-radius:8px;
 cursor:pointer;
-text-align:center;
+transition:0.25s;
+}
+
+.menuItem:hover{
+background:rgba(255,217,0,0.1);
+box-shadow:0 0 15px #ffd900;
+}
+
+/* ICON STYLE */
+.menuIcon{
+width:20px;
+height:20px;
+background:#ffd900;
+border-radius:4px;
 box-shadow:0 0 10px #ffd900;
 }
 
@@ -69,7 +111,9 @@ box-shadow:0 0 10px #ffd900;
 #profileSection{
 border-top:1px solid #555;
 padding-top:15px;
-text-align:center;
+display:flex;
+flex-direction:column;
+align-items:center;
 }
 
 #profilePic{
@@ -82,11 +126,17 @@ object-fit:cover;
 display:none;
 }
 
+#profileName{
+font-size:14px;
+margin-bottom:4px;
+}
+
 #profileEmail{
-font-size:13px;
-color:#ccc;
-word-break:break-all;
+font-size:12px;
+color:#aaa;
 margin-bottom:10px;
+text-align:center;
+word-break:break-all;
 }
 
 #logoutBtn{
@@ -99,7 +149,7 @@ border-radius:6px;
 cursor:pointer;
 }
 
-/* CHAT AREA */
+/* CHAT */
 #chat{
 width:100%;
 max-width:800px;
@@ -117,7 +167,6 @@ text-align:left;
 border-radius:10px;
 }
 
-/* INPUT BAR */
 #inputArea{
 display:flex;
 gap:8px;
@@ -143,14 +192,12 @@ cursor:pointer;
 box-shadow:0 0 10px #ffd900;
 }
 
-/* LOADER */
 #loader{
 display:none;
 margin:10px;
 text-align:center;
 }
 
-/* FOOTER */
 .footer{
 text-align:center;
 font-size:12px;
@@ -158,22 +205,12 @@ color:#aaa;
 margin:10px;
 }
 
-/* MOBILE PERFECT FIX */
+/* MOBILE */
 @media (max-width:600px){
-
 #messages{
 height:70vh;
 font-size:14px;
 }
-
-input{
-font-size:14px;
-}
-
-button{
-font-size:14px;
-}
-
 }
 
 </style>
@@ -183,19 +220,37 @@ font-size:14px;
 
 <header>
 <h3>Quadron AI</h3>
-<div id="menuBtn" onclick="toggleMenu()">☰</div>
+<div id="menuBtn" onclick="openMenu()">☰</div>
 </header>
+
+<!-- BLUR -->
+<div id="overlay" onclick="closeMenu()"></div>
 
 <!-- SIDE PANEL -->
 <div id="sidePanel">
 
-<div>
-<div class="menuItem" onclick="location.href='voice.html'">Voice Mode</div>
-<div class="menuItem" onclick="location.href='quadron7.html'">Quadron 7</div>
+<div class="menuList">
+
+<div class="menuItem" onclick="newChat()">
+<div class="menuIcon"></div>
+New Chat
+</div>
+
+<div class="menuItem" onclick="location.href='voice.html'; closeMenu();">
+<div class="menuIcon"></div>
+Voice Mode
+</div>
+
+<div class="menuItem" onclick="location.href='quadron7.html'; closeMenu();">
+<div class="menuIcon"></div>
+Quadron 7
+</div>
+
 </div>
 
 <div id="profileSection">
 <img id="profilePic">
+<div id="profileName"></div>
 <div id="profileEmail"></div>
 <button id="logoutBtn" onclick="logout()">Logout</button>
 </div>
@@ -204,16 +259,13 @@ font-size:14px;
 
 <!-- CHAT -->
 <div id="chat">
-
 <div id="messages"></div>
-
 <div id="loader">Quadron thinking...</div>
 
 <div id="inputArea">
 <input id="msg" placeholder="Type message">
 <button onclick="send()">Send</button>
 </div>
-
 </div>
 
 <div class="footer">
@@ -223,12 +275,24 @@ Quadron AI developed by Rawat Systems •
 
 <script>
 
-/* MENU */
-function toggleMenu(){
-document.getElementById("sidePanel").classList.toggle("open")
+/* MENU CONTROL */
+function openMenu(){
+document.getElementById("sidePanel").classList.add("open")
+document.getElementById("overlay").classList.add("active")
 }
 
-/* USER MEMORY */
+function closeMenu(){
+document.getElementById("sidePanel").classList.remove("open")
+document.getElementById("overlay").classList.remove("active")
+}
+
+/* NEW CHAT */
+function newChat(){
+document.getElementById("messages").innerHTML=""
+closeMenu()
+}
+
+/* USER */
 let username=null
 let userEmail=null
 
@@ -243,8 +307,8 @@ const pic=document.getElementById("profilePic")
 pic.src=user.picture || "https://cdn-icons-png.flaticon.com/512/149/149071.png"
 pic.style.display="block"
 
-document.getElementById("profileEmail").innerText =
-(username || "") + "\n" + (userEmail || "")
+document.getElementById("profileName").innerText=username || ""
+document.getElementById("profileEmail").innerText=userEmail || ""
 }
 
 /* LOGOUT */
@@ -253,11 +317,10 @@ localStorage.removeItem("quadronUser")
 window.location.href="index.html"
 }
 
-/* API */
+/* API (UNCHANGED) */
 async function askAI(message){
 
 try{
-
 const res = await fetch("/api/chat",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
@@ -265,11 +328,9 @@ body:JSON.stringify({message})
 })
 
 const text = await res.text()
-
 if(!text) return "ERROR: Empty response"
 
 let data
-
 try{ data = JSON.parse(text) }
 catch{ return "RAW RESPONSE: " + text }
 
@@ -279,13 +340,13 @@ return "ERROR: " + (data.error || JSON.stringify(data))
 
 return data.reply || "No reply"
 
-}catch(err){
+}catch{
 return "ERROR: Connection failed"
 }
 
 }
 
-/* INITIAL */
+/* INIT */
 window.onload = async function(){
 
 const box=document.getElementById("messages")
@@ -297,9 +358,7 @@ intro="User name is "+username+". Give a witty sarcastic greeting under 25 words
 }
 
 document.getElementById("loader").style.display="block"
-
 const reply = await askAI(intro)
-
 document.getElementById("loader").style.display="none"
 
 const p=document.createElement("p")
@@ -314,7 +373,6 @@ async function send(){
 
 const input=document.getElementById("msg")
 const text=input.value.trim()
-
 if(!text) return
 
 const box=document.getElementById("messages")
@@ -339,15 +397,12 @@ box.scrollTop=box.scrollHeight
 
 /* TYPE EFFECT */
 function typeText(text,element){
-
 let i=0
-
 const interval=setInterval(()=>{
 element.innerHTML+=text.charAt(i)
 i++
 if(i>=text.length) clearInterval(interval)
 },20)
-
 }
 
 </script>
