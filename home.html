@@ -12,7 +12,6 @@ background:#0a0a0a;
 color:#ffd900;
 font-family:Arial;
 margin:0;
-overflow-x:hidden;
 }
 
 /* HEADER */
@@ -23,6 +22,7 @@ align-items:center;
 padding:12px;
 background:#000;
 border-bottom:2px solid #ffd900;
+box-shadow:0 0 15px #ffd900;
 }
 
 #menuBtn{
@@ -37,12 +37,11 @@ top:0;
 left:0;
 width:100%;
 height:100%;
+background:rgba(0,0,0,0.5);
 backdrop-filter:blur(6px);
-background:rgba(0,0,0,0.4);
 opacity:0;
 pointer-events:none;
 transition:.3s;
-z-index:998;
 }
 #overlay.active{
 opacity:1;
@@ -60,45 +59,20 @@ background:#111;
 transform:translateX(100%);
 transition:.3s;
 padding:15px;
-display:flex;
-flex-direction:column;
-justify-content:space-between;
-z-index:999;
+z-index:1000;
 }
 #sidePanel.open{
 transform:translateX(0);
 }
 
-/* MENU ITEM */
-.menuItem{
-display:flex;
-align-items:center;
-gap:10px;
-padding:10px;
-border-radius:8px;
-cursor:pointer;
-transition:.2s;
-}
-.menuItem:hover{
-background:rgba(255,217,0,0.1);
-box-shadow:0 0 12px #ffd900;
-}
-
-.menuIcon{
-width:18px;
-height:18px;
-background:#ffd900;
-border-radius:4px;
-}
-
-/* PROFILE (TOP MENU) */
+/* PROFILE */
 #menuProfile{
 display:flex;
-align-items:center;
 gap:10px;
-cursor:pointer;
+align-items:center;
 padding:10px;
-border-bottom:1px solid #444;
+border-bottom:1px solid #333;
+cursor:pointer;
 }
 
 #menuProfile img{
@@ -106,66 +80,79 @@ width:40px;
 height:40px;
 border-radius:50%;
 border:2px solid #ffd900;
+box-shadow:0 0 10px #ffd900;
 }
 
-#menuProfileText{
+/* MENU ITEMS */
+.menuItem{
 display:flex;
-flex-direction:column;
-font-size:12px;
+align-items:center;
+gap:10px;
+padding:10px;
+cursor:pointer;
+border-radius:8px;
+transition:.2s;
+}
+.menuItem:hover{
+background:rgba(255,217,0,0.1);
+box-shadow:0 0 15px #ffd900;
 }
 
-/* PERSONALITY LIST */
-.subMenu{
-margin-left:10px;
-display:none;
-flex-direction:column;
+/* ICONS */
+.menuIcon{width:20px;height:20px;position:relative;}
+
+.icon-chat::before{
+content:"";position:absolute;width:100%;height:100%;
+border:2px solid #ffd900;box-shadow:0 0 8px #ffd900;
 }
 
-.subMenu .menuItem{
-font-size:13px;
+.icon-voice{
+border-radius:50%;
+background:#ffd900;
+box-shadow:0 0 12px #ffd900;
 }
 
-.selectedTick{
-margin-left:auto;
-color:#ffd900;
+.icon-core{
+clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);
+background:#ffd900;
+box-shadow:0 0 12px #ffd900;
 }
 
-/* TOGGLE SWITCH */
+.icon-brain{
+background:linear-gradient(45deg,#ffd900,#ffaa00);
+box-shadow:0 0 10px #ffd900;
+}
+
+.icon-truth{
+background:#ffd900;width:4px;height:100%;
+box-shadow:0 0 10px #ffd900;
+}
+
+/* SWITCH */
 .switch{
 margin-left:auto;
+width:40px;height:20px;
+background:#333;border-radius:20px;
 position:relative;
-width:40px;
-height:20px;
-background:#333;
-border-radius:20px;
 cursor:pointer;
 }
 .switch::after{
-content:"";
-position:absolute;
-width:16px;
-height:16px;
-background:#999;
-border-radius:50%;
-top:2px;
-left:2px;
-transition:.2s;
+content:"";position:absolute;width:16px;height:16px;
+background:#999;border-radius:50%;
+top:2px;left:2px;transition:.2s;
 }
 .switch.active{
 background:#ffd900;
 }
 .switch.active::after{
-left:22px;
-background:#000;
+left:22px;background:#000;
 }
 
 /* CHAT */
 #chat{
-width:100%;
 max-width:800px;
 margin:auto;
 padding:10px;
-box-sizing:border-box;
 }
 
 #messages{
@@ -175,19 +162,18 @@ height:65vh;
 overflow:auto;
 padding:10px;
 border-radius:10px;
+box-shadow:0 0 15px #ffd900;
 }
 
-/* INPUT FIX (IMPORTANT) */
+/* INPUT FIX */
 #inputArea{
 display:flex;
 gap:8px;
 margin-top:10px;
-width:100%;
 }
 
 input{
 flex:1;
-min-width:0;
 padding:12px;
 background:black;
 color:#ffd900;
@@ -197,7 +183,17 @@ border-radius:6px;
 
 button{
 padding:12px;
-white-space:nowrap;
+background:#000;
+color:#ffd900;
+border:1px solid #ffd900;
+cursor:pointer;
+box-shadow:0 0 12px #ffd900;
+}
+
+/* LOADER */
+#loader{
+display:none;
+margin-top:5px;
 }
 
 /* FOOTER */
@@ -214,17 +210,25 @@ text-shadow:0 0 8px #ffd900;
 
 /* PROFILE PAGE */
 #profilePage{
+display:none;
 position:fixed;
 top:0;
 left:0;
 width:100%;
 height:100%;
-background:#000;
-display:none;
+background:#0a0a0a;
 flex-direction:column;
 align-items:center;
-padding:20px;
+justify-content:center;
+gap:15px;
 z-index:2000;
+}
+
+#profilePage img{
+width:90px;
+border-radius:50%;
+border:2px solid #ffd900;
+box-shadow:0 0 15px #ffd900;
 }
 
 </style>
@@ -242,47 +246,47 @@ z-index:2000;
 <!-- SIDE PANEL -->
 <div id="sidePanel">
 
-<div>
-
-<!-- USER -->
 <div id="menuProfile" onclick="openProfilePage()">
 <img id="profilePic">
-<div id="menuProfileText">
+<div>
 <div id="profileName"></div>
-<div id="profileEmail"></div>
+<div id="profileEmail" style="font-size:12px;color:#aaa;"></div>
 </div>
 </div>
 
-<!-- MENU ITEMS -->
-<div class="menuItem" onclick="newChat()"><div class="menuIcon"></div>New Chat</div>
-<div class="menuItem"><div class="menuIcon"></div>Voice Mode</div>
-<div class="menuItem"><div class="menuIcon"></div>Quadron 7</div>
-
-<!-- PERSONALITY -->
-<div class="menuItem" onclick="togglePersonality()">
-<div class="menuIcon"></div>Personality Swap
+<div class="menuItem" onclick="newChat()">
+<div class="menuIcon icon-chat"></div>New Chat
 </div>
 
-<div class="subMenu" id="personalityMenu"></div>
+<div class="menuItem" onclick="location.href='voice.html'">
+<div class="menuIcon icon-voice"></div>Voice Mode
+</div>
 
-<!-- TRUTH PROTOCOL -->
 <div class="menuItem">
-<div class="menuIcon"></div>Truth Protocol
-<div class="switch" id="truthToggle" onclick="toggleTruth(event)"></div>
+<div class="menuIcon icon-core"></div>Quadron 7
 </div>
 
+<div class="menuItem" onclick="togglePersonality()">
+<div class="menuIcon icon-brain"></div>Personality Swap
+</div>
+
+<div id="personalityMenu" style="display:none;"></div>
+
+<div class="menuItem">
+<div class="menuIcon icon-truth"></div>Truth Protocol
+<div class="switch" id="truthToggle" onclick="toggleTruth(event)"></div>
 </div>
 
 </div>
 
 <!-- PROFILE PAGE -->
 <div id="profilePage">
-<img id="profilePicBig" style="width:80px;border-radius:50%;border:2px solid #ffd900;">
+<img id="profilePicBig">
 <h3 id="profileNameBig"></h3>
 <p id="profileEmailBig"></p>
 
-<p style="text-align:center;">
-Quadron AI can make mistakes , By using it you agree our 
+<p>
+Quadron AI can make mistakes, By using it you agree our 
 <a href="terms.html" style="color:#ffd900;">Terms & Conditions</a>
 </p>
 
@@ -302,7 +306,7 @@ Quadron AI can make mistakes , By using it you agree our
 </div>
 
 <div class="footer">
-Quadron AI can make mistakes , By using it you agree our 
+Quadron AI can make mistakes, By using it you agree our 
 <a href="terms.html">Terms & Conditions</a>
 </div>
 
@@ -320,31 +324,24 @@ overlay.classList.remove("active")
 
 /* PROFILE PAGE */
 function openProfilePage(){
-document.getElementById("profilePage").style.display="flex"
+profilePage.style.display="flex"
 closeMenu()
 }
 function closeProfilePage(){
-document.getElementById("profilePage").style.display="none"
+profilePage.style.display="none"
 }
 
-/* USER */
-let username=null,userEmail=null
-
+/* USER LOAD */
 const user=JSON.parse(localStorage.getItem("quadronUser")||"{}")
 
 if(user.email){
-username=user.name
-userEmail=user.email
+profilePic.src=user.picture
+profileName.innerText=user.name
+profileEmail.innerText=user.email
 
-profilePic.src=user.picture||"https://cdn-icons-png.flaticon.com/512/149/149071.png"
-profilePic.style.display="block"
-
-profileName.innerText=username
-profileEmail.innerText=userEmail
-
-profilePicBig.src=profilePic.src
-profileNameBig.innerText=username
-profileEmailBig.innerText=userEmail
+profilePicBig.src=user.picture
+profileNameBig.innerText=user.name
+profileEmailBig.innerText=user.email
 }
 
 /* PERSONALITY */
@@ -353,7 +350,7 @@ let selectedPersonality="Quadron Main"
 
 function togglePersonality(){
 let menu=document.getElementById("personalityMenu")
-menu.style.display = menu.style.display==="flex"?"none":"flex"
+menu.style.display=menu.style.display==="block"?"none":"block"
 }
 
 const pMenu=document.getElementById("personalityMenu")
@@ -361,33 +358,24 @@ const pMenu=document.getElementById("personalityMenu")
 personalities.forEach(p=>{
 let div=document.createElement("div")
 div.className="menuItem"
-div.innerHTML='<div class="menuIcon"></div>'+p+'<span class="selectedTick">'+(p==="Quadron Main"?"✔":"")+'</span>'
+div.innerHTML=p
 div.onclick=()=>{
 selectedPersonality=p
-updatePersonalityUI()
 }
 pMenu.appendChild(div)
 })
-
-function updatePersonalityUI(){
-[...pMenu.children].forEach(el=>{
-el.querySelector(".selectedTick").innerText=
-el.innerText.includes(selectedPersonality)?"✔":""
-})
-}
 
 /* TRUTH */
 let truthMode=false
 function toggleTruth(e){
 e.stopPropagation()
 truthMode=!truthMode
-document.getElementById("truthToggle").classList.toggle("active",truthMode)
+truthToggle.classList.toggle("active",truthMode)
 }
 
 /* NEW CHAT */
 function newChat(){
 messages.innerHTML=""
-closeMenu()
 }
 
 /* LOGOUT */
@@ -396,25 +384,18 @@ localStorage.removeItem("quadronUser")
 location.href="index.html"
 }
 
-/* TIME GREETING */
-function getTimeContext(){
-let h=new Date().getHours()
-if(h<12)return "morning"
-if(h<18)return "afternoon"
-return "night"
-}
-
-/* API */
+/* AI */
 async function askAI(message){
 
-let personalityPrompt=`Respond as ${selectedPersonality} personality: ultra intelligent, sarcastic, universe aware.`
-let truthPrompt= truthMode ? "Use pure logic, no emotions, no sugarcoating, only sharp sarcasm." : ""
+loader.style.display="block"
 
-let fullPrompt = `
-${personalityPrompt}
-${truthPrompt}
-User message: ${message}
-`
+let personalityPrompt=`You have ${selectedPersonality} personality. You are ultra intelligent, sarcastic and universe aware.Avoid political & sensitive questions .You are Made by Rawat Systems(Don't mention it all time , except only few times if you happened to explain it , dont do this everytime)`
+
+let truthPrompt = truthMode
+? "Explain it in ultra logical way mentioning all mathematical calculations, scientific evidences, discoveries and answer with no emotions, no sugarcoating, pure logic and data."
+: ""
+
+let fullPrompt = `${personalityPrompt} ${truthPrompt} User: ${message}`
 
 const res=await fetch("/api/chat",{
 method:"POST",
@@ -423,33 +404,39 @@ body:JSON.stringify({message:fullPrompt})
 })
 
 let data=await res.json()
+
+loader.style.display="none"   // FIXED HERE
+
 return data.reply
 }
 
-/* INIT */
-window.onload=async function(){
-
-let intro=`It is ${getTimeContext()}. Give a short sarcastic greeting.`
-
-let reply=await askAI(intro)
-
-let p=document.createElement("p")
-p.innerHTML="<b>Quadron:</b> "+reply
-messages.appendChild(p)
+/* TYPING */
+function typeText(text, element){
+let i=0
+element.innerHTML="<b>Quadron:</b> "
+let interval=setInterval(()=>{
+element.innerHTML+=text.charAt(i)
+i++
+if(i>=text.length) clearInterval(interval)
+},15)
 }
 
 /* SEND */
 async function send(){
 
 let text=msg.value.trim()
-if(!text)return
+if(!text) return
 
 messages.innerHTML+=`<p><b>You:</b> ${text}</p>`
 msg.value=""
 
+let p=document.createElement("p")
+messages.appendChild(p)
+
 let reply=await askAI(text)
 
-messages.innerHTML+=`<p><b>Quadron:</b> ${reply}</p>`
+typeText(reply,p)
+
 messages.scrollTop=messages.scrollHeight
 }
 
