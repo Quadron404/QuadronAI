@@ -1,231 +1,234 @@
 <!DOCTYPE html>
-
 <html>
 <head>
 <title>Quadron AI</title>
 
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
+
 body{
 background:#0a0a0a;
 color:#ffd900;
 font-family:Arial;
-text-align:center;
 margin:0;
+overflow-x:hidden;
 }
 
+/* HEADER */
 header{
 display:flex;
 justify-content:space-between;
-padding:15px;
+align-items:center;
+padding:12px 15px;
 background:#000;
 border-bottom:2px solid #ffd900;
-align-items:center;
 }
 
-#rightControls{
-display:flex;
-align-items:center;
-gap:10px;
-position:relative;
-}
-
-#profilePic{
-width:34px;
-height:34px;
-border-radius:50%;
-border:2px solid #ffd900;
-box-shadow:0 0 10px #ffd900;
-object-fit:cover;
-display:none;
+/* HAMBURGER */
+#menuBtn{
+font-size:26px;
 cursor:pointer;
 }
 
-#profilePanel{
-position:absolute;
-top:50px;
-right:0;
+/* SIDE PANEL */
+#sidePanel{
+position:fixed;
+top:0;
+right:-280px;
+width:260px;
+height:100%;
 background:#111;
-border:1px solid #ffd900;
-padding:15px;
+border-left:2px solid #ffd900;
+box-shadow:-5px 0 20px #000;
+transition:.3s ease;
+padding:20px;
+display:flex;
+flex-direction:column;
+justify-content:space-between;
+z-index:1000;
+}
+
+#sidePanel.open{
+right:0;
+}
+
+/* MENU ITEMS */
+.menuItem{
+background:#ffd900;
+color:black;
+padding:10px;
+margin-bottom:10px;
+border-radius:6px;
+cursor:pointer;
+text-align:center;
+box-shadow:0 0 10px #ffd900;
+}
+
+/* PROFILE SECTION */
+#profileSection{
+border-top:1px solid #555;
+padding-top:15px;
+text-align:center;
+}
+
+#profilePic{
+width:60px;
+height:60px;
+border-radius:50%;
+border:2px solid #ffd900;
+margin-bottom:10px;
+object-fit:cover;
 display:none;
-width:200px;
-box-shadow:0 0 15px #ffd900;
 }
 
 #profileEmail{
 font-size:13px;
-margin-bottom:12px;
 color:#ccc;
 word-break:break-all;
+margin-bottom:10px;
 }
 
 #logoutBtn{
 background:#ffd900;
 color:black;
 border:none;
-padding:8px 12px;
-cursor:pointer;
-border-radius:6px;
-box-shadow:0 0 12px #ffd900;
+padding:8px;
 width:100%;
+border-radius:6px;
+cursor:pointer;
+}
+
+/* CHAT AREA */
+#chat{
+width:100%;
+max-width:800px;
+margin:auto;
+padding:10px;
+}
+
+#messages{
+background:#111;
+border:1px solid #ffd900;
+height:65vh;
+overflow:auto;
+padding:10px;
+text-align:left;
+border-radius:10px;
+}
+
+/* INPUT BAR */
+#inputArea{
+display:flex;
+gap:8px;
+margin-top:10px;
+}
+
+input{
+flex:1;
+padding:12px;
+background:black;
+color:#ffd900;
+border:1px solid #ffd900;
+border-radius:6px;
 }
 
 button{
 background:#ffd900;
 color:black;
 border:none;
-padding:10px 18px;
-cursor:pointer;
+padding:12px;
 border-radius:6px;
+cursor:pointer;
 box-shadow:0 0 10px #ffd900;
 }
 
-#chat{
-width:80%;
-max-width:700px;
-margin:auto;
-margin-top:20px;
-}
-
-#messages{
-background:#111;
-border:1px solid #ffd900;
-height:420px;
-overflow:auto;
-padding:10px;
-text-align:left;
-}
-
-input{
-width:70%;
-padding:10px;
-background:black;
-color:#ffd900;
-border:1px solid #ffd900;
-}
-
+/* LOADER */
 #loader{
 display:none;
 margin:10px;
+text-align:center;
 }
 
+/* FOOTER */
 .footer{
-margin-top:20px;
+text-align:center;
 font-size:12px;
 color:#aaa;
+margin:10px;
 }
 
-/* 🔥 clickable terms style */
-.footer a{
-color:#ffd900;
-text-decoration:underline;
-text-decoration-color:#ffd900;
-cursor:pointer;
-}
-/* 🔥 MOBILE APP STYLE FIX */
-@media (max-width: 600px){
+/* MOBILE PERFECT FIX */
+@media (max-width:600px){
 
-/* header */
-header{
-flex-direction:row;
-padding:10px;
-}
-
-header h2{
-font-size:18px;
-}
-
-/* buttons */
-button{
-padding:8px 10px;
-font-size:12px;
-}
-
-/* chat container */
-#chat{
-width:100%;
-padding:0 5px;
-margin-top:5px;
-}
-
-/* messages box */
 #messages{
-height:65vh;
+height:70vh;
 font-size:14px;
-border-radius:8px;
 }
 
-/* input area like chatgpt */
 input{
-width:68%;
-padding:10px;
 font-size:14px;
-border-radius:6px;
 }
 
-/* keep input + send aligned */
-#chat input, #chat button{
-margin-top:5px;
-}
-
-/* footer */
-.footer{
-font-size:10px;
-margin-bottom:10px;
-}
-
-/* profile panel */
-#profilePanel{
-width:150px;
-right:5px;
-}
-
-/* prevent zoom issues */
-html{
-font-size:16px;
+button{
+font-size:14px;
 }
 
 }
+
 </style>
-
 </head>
 
 <body>
 
 <header>
-<h2>Quadron AI</h2>
+<h3>Quadron AI</h3>
+<div id="menuBtn" onclick="toggleMenu()">☰</div>
+</header>
 
-<div id="rightControls">
-<button onclick="location.href='voice.html'">Voice Mode</button>
-<button onclick="location.href='quadron7.html'">Quadron 7</button>
+<!-- SIDE PANEL -->
+<div id="sidePanel">
 
+<div>
+<div class="menuItem" onclick="location.href='voice.html'">Voice Mode</div>
+<div class="menuItem" onclick="location.href='quadron7.html'">Quadron 7</div>
+</div>
+
+<div id="profileSection">
 <img id="profilePic">
-
-<div id="profilePanel">
 <div id="profileEmail"></div>
 <button id="logoutBtn" onclick="logout()">Logout</button>
 </div>
-</div>
-</header>
 
+</div>
+
+<!-- CHAT -->
 <div id="chat">
+
 <div id="messages"></div>
 
 <div id="loader">Quadron thinking...</div>
 
+<div id="inputArea">
 <input id="msg" placeholder="Type message">
 <button onclick="send()">Send</button>
 </div>
 
-<!-- 🔥 FINAL FOOTER -->
+</div>
+
 <div class="footer">
-Quadron AI developed by Rawat Systems • By using this you agree our
+Quadron AI developed by Rawat Systems •
 <a href="terms.html" target="_blank">Terms & Conditions</a>
 </div>
 
 <script>
 
-// USER MEMORY
+/* MENU */
+function toggleMenu(){
+document.getElementById("sidePanel").classList.toggle("open")
+}
+
+/* USER MEMORY */
 let username=null
 let userEmail=null
 
@@ -240,16 +243,17 @@ const pic=document.getElementById("profilePic")
 pic.src=user.picture || "https://cdn-icons-png.flaticon.com/512/149/149071.png"
 pic.style.display="block"
 
-document.getElementById("profileEmail").innerText=userEmail
+document.getElementById("profileEmail").innerText =
+(username || "") + "\n" + (userEmail || "")
 }
 
-// LOGOUT
+/* LOGOUT */
 function logout(){
 localStorage.removeItem("quadronUser")
 window.location.href="index.html"
 }
 
-// API CALL
+/* API */
 async function askAI(message){
 
 try{
@@ -262,32 +266,26 @@ body:JSON.stringify({message})
 
 const text = await res.text()
 
-if(!text){
-return "ERROR: Empty response from server"
-}
+if(!text) return "ERROR: Empty response"
 
 let data
 
-try{
-data = JSON.parse(text)
-}catch{
-return "RAW RESPONSE: " + text
-}
+try{ data = JSON.parse(text) }
+catch{ return "RAW RESPONSE: " + text }
 
 if(!res.ok){
 return "ERROR: " + (data.error || JSON.stringify(data))
 }
 
-return data.reply || "No reply field in response"
+return data.reply || "No reply"
 
 }catch(err){
-console.error(err)
 return "ERROR: Connection failed"
 }
 
 }
 
-// INITIAL GREETING
+/* INITIAL */
 window.onload = async function(){
 
 const box=document.getElementById("messages")
@@ -295,7 +293,7 @@ const box=document.getElementById("messages")
 let intro="Say a sarcastic hello."
 
 if(username){
-intro="User name is "+username+". Give a ultra super sarcastic , smart & witty greeting , with a mixed sassy joke related to user to make user laugh , maximum word limit : 25."
+intro="User name is "+username+". Give a witty sarcastic greeting under 25 words."
 }
 
 document.getElementById("loader").style.display="block"
@@ -311,7 +309,7 @@ box.appendChild(p)
 typeText(reply,p)
 }
 
-// SEND MESSAGE
+/* SEND */
 async function send(){
 
 const input=document.getElementById("msg")
@@ -339,7 +337,7 @@ typeText(reply,p)
 box.scrollTop=box.scrollHeight
 }
 
-// TYPE EFFECT
+/* TYPE EFFECT */
 function typeText(text,element){
 
 let i=0
