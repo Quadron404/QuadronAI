@@ -18,41 +18,28 @@ margin:0;
 header{
 display:flex;
 justify-content:space-between;
-align-items:center;
 padding:12px;
 background:#000;
 border-bottom:2px solid #ffd900;
-box-shadow:0 0 15px #ffd900;
+box-shadow:0 0 12px #ffd900;
 }
 
-#menuBtn{
-font-size:24px;
-cursor:pointer;
-}
+/* MENU */
+#menuBtn{cursor:pointer;font-size:22px;}
 
-/* OVERLAY */
 #overlay{
 position:fixed;
-top:0;
-left:0;
 width:100%;
 height:100%;
-background:rgba(0,0,0,0.5);
-backdrop-filter:blur(6px);
-opacity:0;
-pointer-events:none;
-transition:.3s;
-}
-#overlay.active{
-opacity:1;
-pointer-events:auto;
+background:rgba(0,0,0,0.6);
+display:none;
+z-index:900;
 }
 
-/* SIDE PANEL */
 #sidePanel{
 position:fixed;
-top:0;
 right:0;
+top:0;
 width:270px;
 height:100%;
 background:#111;
@@ -61,71 +48,42 @@ transition:.3s;
 padding:15px;
 z-index:1000;
 }
-#sidePanel.open{
-transform:translateX(0);
-}
+#sidePanel.open{transform:translateX(0);}
 
 /* PROFILE */
 #menuProfile{
 display:flex;
 gap:10px;
-align-items:center;
+cursor:pointer;
 padding:10px;
 border-bottom:1px solid #333;
-cursor:pointer;
 }
 
 #menuProfile img{
 width:40px;
-height:40px;
 border-radius:50%;
 border:2px solid #ffd900;
-box-shadow:0 0 10px #ffd900;
 }
 
-/* MENU ITEMS */
+/* MENU ITEM */
 .menuItem{
 display:flex;
 align-items:center;
 gap:10px;
 padding:10px;
 cursor:pointer;
-border-radius:8px;
 transition:.2s;
+box-shadow:0 0 3px #ffd900;
 }
 .menuItem:hover{
+box-shadow:0 0 20px #ffd900;
 background:rgba(255,217,0,0.1);
-box-shadow:0 0 15px #ffd900;
 }
 
-/* ICONS */
-.menuIcon{width:20px;height:20px;position:relative;}
-
-.icon-chat::before{
-content:"";position:absolute;width:100%;height:100%;
-border:2px solid #ffd900;box-shadow:0 0 8px #ffd900;
-}
-
-.icon-voice{
-border-radius:50%;
-background:#ffd900;
-box-shadow:0 0 12px #ffd900;
-}
-
-.icon-core{
-clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);
-background:#ffd900;
-box-shadow:0 0 12px #ffd900;
-}
-
-.icon-brain{
-background:linear-gradient(45deg,#ffd900,#ffaa00);
-box-shadow:0 0 10px #ffd900;
-}
-
-.icon-truth{
-background:#ffd900;width:4px;height:100%;
-box-shadow:0 0 10px #ffd900;
+/* ICON */
+.menuIcon img{
+width:20px;
+filter:drop-shadow(0 0 4px #ffd900);
 }
 
 /* SWITCH */
@@ -134,18 +92,21 @@ margin-left:auto;
 width:40px;height:20px;
 background:#333;border-radius:20px;
 position:relative;
-cursor:pointer;
 }
 .switch::after{
 content:"";position:absolute;width:16px;height:16px;
 background:#999;border-radius:50%;
 top:2px;left:2px;transition:.2s;
 }
-.switch.active{
-background:#ffd900;
-}
-.switch.active::after{
-left:22px;background:#000;
+.switch.active{background:#ffd900;}
+.switch.active::after{left:22px;background:#000;}
+
+/* INFO BUTTON */
+#truthInfoBtn{
+margin-left:auto;
+margin-right:5px;
+cursor:pointer;
+text-shadow:0 0 8px #ffd900;
 }
 
 /* CHAT */
@@ -156,16 +117,14 @@ padding:10px;
 }
 
 #messages{
-background:#111;
-border:1px solid #ffd900;
 height:65vh;
 overflow:auto;
+background:#111;
 padding:10px;
-border-radius:10px;
+border:1px solid #ffd900;
 box-shadow:0 0 15px #ffd900;
 }
 
-/* INPUT FIX */
 #inputArea{
 display:flex;
 gap:8px;
@@ -174,54 +133,36 @@ margin-top:10px;
 
 input{
 flex:1;
-padding:12px;
+padding:10px;
 background:black;
 color:#ffd900;
 border:1px solid #ffd900;
-border-radius:6px;
 }
 
 button{
-padding:12px;
-background:#000;
+padding:10px;
+background:black;
 color:#ffd900;
 border:1px solid #ffd900;
-cursor:pointer;
-box-shadow:0 0 12px #ffd900;
+box-shadow:0 0 4px #ffd900;
+transition:.2s;
 }
-
-/* LOADER */
-#loader{
-display:none;
-margin-top:5px;
-}
-
-/* FOOTER */
-.footer{
-text-align:center;
-font-size:12px;
-margin:10px;
-}
-.footer a{
-color:#ffd900;
-text-decoration:none;
-text-shadow:0 0 8px #ffd900;
+button:hover{
+box-shadow:0 0 20px #ffd900;
 }
 
 /* PROFILE PAGE */
 #profilePage{
 display:none;
 position:fixed;
-top:0;
-left:0;
 width:100%;
 height:100%;
 background:#0a0a0a;
-flex-direction:column;
+z-index:2000;
 align-items:center;
 justify-content:center;
+flex-direction:column;
 gap:15px;
-z-index:2000;
 }
 
 #profilePage img{
@@ -231,13 +172,40 @@ border:2px solid #ffd900;
 box-shadow:0 0 15px #ffd900;
 }
 
+/* POPUP */
+#truthPopup{
+display:none;
+position:fixed;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.7);
+z-index:3000;
+align-items:center;
+justify-content:center;
+}
+
+#truthBox{
+background:#111;
+padding:20px;
+border:1px solid #ffd900;
+box-shadow:0 0 20px #ffd900;
+text-align:center;
+}
+
+pre{
+background:#000;
+padding:10px;
+overflow:auto;
+border:1px solid #ffd900;
+}
+
 </style>
 </head>
 
 <body>
 
 <header>
-<h3>Quadron AI</h3>
+<div>Quadron AI</div>
 <div id="menuBtn" onclick="openMenu()">☰</div>
 </header>
 
@@ -255,25 +223,26 @@ box-shadow:0 0 15px #ffd900;
 </div>
 
 <div class="menuItem" onclick="newChat()">
-<div class="menuIcon icon-chat"></div>New Chat
+<div class="menuIcon"><img src="icons/chat.png"></div>New Chat
 </div>
 
 <div class="menuItem" onclick="location.href='voice.html'">
-<div class="menuIcon icon-voice"></div>Voice Mode
+<div class="menuIcon"><img src="icons/voice.png"></div>Voice Mode
 </div>
 
 <div class="menuItem">
-<div class="menuIcon icon-core"></div>Quadron 7
+<div class="menuIcon"><img src="icons/quadron.png"></div>Quadron 7
 </div>
 
 <div class="menuItem" onclick="togglePersonality()">
-<div class="menuIcon icon-brain"></div>Personality Swap
+<div class="menuIcon"><img src="icons/personality.png"></div>Personality Swap
 </div>
 
-<div id="personalityMenu" style="display:none;"></div>
+<div id="personalityMenu"></div>
 
 <div class="menuItem">
-<div class="menuIcon icon-truth"></div>Truth Protocol
+<div class="menuIcon"><img src="icons/truth.png"></div>Truth Protocol
+<div id="truthInfoBtn" onclick="openTruthInfo()">i</div>
 <div class="switch" id="truthToggle" onclick="toggleTruth(event)"></div>
 </div>
 
@@ -294,76 +263,83 @@ Quadron AI can make mistakes, By using it you agree our
 <button onclick="closeProfilePage()">Back</button>
 </div>
 
+<!-- TRUTH POPUP -->
+<div id="truthPopup">
+<div id="truthBox">
+<h3>Truth Protocol</h3>
+<p>Pure logic, scientific evidence, zero emotions.</p>
+<button onclick="closeTruthInfo()">Close</button>
+</div>
+</div>
+
 <!-- CHAT -->
 <div id="chat">
 <div id="messages"></div>
-<div id="loader">Quadron thinking...</div>
 
 <div id="inputArea">
-<input id="msg" placeholder="Type message">
+<input id="msg">
 <button onclick="send()">Send</button>
 </div>
-</div>
-
-<div class="footer">
-Quadron AI can make mistakes, By using it you agree our 
-<a href="terms.html">Terms & Conditions</a>
 </div>
 
 <script>
 
 /* MENU */
-function openMenu(){
-sidePanel.classList.add("open")
-overlay.classList.add("active")
-}
-function closeMenu(){
-sidePanel.classList.remove("open")
-overlay.classList.remove("active")
+function openMenu(){sidePanel.classList.add("open");overlay.style.display="block";}
+function closeMenu(){sidePanel.classList.remove("open");overlay.style.display="none";}
+
+/* PROFILE */
+function openProfilePage(){profilePage.style.display="flex";closeMenu();}
+function closeProfilePage(){profilePage.style.display="none";}
+
+/* USER / GUEST */
+let user=JSON.parse(localStorage.getItem("quadronUser")||"{}")
+if(!user.email){
+user={name:"Guest777",email:"",picture:"icons/profile.png"}
 }
 
-/* PROFILE PAGE */
-function openProfilePage(){
-profilePage.style.display="flex"
-closeMenu()
-}
-function closeProfilePage(){
-profilePage.style.display="none"
-}
-
-/* USER LOAD */
-const user=JSON.parse(localStorage.getItem("quadronUser")||"{}")
-
-if(user.email){
 profilePic.src=user.picture
 profileName.innerText=user.name
-profileEmail.innerText=user.email
+profileEmail.innerText=user.email||"Guest Mode"
 
 profilePicBig.src=user.picture
 profileNameBig.innerText=user.name
-profileEmailBig.innerText=user.email
-}
+profileEmailBig.innerText=user.email||"Guest Mode"
 
 /* PERSONALITY */
-const personalities=["Alpha","Beta","Gamma","Omega","Delta","Sigma","Zeta","Quadron Main"]
+const personalities=[
+{name:"Alpha",icon:"alpha.png"},
+{name:"Beta",icon:"beta.png"},
+{name:"Gamma",icon:"gamma.png"},
+{name:"Omega",icon:"omega.png"},
+{name:"Delta",icon:"delta.png"},
+{name:"Sigma",icon:"sigma.png"},
+{name:"Zeta",icon:"zeta.png"},
+{name:"Quadron Main",icon:"main.png"}
+]
+
 let selectedPersonality="Quadron Main"
 
 function togglePersonality(){
-let menu=document.getElementById("personalityMenu")
-menu.style.display=menu.style.display==="block"?"none":"block"
+personalityMenu.style.display=
+personalityMenu.style.display==="block"?"none":"block"
 }
 
-const pMenu=document.getElementById("personalityMenu")
-
+function renderPersonality(){
+personalityMenu.innerHTML=""
 personalities.forEach(p=>{
 let div=document.createElement("div")
 div.className="menuItem"
-div.innerHTML=p
-div.onclick=()=>{
-selectedPersonality=p
-}
-pMenu.appendChild(div)
+div.innerHTML=`
+<div class="menuIcon"><img src="icons/${p.icon}"></div>
+${p.name}
+<span style="margin-left:auto;">${p.name===selectedPersonality?"✔":""}</span>
+`
+div.onclick=()=>{selectedPersonality=p.name;renderPersonality()}
+personalityMenu.appendChild(div)
 })
+}
+renderPersonality()
 
 /* TRUTH */
 let truthMode=false
@@ -373,59 +349,60 @@ truthMode=!truthMode
 truthToggle.classList.toggle("active",truthMode)
 }
 
-/* NEW CHAT */
-function newChat(){
-messages.innerHTML=""
+/* POPUP */
+function openTruthInfo(){truthPopup.style.display="flex"}
+function closeTruthInfo(){truthPopup.style.display="none"}
+
+/* TEXT FORMAT */
+function formatText(text){
+return text.replace(/\n/g,"<br>").replace(/```([\s\S]*?)```/g,'<pre>$1</pre>')
 }
 
-/* LOGOUT */
-function logout(){
-localStorage.removeItem("quadronUser")
-location.href="index.html"
+/* TYPING */
+function typeText(text,el){
+let i=0
+el.innerHTML="<b>Quadron:</b> "
+let int=setInterval(()=>{
+el.innerHTML+=formatText(text[i]||"")
+i++
+if(i>=text.length) clearInterval(int)
+},15)
 }
 
 /* AI */
 async function askAI(message){
 
-loader.style.display="block"
+let personality=`You have ${selectedPersonality} personality.`
+let truth=truthMode?
+"Explain it in ultra logical way mentioning all mathematical calculations, scientific evidences, discoveries and answer with no emotions, no sugarcoating, pure logic and data.":""
 
-let personalityPrompt=`You have ${selectedPersonality} personality. You are ultra intelligent, sarcastic and universe aware.Avoid political & sensitive questions .You are Made by Rawat Systems(Don't mention it all time , except only few times if you happened to explain it , dont do this everytime)`
-
-let truthPrompt = truthMode
-? "Explain it in ultra logical way mentioning all mathematical calculations, scientific evidences, discoveries and answer with no emotions, no sugarcoating, pure logic and data."
-: ""
-
-let fullPrompt = `${personalityPrompt} ${truthPrompt} User: ${message}`
-
-const res=await fetch("/api/chat",{
+let res=await fetch("/api/chat",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({message:fullPrompt})
+body:JSON.stringify({message:`${personality} ${truth} User: ${message}`})
 })
 
 let data=await res.json()
-
-loader.style.display="none"   // FIXED HERE
-
 return data.reply
 }
 
-/* TYPING */
-function typeText(text, element){
-let i=0
-element.innerHTML="<b>Quadron:</b> "
-let interval=setInterval(()=>{
-element.innerHTML+=text.charAt(i)
-i++
-if(i>=text.length) clearInterval(interval)
-},15)
+/* GREETING */
+window.onload=async()=>{
+let h=new Date().getHours()
+let time=h<12?"morning":h<18?"afternoon":"night"
+
+let reply=await askAI(`Greet sarcastically mentioning ${time} and weather.`)
+
+let p=document.createElement("p")
+messages.appendChild(p)
+typeText(reply,p)
 }
 
 /* SEND */
 async function send(){
 
 let text=msg.value.trim()
-if(!text) return
+if(!text)return
 
 messages.innerHTML+=`<p><b>You:</b> ${text}</p>`
 msg.value=""
@@ -434,10 +411,18 @@ let p=document.createElement("p")
 messages.appendChild(p)
 
 let reply=await askAI(text)
-
 typeText(reply,p)
 
 messages.scrollTop=messages.scrollHeight
+}
+
+/* NEW CHAT */
+function newChat(){messages.innerHTML=""}
+
+/* LOGOUT */
+function logout(){
+localStorage.removeItem("quadronUser")
+location.href="index.html"
 }
 
 </script>
