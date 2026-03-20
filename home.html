@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="UTF-8">
 <title>Quadron AI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
@@ -8,17 +9,17 @@ body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
 .blur-bg{filter:blur(5px);}
 header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 12px #ffd900;}
 #logo{font-weight:bold;font-size:18px;display:flex;align-items:center;gap:6px;}
-#logo img{width:24px;height:24px;}
 #menuBtn{cursor:pointer;font-size:24px;}
 #overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;z-index:900;}
-#sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;overflow-y:auto;}
+#sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;overflow-y:auto;display:flex;flex-direction:column;}
 #sidePanel.open{transform:translateX(0);}
 #menuProfile{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid #333;}
 #menuProfile img{width:40px;height:40px;border-radius:50%;border:1px solid #ffd900;object-fit:cover;}
-.menuItem{padding:10px;cursor:pointer;margin-top:8px;color:#ffd900;font-weight:bold;transition:0.2s;}
+.menuItem{padding:10px;cursor:pointer;margin-top:8px;color:#ffd900;font-weight:bold;transition:0.2s;position:relative;}
 .menuItem:hover{color:#ffd900;text-shadow:0 0 10px #ffd900;}
-.switch{margin-left:auto;width:40px;height:20px;background:#333;border-radius:20px;position:absolute;right:10px;top:50%;transform:translateY(-50%);}
+.switch{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:40px;height:20px;background:#333;border-radius:20px;}
 .switch::after{content:"";position:absolute;width:16px;height:16px;background:#999;border-radius:50%;top:2px;left:2px;transition:.2s;}
+.switch.active{background:#ffd900;}
 .switch.active::after{left:22px;background:#000;}
 #chat{max-width:800px;margin:auto;padding:10px;}
 #messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;box-shadow:0 0 15px #ffd900;border-radius:12px;}
@@ -36,15 +37,14 @@ button{padding:10px;background:#ffd900;color:#000;border:none;box-shadow:0 0 12p
 .token-function{color:#ffd700;font-style:italic;}
 .footer{text-align:center;font-size:12px;margin:10px;}
 .footer a{color:#ffd900;text-decoration:none;}
-.menuFooter{margin-top:20px;text-align:center;font-size:12px;}
+.menuFooter{margin-top:auto;text-align:center;font-size:12px;padding-bottom:10px;}
 .menuFooter span{font-weight:bold;color:#ffd900;text-shadow:0 0 10px #ffd900;}
 </style>
 </head>
-
 <body>
 
 <header>
-<div id="logo"><img src="logo.png" alt="Logo">Quadron AI</div>
+<div id="logo">Quadron AI</div>
 <div id="menuBtn" onclick="openMenu()">☰</div>
 </header>
 
@@ -98,13 +98,8 @@ function closeMenu(){sidePanel.classList.remove("open");overlay.style.display="n
 
 /* USER SYSTEM */
 let user=JSON.parse(localStorage.getItem("quadronUser")||"{}")
-if(!user.name){
-user={name:"Guest88",email:"Guest88@fakegmail.com"}
-profilePic.style.display="none"
-}else{
-profilePic.src=user.pic || "https://via.placeholder.com/40"
-profilePic.style.display="block"
-}
+if(!user.name){user={name:"Guest88",email:"Guest88@fakegmail.com"};profilePic.style.display="none";}
+else{profilePic.src=user.pic||"https://via.placeholder.com/40";profilePic.style.display="block";}
 profileName.innerText=user.name
 profileEmail.innerText=user.email
 
@@ -112,16 +107,16 @@ profileEmail.innerText=user.email
 let truthMode=false
 function toggleTruth(e){e.stopPropagation();truthMode=!truthMode;truthToggle.classList.toggle("active",truthMode)}
 
-/* CODE DETECTION WITH 8-WORD LOGIC */
+/* CODE DETECTION */
 function detectLang(code){
-if(code.includes("def ") || code.includes("import ")) return "Python"
-if(code.includes("console.log") || code.includes("function")) return "JavaScript"
-if(code.includes("#include")) return "C"
-if(code.includes("<html") || code.includes("<div")) return "HTML"
-return "Code"
+if(code.includes("def ")||code.includes("import ")) return "Python";
+if(code.includes("console.log")||code.includes("function")) return "JavaScript";
+if(code.includes("#include")) return "C";
+if(code.includes("<html")||code.includes("<div")) return "HTML";
+return "Code";
 }
 
-function highlight(code,lang){
+function highlight(code){
 code=code.replace(/</g,"&lt;");
 code=code.replace(/(#.*|\/\/.*)/g,'<span class="token-comment">$1</span>');
 code=code.replace(/(['"`].*?['"`])/g,'<span class="token-string">$1</span>');
@@ -129,68 +124,58 @@ code=code.replace(/\b(\d+)\b/g,'<span class="token-number">$1</span>');
 let keywords=["def","class","return","if","else","elif","for","while","import","from","function","var","let","const","int","float","char","void","include"];
 keywords.forEach(k=>{let reg=new RegExp("\\b"+k+"\\b","g");code=code.replace(reg,`<span class="token-keyword">${k}</span>`);});
 code=code.replace(/\b([a-zA-Z_]+)(?=\()/g,'<span class="token-function">$1</span>');
-return code
+return code;
 }
 
 function createCodeBox(code){
-let lang=detectLang(code)
-let highlighted=highlight(code,lang)
-return `<div class="codeBox"><div class="codeHeader"><span>${lang}</span><span class="copyBtn" onclick="copyCode(this)">Copy</span></div><div class="codeContent">${highlighted}</div></div>`
+let lang=detectLang(code);
+let highlighted=highlight(code);
+return `<div class="codeBox"><div class="codeHeader"><span>${lang}</span><span class="copyBtn" onclick="copyCode(this)">Copy</span></div><div class="codeContent">${highlighted}</div></div>`;
 }
 
+/* Sliding window 8-word logic */
 function formatText(text){
-let words=text.split(/\s+/),result="",buffer=[],codeWords=0
+let words=text.split(/\s+/),result="",buffer=[],codeWords=0;
 words.forEach(w=>{
-let isCodeWord=/(\bdef\b|\bclass\b|\breturn\b|\bif\b|\belse\b|\bfor\b|console\.log|#include|<html|<div)/.test(w)
-if(isCodeWord){buffer.push(w);codeWords++}
-else{
-if(codeWords>=8){result+=createCodeBox(buffer.join(" "))}buffer=[];codeWords=0
-result+=w+" "
-}
-})
-if(codeWords>=8) result+=createCodeBox(buffer.join(" "))
-return result.replace(/\n/g,"<br>")
+let isCode=/(\bdef\b|\bclass\b|\breturn\b|\bif\b|\belse\b|\bfor\b|console\.log|#include|<html|<div)/.test(w);
+buffer.push(w);
+if(isCode) codeWords++; else codeWords=0;
+if(codeWords>=8){result+=createCodeBox(buffer.join(" "));buffer=[];codeWords=0;}
+else if(!isCode && codeWords<8){result+=buffer.join(" ")+" ";buffer=[];}
+});
+if(buffer.length>0 && codeWords>=8) result+=createCodeBox(buffer.join(" "));
+return result.replace(/\n/g,"<br>");
 }
 
 function copyCode(btn){
-let code=btn.parentElement.nextElementSibling.innerText
-let textarea=document.createElement("textarea")
-textarea.value=code;document.body.appendChild(textarea)
-textarea.select();document.execCommand("copy");document.body.removeChild(textarea)
-btn.innerText="Copied!";setTimeout(()=>btn.innerText="Copy",1500)
+let code=btn.parentElement.nextElementSibling.innerText;
+let textarea=document.createElement("textarea");textarea.value=code;document.body.appendChild(textarea);textarea.select();document.execCommand("copy");document.body.removeChild(textarea);
+btn.innerText="Copied!";setTimeout(()=>btn.innerText="Copy",1500);
 }
 
 function typeText(text,el){
-let i=0;let interval=setInterval(()=>{el.innerHTML="<b>Quadron:</b> "+formatText(text.slice(0,i));i++;if(i>text.length) clearInterval(interval)},10)
+let i=0;let interval=setInterval(()=>{el.innerHTML="<b>Quadron:</b> "+formatText(text.slice(0,i));i++;if(i>text.length) clearInterval(interval)},10);
 }
 
 async function askAI(message){
-let truth=truthMode?"Answer with strict logic, scientific reasoning, no emotions. ":""
-let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:`${truth}User: ${message}`})})
-let data=await res.json();return data.reply
+let truth=truthMode?"Answer with strict logic, scientific reasoning, no emotions. ":"";
+let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:`${truth}User: ${message}`})});
+let data=await res.json();return data.reply;
 }
 
-window.onload=async()=>{
-let reply=await askAI("Give a short sarcastic greeting.")
-let p=document.createElement("p");messages.appendChild(p);typeText(reply,p)
-}
+window.onload=async()=>{let reply=await askAI("Give a short sarcastic greeting.");let p=document.createElement("p");messages.appendChild(p);typeText(reply,p);}
 
 msg.addEventListener("keydown",function(e){if(e.key==="Enter") send()})
 
 let codeModeActive=false
 async function send(){
-let text=msg.value.trim();if(!text)return
-messages.innerHTML+=`<p><b>You:</b> ${text}</p>`;msg.value=""
-let p=document.createElement("p");messages.appendChild(p)
-if(codeModeActive) text="You are Quadron AI create codes for : "+text
-let reply=await askAI(text)
-typeText(reply,p)
+let text=msg.value.trim();if(!text)return;messages.innerHTML+=`<p><b>You:</b> ${text}</p>`;msg.value="";let p=document.createElement("p");messages.appendChild(p);
+if(codeModeActive) text="You are Quadron AI create codes for : "+text;
+let reply=await askAI(text);typeText(reply,p);
 }
 
-function newChat(){messages.innerHTML="";codeModeActive=false}
-
-function codeMode(){newChat();codeModeActive=true;let p=document.createElement("p");messages.appendChild(p);typeText("Describe what you want to code",p)}
+function newChat(){messages.innerHTML="";codeModeActive=false;}
+function codeMode(){newChat();codeModeActive=true;let p=document.createElement("p");messages.appendChild(p);typeText("Describe what you want to code",p);}
 </script>
-
 </body>
 </html>
