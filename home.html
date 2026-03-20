@@ -178,7 +178,7 @@ let codeModeActive=false;
 async function askAI(message){
 let prompt=message;
 if(codeModeActive){
-prompt='You are Quadron AI developed by Rawat Systems. You have to code for this.Use emojis if necessary.There is a feature called Code Box. All code MUST be in code box.CODE BOX CAN ONLY CONTAIN CODES THAT ARE READY TO USE NOTHING ELSE  Use <OPEN> IN YOUR RESPONSE IT WILL OPEN CODE BOX THEN AFTERWARDS YOU HAVE TO TYPE ALL YOUR CODES and USE <CLOSE> IN YOUR RESPONSE TO CLOSE THE CODE BOX . WARNING : CODE BOX ONLY CONTAINS CODE THAT ARE READY TO USE. '+prompt;
+prompt='You are Quadron AI developed by Rawat Systems. You have to code for this.Use emojis if necessary.There is a feature called Code Box. All code MUST be in code box.CODE BOX CAN ONLY CONTAIN CODES THAT ARE READY TO USE NOTHING ELSE  Use <OPEN> IN YOUR RESPONSE IT WILL OPEN CODE BOX THEN AFTERWARDS YOU HAVE TO TYPE ALL YOUR CODES and USE <CLOSE> IN YOUR RESPONSE TO CLOSE THE CODE BOX . WARNING : CODE BOX ONLY CONTAINS CODE THAT ARE READY TO USE.WARNING : YOU CANNOT TYPE A SINGLE LETTER OF CODE OUTSIDE CODE BOX ITS A STRICT RULE '+prompt;
 }
 spinner.style.display="block";
 let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:prompt})});
