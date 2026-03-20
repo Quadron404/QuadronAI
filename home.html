@@ -35,9 +35,14 @@ button{padding:10px;background:#ffd900;color:#000;border:none;box-shadow:0 0 12p
 .token-number{color:#66d9ef;}
 .token-comment{color:#999;}
 .token-function{color:#ffd700;font-style:italic;}
+.token-bool{color:#ff00ff;}
+.token-class{color:#ff007f;font-weight:bold;}
+.token-operator{color:#00ffff;}
+.token-variable{color:#ffcc00;}
+.token-import{color:#ff6600;font-weight:bold;}
 .footer{text-align:center;font-size:12px;margin:10px;}
 .footer a{color:#ffd900;text-decoration:none;}
-.menuFooter{margin-top:20px;text-align:center;font-size:12px;padding-bottom:10px;}
+.menuFooter{margin-top:auto;text-align:center;font-size:12px;padding-bottom:10px;}
 .menuFooter span{font-weight:bold;color:#ffd900;text-shadow:0 0 10px #ffd900;}
 </style>
 </head>
@@ -51,7 +56,6 @@ button{padding:10px;background:#ffd900;color:#000;border:none;box-shadow:0 0 12p
 <div id="overlay" onclick="closeMenu()"></div>
 
 <div id="sidePanel">
-
 <div id="menuProfile">
 <img id="profilePic" src="">
 <div>
@@ -73,7 +77,6 @@ Truth Protocol
 <div class="menuFooter">
 Developed by <span>Rawat Systems</span>
 </div>
-
 </div>
 
 <div id="chat">
@@ -96,15 +99,15 @@ function openMenu(){sidePanel.classList.add("open");overlay.style.display="block
 function closeMenu(){sidePanel.classList.remove("open");overlay.style.display="none";chatSection.classList.remove("blur-bg");footerSection.classList.remove("blur-bg");}
 
 /* USER PROFILE */
-let user=JSON.parse(localStorage.getItem("quadronUser")||"{}")
+let user=JSON.parse(localStorage.getItem("quadronUser")||"{}");
 if(!user.name){user={name:"Guest88",email:"Guest88@fakegmail.com"};profilePic.style.display="none";}
 else{profilePic.src=user.pic||"https://via.placeholder.com/40";profilePic.style.display="block";}
-profileName.innerText=user.name
-profileEmail.innerText=user.email
+profileName.innerText=user.name;
+profileEmail.innerText=user.email;
 
 /* TRUTH SWITCH */
-let truthMode=false
-function toggleTruth(e){e.stopPropagation();truthMode=!truthMode;truthToggle.classList.toggle("active",truthMode)}
+let truthMode=false;
+function toggleTruth(e){e.stopPropagation();truthMode=!truthMode;truthToggle.classList.toggle("active",truthMode);}
 
 /* CODE HIGHLIGHTING */
 function detectLang(code){
@@ -114,33 +117,47 @@ if(code.includes("#include")) return "C";
 if(code.includes("<html")||code.includes("<div")) return "HTML";
 return "Code";
 }
+
 function highlight(code){
-code=code.replace(/</g,"&lt;");
+code=code.replace(/</g,"&lt;").replace(/>/g,"&gt;");
 code=code.replace(/(#.*|\/\/.*)/g,'<span class="token-comment">$1</span>');
 code=code.replace(/(['"`].*?['"`])/g,'<span class="token-string">$1</span>');
+code=code.replace(/\b(True|False|None)\b/g,'<span class="token-bool">$1</span>');
 code=code.replace(/\b(\d+)\b/g,'<span class="token-number">$1</span>');
 let keywords=["def","class","return","if","else","elif","for","while","import","from","function","var","let","const","int","float","char","void","include"];
 keywords.forEach(k=>{let reg=new RegExp("\\b"+k+"\\b","g");code=code.replace(reg,`<span class="token-keyword">${k}</span>`);});
 code=code.replace(/\b([a-zA-Z_]+)(?=\()/g,'<span class="token-function">$1</span>');
+code=code.replace(/\b([A-Z][a-zA-Z0-9_]*)\b/g,'<span class="token-class">$1</span>');
+code=code.replace(/(\+|\-|\*|\/|\=|\%)/g,'<span class="token-operator">$1</span>');
+code=code.replace(/\b([a-z_][a-z0-9_]*)\b/g,'<span class="token-variable">$1</span>');
 return code;
 }
+
 function createCodeBox(code){
 let lang=detectLang(code);
 let highlighted=highlight(code);
 return `<div class="codeBox"><div class="codeHeader"><span>${lang}</span><span class="copyBtn" onclick="copyCode(this)">Copy</span></div><div class="codeContent">${highlighted}</div></div>`;
 }
 
-/* FORMAT TEXT WITH CODE TAGS */
+/* FORMAT AI TEXT */
+function parseMarkdown(text){
+return text
+.replace(/\*\*(.*?)\*\*/g,'<b>$1</b>')
+.replace(/\*(.*?)\*/g,'<i>$1</i>');
+}
+
 function formatText(text){
-let result="";
-let parts=text.split(/(<IAMCODING>|<IHAVEDONECODING>)/g);
-let open=false;
+let output = "";
+let openCode = false;
+let codeBuffer = "";
+const parts = text.split(/(<IAMCODING>|<IHAVEDONECODING>)/g);
 parts.forEach(p=>{
-if(p=="<IAMCODING>"){open=true;result+=createCodeBox("");return;}
-if(p=="<IHAVEDONECODING>"){open=false;return;}
-if(open){result+=createCodeBox(p);}else{result+=p}}
-);
-return result.replace(/\n/g,"<br>");
+if(p=="<IAMCODING>"){openCode=true;codeBuffer="";return;}
+else if(p=="<IHAVEDONECODING>"){openCode=false;if(codeBuffer.trim()!==""){output+=createCodeBox(codeBuffer.trim());}return;}
+else if(openCode){codeBuffer+=p;}
+else{output+=parseMarkdown(p);}
+});
+return output.replace(/\n/g,"<br>");
 }
 
 function copyCode(btn){
@@ -158,9 +175,13 @@ if(i>=text.length) clearInterval(interval);
 },10);
 }
 
+let codeModeActive=false;
+
 async function askAI(message){
 let prompt=message;
-if(codeModeActive) prompt='Code for this also when you write the first letter of code just before writing that type "<IAMCODING>" Exactly and just after finishing codes type "<IHAVEDONECODING>" '+prompt+' USE EMOJI IF NECESSARY';
+if(codeModeActive){
+prompt='Code for this also when you write the first letter of code just before writing that type "<IAMCODING>" Exactly and just after finishing codes type "<IHAVEDONECODING>" '+prompt+' USE EMOJI IF NECESSARY';
+}
 let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:prompt})});
 let data=await res.json();return data.reply;
 }
@@ -174,7 +195,6 @@ typeText(reply,p);
 
 msg.addEventListener("keydown",function(e){if(e.key==="Enter") send()})
 
-let codeModeActive=false
 async function send(){
 let text=msg.value.trim();if(!text)return;
 messages.innerHTML+=`<p><b>You:</b> ${text}</p>`;msg.value="";
@@ -184,6 +204,7 @@ typeText(reply,p);
 }
 
 function newChat(){messages.innerHTML="";codeModeActive=false;}
+
 function codeMode(){
 newChat();
 codeModeActive=true;
