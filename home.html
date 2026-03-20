@@ -1,277 +1,9 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Quadron AI</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-body{
-background:#0a0a0a;
-color:#ffd900;
-font-family:Arial;
-margin:0;
-}
-
-/* BLUR for background only */
-#chat, .footer{transition:0.3s;}
-.blur-bg{filter:blur(5px);}
-
-/* HEADER */
-header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:12px;
-background:#000;
-border-bottom:2px solid #ffd900;
-box-shadow:0 0 12px #ffd900;
-}
-
-#logo{
-font-weight:bold;
-font-size:18px;
-}
-
-#menuBtn{
-cursor:pointer;
-font-size:24px;
-user-select:none;
-}
-
-/* OVERLAY */
-#overlay{
-position:fixed;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.4);
-display:none;
-z-index:900;
-}
-
-/* SIDE PANEL */
-#sidePanel{
-position:fixed;
-right:0;
-top:0;
-width:260px;
-height:100%;
-background:#111;
-transform:translateX(100%);
-transition:.3s;
-padding:15px;
-z-index:1000;
-overflow-y:auto;
-}
-
-/* SIDE PANEL OPEN */
-#sidePanel.open{transform:translateX(0);}
-
-/* PROFILE TOP */
-#menuProfile{
-display:flex;
-align-items:center;
-gap:10px;
-padding:10px;
-border-bottom:1px solid #333;
-}
-
-#menuProfile img{
-width:40px;
-height:40px;
-border-radius:50%;
-border:1px solid #ffd900;
-object-fit:cover;
-}
-
-/* MENU ITEMS */
-.menuItem{
-padding:10px;
-cursor:pointer;
-margin-top:8px;
-color:#ffd900;
-transition:0.2s;
-}
-.menuItem:hover{
-background:rgba(255,217,0,0.08);
-}
-
-/* SWITCH */
-.switch{
-margin-left:auto;
-width:40px;height:20px;
-background:#333;border-radius:20px;
-position:relative;
-}
-.switch::after{
-content:"";position:absolute;width:16px;height:16px;
-background:#999;border-radius:50%;
-top:2px;left:2px;transition:.2s;
-}
-.switch.active{background:#ffd900;}
-.switch.active::after{left:22px;background:#000;}
-
-#truthInfoBtn{
-margin-left:6px;
-cursor:pointer;
-}
-
-/* CHAT */
-#chat{
-max-width:800px;
-margin:auto;
-padding:10px;
-}
-
-#messages{
-height:65vh;
-overflow:auto;
-background:#111;
-padding:10px;
-border:1px solid #ffd900;
-box-shadow:0 0 15px #ffd900;
-border-radius:12px;
-}
-
-/* INPUT */
-#inputArea{
-display:flex;
-gap:8px;
-margin-top:10px;
-}
-
-input{
-flex:1;
-padding:10px;
-background:black;
-color:#ffd900;
-border:1px solid #ffd900;
-border-radius:10px;
-}
-
-/* BUTTON */
-button{
-padding:10px;
-background:#ffd900;
-color:#000;
-border:none;
-box-shadow:0 0 12px #ffd900;
-cursor:pointer;
-}
-
-/* CODE BOX */
-.codeBox{
-background:#000;
-border:1px solid #ffd900;
-margin-top:8px;
-border-radius:8px;
-overflow:hidden;
-font-family:monospace;
-}
-
-.codeHeader{
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:6px 10px;
-background:#111;
-font-size:12px;
-font-weight:bold;
-border-bottom:1px solid #ffd900;
-}
-
-.copyBtn{
-cursor:pointer;
-color:#ffd900;
-padding:2px 6px;
-border:1px solid #ffd900;
-border-radius:4px;
-font-size:12px;
-}
-
-.codeContent{
-padding:10px;
-overflow:auto;
-white-space:pre;
-line-height:1.3em;
-}
-
-/* SYNTAX COLORS */
-.token-keyword{color:#ff6a00;font-weight:bold;}
-.token-string{color:#00ff99;}
-.token-number{color:#66d9ef;}
-.token-comment{color:#999;}
-.token-function{color:#ffd700;font-style:italic;}
-
-/* FOOTER */
-.footer{
-text-align:center;
-font-size:12px;
-margin:10px;
-}
-.footer a{
-color:#ffd900;
-text-decoration:none;
-}
-
-/* HAMBURGER ICON IMPROVED */
-#menuBtn::before{
-content:"☰";
-}
-</style>
-</head>
-
-<body>
-
-<header>
-<div id="logo">Quadron AI</div>
-<div id="menuBtn" onclick="openMenu()"></div>
-</header>
-
-<div id="overlay" onclick="closeMenu()"></div>
-
-<!-- SIDE PANEL -->
-<div id="sidePanel">
-
-<div id="menuProfile">
-<img id="profilePic" src="https://via.placeholder.com/40">
-<div>
-<div id="profileName"></div>
-<div style="font-size:12px;" id="profileEmail"></div>
-</div>
-</div>
-
-<div class="menuItem" onclick="newChat()">New Chat</div>
-<div class="menuItem" onclick="location.href='voice.html'">Voice Mode</div>
-<div class="menuItem" onclick="location.href='quadron7.html'">Quadron 7</div>
-
-<div class="menuItem">
-Truth Protocol
-<span id="truthInfoBtn" onclick="openTruthInfo()">i</span>
-<div class="switch" id="truthToggle" onclick="toggleTruth(event)"></div>
-</div>
-
-</div>
-
-<!-- CHAT -->
-<div id="chat">
-<div id="messages"></div>
-
-<div id="inputArea">
-<input id="msg" placeholder="Type here...">
-<button onclick="send()">Send</button>
-</div>
-</div>
-
-<div class="footer">
-Quadron AI can make mistakes, By using it you agree our 
-<a href="terms.html">Terms & Conditions</a>
-</div>
-
 <script>
 
 /* MENU BLUR */
 const chatSection=document.getElementById("chat");
 const footerSection=document.querySelector(".footer");
+
 function openMenu(){
 sidePanel.classList.add("open");
 overlay.style.display="block";
@@ -285,16 +17,18 @@ chatSection.classList.remove("blur-bg");
 footerSection.classList.remove("blur-bg");
 }
 
-/* USER (ALLOW GUEST) */
+/* USER SYSTEM */
 let user=JSON.parse(localStorage.getItem("quadronUser")||"{}")
 
 if(!user.name){
-user={name:"Guest User",email:"Guest Mode",pic:"https://via.placeholder.com/40"}
+user={name:"Guest88",email:"Guest88@fakegmail.com"}
+profilePic.style.display="none"
+}else{
+profilePic.src=user.pic || "https://via.placeholder.com/40"
 }
 
 profileName.innerText=user.name
 profileEmail.innerText=user.email
-profilePic.src=user.pic||"https://via.placeholder.com/40"
 
 /* TRUTH */
 let truthMode=false
@@ -304,54 +38,114 @@ truthMode=!truthMode
 truthToggle.classList.toggle("active",truthMode)
 }
 
-/* CODE DETECTION WITH SYNTAX */
+/* LANGUAGE DETECTION */
 function detectLang(code){
-if(code.startsWith("<")) return "HTML"
-if(code.includes("def ")) return "Python"
-if(code.includes("console.log")) return "JavaScript"
-if(code.includes("#include")) return "C/C++"
-if(code.includes("public class")) return "Java"
+if(code.includes("def ") || code.includes("import ")) return "Python"
+if(code.includes("console.log") || code.includes("function")) return "JavaScript"
+if(code.includes("#include")) return "C"
+if(code.includes("<html") || code.includes("<div")) return "HTML"
 return "Code"
 }
 
-function syntaxHighlight(code,lang){
-if(lang==="Python"){
-code=code.replace(/(#.*)/g,'<span class="token-comment">$1</span>')
-.replace(/\b(def|class|return|if|else|elif|for|while|import|from|as|try|except|with|lambda|print)\b/g,'<span class="token-keyword">$1</span>')
-.replace(/(['"`].*?['"`])/g,'<span class="token-string">$1</span>')
-.replace(/\b(\d+)\b/g,'<span class="token-number">$1</span>')
-}
+/* SYNTAX ENGINE */
+function highlight(code,lang){
+
+// escape first
+code=code.replace(/</g,"&lt;")
+
+// comments
+code=code.replace(/(#.*|\/\/.*)/g,'<span class="token-comment">$1</span>')
+
+// strings
+code=code.replace(/(['"`].*?['"`])/g,'<span class="token-string">$1</span>')
+
+// numbers
+code=code.replace(/\b(\d+)\b/g,'<span class="token-number">$1</span>')
+
+// keywords
+let keywords=[
+"def","class","return","if","else","elif","for","while","import","from",
+"function","var","let","const","int","float","char","void","include"
+]
+
+keywords.forEach(k=>{
+let reg=new RegExp("\\b"+k+"\\b","g")
+code=code.replace(reg,`<span class="token-keyword">${k}</span>`)
+})
+
+// functions
+code=code.replace(/\b([a-zA-Z_]+)(?=\()/g,'<span class="token-function">$1</span>')
+
 return code
 }
 
+/* CODE BOX */
 function createCodeBox(code){
 let lang=detectLang(code)
-let highlighted=syntaxHighlight(code,lang)
+let highlighted=highlight(code,lang)
+
 return `
 <div class="codeBox">
 <div class="codeHeader">
 <span>${lang}</span>
 <span class="copyBtn" onclick="copyCode(this)">Copy</span>
 </div>
-<div class="codeContent">${highlighted.replace(/</g,"&lt;")}</div>
+<div class="codeContent">${highlighted}</div>
 </div>`
 }
 
+/* SMART FORMAT */
 function formatText(text){
-text=text.replace(/```([\s\S]*?)```/g,(m,c)=>createCodeBox(c))
-return text.replace(/\n/g,"<br>")
+
+// detect code-like chunks
+let lines=text.split("\n")
+let result=""
+let buffer=""
+let isCode=false
+
+lines.forEach(line=>{
+
+let codeScore=0
+
+if(/(def |function|#include|<html|console\.log)/.test(line)) codeScore+=2
+if(/[{}();=]/.test(line)) codeScore++
+if(/\b\d+\b/.test(line)) codeScore++
+
+if(codeScore>=2){
+isCode=true
+buffer+=line+"\n"
+}else{
+if(isCode){
+result+=createCodeBox(buffer)
+buffer=""
+isCode=false
+}
+result+=line+"<br>"
+}
+})
+
+if(buffer) result+=createCodeBox(buffer)
+
+return result
 }
 
+/* COPY FIX (WORKS EVERYWHERE) */
 function copyCode(btn){
 let code=btn.parentElement.nextElementSibling.innerText
-navigator.clipboard.writeText(code)
+
+let textarea=document.createElement("textarea")
+textarea.value=code
+document.body.appendChild(textarea)
+textarea.select()
+document.execCommand("copy")
+document.body.removeChild(textarea)
+
 btn.innerText="Copied!"
 setTimeout(()=>btn.innerText="Copy",1500)
 }
 
-/* FIXED TYPE (NO BREAKING HTML) */
+/* TYPE ENGINE */
 function typeText(text,el){
-el.innerHTML="<b>Quadron:</b> "
 let i=0
 let interval=setInterval(()=>{
 el.innerHTML="<b>Quadron:</b> "+formatText(text.slice(0,i))
@@ -364,11 +158,13 @@ if(i>text.length) clearInterval(interval)
 async function askAI(message){
 let truth=truthMode?
 "Answer with strict logic, scientific reasoning, no emotions. ":""
+
 let res=await fetch("/api/chat",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
 body:JSON.stringify({message:`${truth}User: ${message}`})
 })
+
 let data=await res.json()
 return data.reply
 }
@@ -390,10 +186,13 @@ if(e.key==="Enter") send()
 async function send(){
 let text=msg.value.trim()
 if(!text)return
+
 messages.innerHTML+=`<p><b>You:</b> ${text}</p>`
 msg.value=""
+
 let p=document.createElement("p")
 messages.appendChild(p)
+
 let reply=await askAI(text)
 typeText(reply,p)
 }
@@ -402,6 +201,3 @@ typeText(reply,p)
 function newChat(){messages.innerHTML=""}
 
 </script>
-
-</body>
-</html>
