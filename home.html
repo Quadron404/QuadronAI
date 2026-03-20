@@ -26,7 +26,7 @@ header{display:flex;justify-content:space-between;align-items:center;padding:12p
 #inputArea{display:flex;gap:8px;margin-top:10px;}
 input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
 button{padding:10px;background:#ffd900;color:#000;border:none;box-shadow:0 0 12px #ffd900;cursor:pointer;}
-.codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:hidden;font-family:monospace;}
+.codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:hidden;font-family:monospace;white-space:pre;}
 .codeHeader{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#111;font-size:12px;font-weight:bold;border-bottom:1px solid #ffd900;}
 .copyBtn{cursor:pointer;color:#ffd900;padding:2px 6px;border:1px solid #ffd900;border-radius:4px;font-size:12px;}
 .codeContent{padding:10px;overflow:auto;white-space:pre;line-height:1.3em;}
@@ -37,7 +37,7 @@ button{padding:10px;background:#ffd900;color:#000;border:none;box-shadow:0 0 12p
 .token-function{color:#ffd700;font-style:italic;}
 .footer{text-align:center;font-size:12px;margin:10px;}
 .footer a{color:#ffd900;text-decoration:none;}
-.menuFooter{margin-top:auto;text-align:center;font-size:12px;padding-bottom:10px;}
+.menuFooter{margin-top:20px;text-align:center;font-size:12px;padding-bottom:10px;}
 .menuFooter span{font-weight:bold;color:#ffd900;text-shadow:0 0 10px #ffd900;}
 </style>
 </head>
@@ -106,7 +106,7 @@ profileEmail.innerText=user.email
 let truthMode=false
 function toggleTruth(e){e.stopPropagation();truthMode=!truthMode;truthToggle.classList.toggle("active",truthMode)}
 
-/* CODE DETECTION */
+/* CODE HIGHLIGHTING */
 function detectLang(code){
 if(code.includes("def ")||code.includes("import ")) return "Python";
 if(code.includes("console.log")||code.includes("function")) return "JavaScript";
@@ -114,7 +114,6 @@ if(code.includes("#include")) return "C";
 if(code.includes("<html")||code.includes("<div")) return "HTML";
 return "Code";
 }
-
 function highlight(code){
 code=code.replace(/</g,"&lt;");
 code=code.replace(/(#.*|\/\/.*)/g,'<span class="token-comment">$1</span>');
@@ -125,21 +124,22 @@ keywords.forEach(k=>{let reg=new RegExp("\\b"+k+"\\b","g");code=code.replace(reg
 code=code.replace(/\b([a-zA-Z_]+)(?=\()/g,'<span class="token-function">$1</span>');
 return code;
 }
-
 function createCodeBox(code){
 let lang=detectLang(code);
 let highlighted=highlight(code);
 return `<div class="codeBox"><div class="codeHeader"><span>${lang}</span><span class="copyBtn" onclick="copyCode(this)">Copy</span></div><div class="codeContent">${highlighted}</div></div>`;
 }
 
-/* Sliding window 8-word logic */
+/* FORMAT TEXT WITH CODE TAGS */
 function formatText(text){
-let result="";let openCode=false;let codeBuffer="";
-text.split(/\s+/).forEach((w,i,arr)=>{
-if(w.includes("<IAMCODING>")){openCode=true;codeBuffer="";return;}
-if(w.includes("<IHAVEDONECODING>")){openCode=false;result+=createCodeBox(codeBuffer);return;}
-if(openCode){codeBuffer+=w+" ";}else{result+=w+" ";}
-});
+let result="";
+let parts=text.split(/(<IAMCODING>|<IHAVEDONECODING>)/g);
+let open=false;
+parts.forEach(p=>{
+if(p=="<IAMCODING>"){open=true;result+=createCodeBox("");return;}
+if(p=="<IHAVEDONECODING>"){open=false;return;}
+if(open){result+=createCodeBox(p);}else{result+=p}}
+);
 return result.replace(/\n/g,"<br>");
 }
 
@@ -149,28 +149,49 @@ let textarea=document.createElement("textarea");textarea.value=code;document.bod
 btn.innerText="Copied!";setTimeout(()=>btn.innerText="Copy",1500);
 }
 
-function typeText(text,el){let i=0;let interval=setInterval(()=>{el.innerHTML="<b>Quadron:</b> "+formatText(text.slice(0,i));i++;if(i>=text.length) clearInterval(interval)},10);}
+function typeText(text,el){
+let i=0;
+let interval=setInterval(()=>{
+el.innerHTML="<b>Quadron:</b> "+formatText(text.slice(0,i));
+i++;
+if(i>=text.length) clearInterval(interval);
+},10);
+}
 
 async function askAI(message){
 let prompt=message;
-if(codeModeActive) prompt="<IAMCODING> Code for this also "+prompt+" USE EMOJI IF NECESSARY <IHAVEDONECODING>";
+if(codeModeActive) prompt='Code for this also when you write the first letter of code just before writing that type "<IAMCODING>" Exactly and just after finishing codes type "<IHAVEDONECODING>" '+prompt+' USE EMOJI IF NECESSARY';
 let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:prompt})});
 let data=await res.json();return data.reply;
 }
 
-window.onload=async()=>{let reply=await askAI("Give a short sarcastic greeting USE EMOJI IF NECESSARY.");let p=document.createElement("p");messages.appendChild(p);typeText(reply,p);}
+window.onload=async()=>{
+let reply=await askAI("Give a short sarcastic greeting USE EMOJI IF NECESSARY.");
+let p=document.createElement("p");
+messages.appendChild(p);
+typeText(reply,p);
+}
 
 msg.addEventListener("keydown",function(e){if(e.key==="Enter") send()})
 
 let codeModeActive=false
 async function send(){
-let text=msg.value.trim();if(!text)return;messages.innerHTML+=`<p><b>You:</b> ${text}</p>`;msg.value="";let p=document.createElement("p");messages.appendChild(p);
-let reply=await askAI(text);typeText(reply,p);
+let text=msg.value.trim();if(!text)return;
+messages.innerHTML+=`<p><b>You:</b> ${text}</p>`;msg.value="";
+let p=document.createElement("p");messages.appendChild(p);
+let reply=await askAI(text);
+typeText(reply,p);
 }
 
 function newChat(){messages.innerHTML="";codeModeActive=false;}
-function codeMode(){newChat();codeModeActive=true;let p=document.createElement("p");messages.appendChild(p);typeText("Describe what you want to code",p);}
+function codeMode(){
+newChat();
+codeModeActive=true;
+closeMenu();
+let p=document.createElement("p");
+messages.appendChild(p);
+typeText("Describe what you want to code",p);
+}
 </script>
-
 </body>
 </html>
