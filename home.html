@@ -2,11 +2,9 @@
 <html>
 <head>
 <title>Quadron AI</title>
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-
 body{
 background:#0a0a0a;
 color:#ffd900;
@@ -14,16 +12,15 @@ font-family:Arial;
 margin:0;
 }
 
-/* BLUR */
-.blur{
-filter:blur(5px);
-pointer-events:none;
-}
+/* BLUR for background only */
+#chat, .footer{transition:0.3s;}
+.blur-bg{filter:blur(5px);}
 
 /* HEADER */
 header{
 display:flex;
 justify-content:space-between;
+align-items:center;
 padding:12px;
 background:#000;
 border-bottom:2px solid #ffd900;
@@ -35,14 +32,18 @@ font-weight:bold;
 font-size:18px;
 }
 
-#menuBtn{cursor:pointer;font-size:22px;}
+#menuBtn{
+cursor:pointer;
+font-size:24px;
+user-select:none;
+}
 
 /* OVERLAY */
 #overlay{
 position:fixed;
 width:100%;
 height:100%;
-background:rgba(0,0,0,0.6);
+background:rgba(0,0,0,0.4);
 display:none;
 z-index:900;
 }
@@ -59,7 +60,10 @@ transform:translateX(100%);
 transition:.3s;
 padding:15px;
 z-index:1000;
+overflow-y:auto;
 }
+
+/* SIDE PANEL OPEN */
 #sidePanel.open{transform:translateX(0);}
 
 /* PROFILE TOP */
@@ -76,18 +80,19 @@ width:40px;
 height:40px;
 border-radius:50%;
 border:1px solid #ffd900;
+object-fit:cover;
 }
 
-/* MENU ITEM */
+/* MENU ITEMS */
 .menuItem{
 padding:10px;
 cursor:pointer;
-background:rgba(255,217,0,0.08);
-box-shadow:0 0 6px #ffd900;
 margin-top:8px;
+color:#ffd900;
+transition:0.2s;
 }
 .menuItem:hover{
-box-shadow:0 0 25px #ffd900;
+background:rgba(255,217,0,0.08);
 }
 
 /* SWITCH */
@@ -158,30 +163,44 @@ cursor:pointer;
 background:#000;
 border:1px solid #ffd900;
 margin-top:8px;
-box-shadow:0 0 10px #ffd900;
 border-radius:8px;
+overflow:hidden;
+font-family:monospace;
 }
 
 .codeHeader{
 display:flex;
 justify-content:space-between;
+align-items:center;
 padding:6px 10px;
 background:#111;
 font-size:12px;
+font-weight:bold;
 border-bottom:1px solid #ffd900;
 }
 
 .copyBtn{
 cursor:pointer;
+color:#ffd900;
+padding:2px 6px;
+border:1px solid #ffd900;
+border-radius:4px;
+font-size:12px;
 }
 
 .codeContent{
 padding:10px;
 overflow:auto;
-font-family:monospace;
-color:#00ffcc;
 white-space:pre;
+line-height:1.3em;
 }
+
+/* SYNTAX COLORS */
+.token-keyword{color:#ff6a00;font-weight:bold;}
+.token-string{color:#00ff99;}
+.token-number{color:#66d9ef;}
+.token-comment{color:#999;}
+.token-function{color:#ffd700;font-style:italic;}
 
 /* FOOTER */
 .footer{
@@ -194,6 +213,10 @@ color:#ffd900;
 text-decoration:none;
 }
 
+/* HAMBURGER ICON IMPROVED */
+#menuBtn::before{
+content:"☰";
+}
 </style>
 </head>
 
@@ -201,7 +224,7 @@ text-decoration:none;
 
 <header>
 <div id="logo">Quadron AI</div>
-<div id="menuBtn" onclick="openMenu()">☰</div>
+<div id="menuBtn" onclick="openMenu()"></div>
 </header>
 
 <div id="overlay" onclick="closeMenu()"></div>
@@ -210,7 +233,7 @@ text-decoration:none;
 <div id="sidePanel">
 
 <div id="menuProfile">
-<img src="https://via.placeholder.com/40">
+<img id="profilePic" src="https://via.placeholder.com/40">
 <div>
 <div id="profileName"></div>
 <div style="font-size:12px;" id="profileEmail"></div>
@@ -246,27 +269,32 @@ Quadron AI can make mistakes, By using it you agree our
 
 <script>
 
-/* MENU */
+/* MENU BLUR */
+const chatSection=document.getElementById("chat");
+const footerSection=document.querySelector(".footer");
 function openMenu(){
 sidePanel.classList.add("open");
 overlay.style.display="block";
-document.body.classList.add("blur");
+chatSection.classList.add("blur-bg");
+footerSection.classList.add("blur-bg");
 }
 function closeMenu(){
 sidePanel.classList.remove("open");
 overlay.style.display="none";
-document.body.classList.remove("blur");
+chatSection.classList.remove("blur-bg");
+footerSection.classList.remove("blur-bg");
 }
 
 /* USER (ALLOW GUEST) */
 let user=JSON.parse(localStorage.getItem("quadronUser")||"{}")
 
 if(!user.name){
-user={name:"Guest User",email:"Guest Mode"}
+user={name:"Guest User",email:"Guest Mode",pic:"https://via.placeholder.com/40"}
 }
 
 profileName.innerText=user.name
 profileEmail.innerText=user.email
+profilePic.src=user.pic||"https://via.placeholder.com/40"
 
 /* TRUTH */
 let truthMode=false
@@ -276,7 +304,7 @@ truthMode=!truthMode
 truthToggle.classList.toggle("active",truthMode)
 }
 
-/* CODE DETECTION */
+/* CODE DETECTION WITH SYNTAX */
 function detectLang(code){
 if(code.startsWith("<")) return "HTML"
 if(code.includes("def ")) return "Python"
@@ -286,15 +314,26 @@ if(code.includes("public class")) return "Java"
 return "Code"
 }
 
+function syntaxHighlight(code,lang){
+if(lang==="Python"){
+code=code.replace(/(#.*)/g,'<span class="token-comment">$1</span>')
+.replace(/\b(def|class|return|if|else|elif|for|while|import|from|as|try|except|with|lambda|print)\b/g,'<span class="token-keyword">$1</span>')
+.replace(/(['"`].*?['"`])/g,'<span class="token-string">$1</span>')
+.replace(/\b(\d+)\b/g,'<span class="token-number">$1</span>')
+}
+return code
+}
+
 function createCodeBox(code){
 let lang=detectLang(code)
+let highlighted=syntaxHighlight(code,lang)
 return `
 <div class="codeBox">
 <div class="codeHeader">
 <span>${lang}</span>
 <span class="copyBtn" onclick="copyCode(this)">Copy</span>
 </div>
-<div class="codeContent">${code.replace(/</g,"&lt;")}</div>
+<div class="codeContent">${highlighted.replace(/</g,"&lt;")}</div>
 </div>`
 }
 
@@ -314,7 +353,6 @@ setTimeout(()=>btn.innerText="Copy",1500)
 function typeText(text,el){
 el.innerHTML="<b>Quadron:</b> "
 let i=0
-
 let interval=setInterval(()=>{
 el.innerHTML="<b>Quadron:</b> "+formatText(text.slice(0,i))
 i++
@@ -324,21 +362,18 @@ if(i>text.length) clearInterval(interval)
 
 /* AI */
 async function askAI(message){
-
 let truth=truthMode?
 "Answer with strict logic, scientific reasoning, no emotions. ":""
-
 let res=await fetch("/api/chat",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
 body:JSON.stringify({message:`${truth}User: ${message}`})
 })
-
 let data=await res.json()
 return data.reply
 }
 
-/* GREETING (NO TIME/WEATHER) */
+/* GREETING */
 window.onload=async()=>{
 let reply=await askAI("Give a short sarcastic greeting.")
 let p=document.createElement("p")
@@ -353,16 +388,12 @@ if(e.key==="Enter") send()
 
 /* SEND */
 async function send(){
-
 let text=msg.value.trim()
 if(!text)return
-
 messages.innerHTML+=`<p><b>You:</b> ${text}</p>`
 msg.value=""
-
 let p=document.createElement("p")
 messages.appendChild(p)
-
 let reply=await askAI(text)
 typeText(reply,p)
 }
