@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <title>Quadron AI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Highlight.js -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+
 <style>
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
 .blur-bg{filter:blur(5px);}
@@ -26,7 +31,7 @@ header{display:flex;justify-content:space-between;align-items:center;padding:12p
 #inputArea{display:flex;gap:8px;margin-top:10px;}
 input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
 button{padding:10px;background:#ffd900;color:#000;border:none;box-shadow:0 0 12px #ffd900;cursor:pointer;}
-.codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:auto;font-family:monospace;white-space:pre;line-height:1.3em;}
+.codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:auto;font-family:monospace;white-space:pre;line-height:1.3em;position:relative;}
 .codeHeader{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#111;font-size:12px;font-weight:bold;border-bottom:1px solid #ffd900;}
 .copyBtn{cursor:pointer;color:#ffd900;padding:2px 6px;border:1px solid #ffd900;border-radius:4px;font-size:12px;}
 .codeContent{padding:10px;overflow:auto;white-space:pre;}
@@ -34,6 +39,9 @@ button{padding:10px;background:#ffd900;color:#000;border:none;box-shadow:0 0 12p
 .footer a{color:#ffd900;text-decoration:none;}
 .menuFooter{margin-top:auto;text-align:center;font-size:12px;padding-bottom:10px;}
 .menuFooter span{font-weight:bold;color:#ffd900;text-shadow:0 0 10px #ffd900;}
+/* Spinner for coding in progress */
+#spinner{display:none;width:30px;height:30px;border:4px solid #ffd900;border-top:4px solid transparent;border-radius:50%;animation:spin 1s linear infinite;margin:auto;margin-top:8px;}
+@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
 </style>
 </head>
 <body>
@@ -71,6 +79,7 @@ Developed by <span>Rawat Systems</span>
 
 <div id="chat">
 <div id="messages"></div>
+<div id="spinner"></div>
 <div id="inputArea">
 <input id="msg" placeholder="Type here...">
 <button onclick="send()">Send</button>
@@ -85,6 +94,10 @@ Quadron AI can make mistakes, By using it you agree our
 <script>
 const chatSection=document.getElementById("chat");
 const footerSection=document.querySelector(".footer");
+const sidePanel=document.getElementById("sidePanel");
+const overlay=document.getElementById("overlay");
+const spinner=document.getElementById("spinner");
+
 function openMenu(){sidePanel.classList.add("open");overlay.style.display="block";chatSection.classList.add("blur-bg");footerSection.classList.add("blur-bg");}
 function closeMenu(){sidePanel.classList.remove("open");overlay.style.display="none";chatSection.classList.remove("blur-bg");footerSection.classList.remove("blur-bg");}
 
@@ -99,28 +112,25 @@ profileEmail.innerText=user.email;
 let truthMode=false;
 function toggleTruth(e){e.stopPropagation();truthMode=!truthMode;truthToggle.classList.toggle("active",truthMode);}
 
-/* CODE BOX */
-function createCodeBox(code){
-return `<div class="codeBox"><div class="codeHeader">Code</div><div class="codeContent">${code}</div></div>`;
-}
+/* CODE BOX WITH HIGHLIGHT.JS, COPY & TYPING */
+function createCodeBox(code, language="python"){
+let box=document.createElement("div");box.className="codeBox";
+let header=document.createElement("div");header.className="codeHeader";
+header.innerHTML=`${language.toUpperCase()} <span class="copyBtn" onclick="copyCode(this)">Copy</span>`;
+let content=document.createElement("pre");content.className="codeContent";
+let codeEl=document.createElement("code");codeEl.className=`language-${language}`; 
+content.appendChild(codeEl);box.appendChild(header);box.appendChild(content);
 
-/* FORMAT AI TEXT */
-function parseMarkdown(text){
-return text.replace(/\*\*(.*?)\*\*/g,'<b>$1</b>').replace(/\*(.*?)\*/g,'<i>$1</i>');
+async function typeCode(){
+  let i=0; 
+  while(i<code.length){
+    codeEl.textContent+=code[i];i++;
+    hljs.highlightElement(codeEl);
+    await new Promise(r=>setTimeout(r,5));
+  }
 }
-
-function formatText(text){
-let output = "";
-let openCode = false;
-let codeBuffer = "";
-const parts = text.split(/(<OPEN>|<CLOSE>)/g);
-parts.forEach(p=>{
-if(p=="<OPEN>"){openCode=true;codeBuffer="";return;}
-else if(p=="<CLOSE>"){openCode=false;if(codeBuffer.trim()!==""){output+=createCodeBox(codeBuffer.trim());}return;}
-else if(openCode){codeBuffer+=p;}
-else{output+=parseMarkdown(p);}
-});
-return output.replace(/\n/g,"<br>");
+typeCode();
+return box.outerHTML;
 }
 
 function copyCode(btn){
@@ -129,24 +139,44 @@ let textarea=document.createElement("textarea");textarea.value=code;document.bod
 btn.innerText="Copied!";setTimeout(()=>btn.innerText="Copy",1500);
 }
 
+/* FORMAT AI TEXT */
+function parseMarkdown(text){return text.replace(/\*\*(.*?)\*\*/g,'<b>$1</b>').replace(/\*(.*?)\*/g,'<i>$1</i>');}
+
+function formatText(text){
+let output="";let openCode=false;let codeBuffer="";let language="python";
+const parts=text.split(/(<OPEN>|<CLOSE>|<LANG:.*?>)/g);
+parts.forEach(p=>{
+if(p.startsWith("<LANG:")){language=p.replace("<LANG:","").replace(">","");return;}
+if(p=="<OPEN"){openCode=true;spinner.style.display="block";codeBuffer="";return;}
+else if(p=="<CLOSE"){openCode=false;spinner.style.display="none";if(codeBuffer.trim()!==""){output+=createCodeBox(codeBuffer.trim(),language);}return;}
+else if(openCode){codeBuffer+=p;}
+else{output+=parseMarkdown(p);}
+});
+return output.replace(/\n/g,"<br>");
+}
+
 function typeText(text,el){
 let i=0;
+spinner.style.display="block";
 let interval=setInterval(()=>{
 el.innerHTML="<b>Quadron:</b> "+formatText(text.slice(0,i));
 i++;
-if(i>=text.length) clearInterval(interval);
+if(i>=text.length){clearInterval(interval);spinner.style.display="none";}
 },10);
 }
 
+/* CHAT LOGIC */
 let codeModeActive=false;
-
 async function askAI(message){
 let prompt=message;
 if(codeModeActive){
-prompt='You are Quadron AI developed by Rawat Systems. You have to code for this.You have a feature of code box in which user can access codes you wrote , its mandatory to do coding in a code box.Code box CAN ONLY CONTAIN PROGRAMMING LANGUAGE NOTHING ELSE, YOU CAN WRITE ONLY CODES IN CODE BOX . Use <OPEN> TO OPEN CODE BOX before writing code and USE <CLOSE> after finishing the code TO CLOSE CODE BOX (WARNING:YOU CAN ONLY WRITE CODES IN CODE BOX NOTHING ELSE). '+prompt;
+prompt='You are Quadron AI developed by Rawat Systems. You have to code for this. All code MUST be in code box. Use <OPEN> and <CLOSE>. '+prompt;
 }
+spinner.style.display="block";
 let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:prompt})});
-let data=await res.json();return data.reply;
+let data=await res.json();
+spinner.style.display="none";
+return data.reply;
 }
 
 window.onload=async()=>{
@@ -167,15 +197,7 @@ typeText(reply,p);
 }
 
 function newChat(){messages.innerHTML="";codeModeActive=false;}
-
-function codeMode(){
-newChat();
-codeModeActive=true;
-closeMenu();
-let p=document.createElement("p");
-messages.appendChild(p);
-typeText("Describe what you want to code ",p);
-}
+function codeMode(){newChat();codeModeActive=true;closeMenu();let p=document.createElement("p");messages.appendChild(p);typeText("Describe what you want to code ",p);}
 </script>
 </body>
 </html>
