@@ -34,7 +34,7 @@ button{padding:10px;background:#ffd900;color:#000;border:none;box-shadow:0 0 12p
 .codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:auto;font-family:monospace;white-space:pre;line-height:1.3em;position:relative;}
 .codeHeader{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#111;font-size:12px;font-weight:bold;border-bottom:1px solid #ffd900;}
 .copyBtn{cursor:pointer;color:#ffd900;padding:2px 6px;border:1px solid #ffd900;border-radius:4px;font-size:12px;}
-.codeContent{padding:10px;overflow:auto;white-space:pre;}
+.codeContent{padding:10px;overflow:auto;white-space:pre;word-wrap:break-word;}
 .footer{text-align:center;font-size:12px;margin:10px;}
 .footer a{color:#ffd900;text-decoration:none;}
 .menuFooter{margin-top:auto;text-align:center;font-size:12px;padding-bottom:10px;}
@@ -96,6 +96,7 @@ const footerSection=document.querySelector(".footer");
 const sidePanel=document.getElementById("sidePanel");
 const overlay=document.getElementById("overlay");
 const spinner=document.getElementById("spinner");
+const messages=document.getElementById("messages");
 
 function openMenu(){sidePanel.classList.add("open");overlay.style.display="block";chatSection.classList.add("blur-bg");footerSection.classList.add("blur-bg");}
 function closeMenu(){sidePanel.classList.remove("open");overlay.style.display="none";chatSection.classList.remove("blur-bg");footerSection.classList.remove("blur-bg");}
@@ -111,14 +112,15 @@ profileEmail.innerText=user.email;
 let truthMode=false;
 function toggleTruth(e){e.stopPropagation();truthMode=!truthMode;truthToggle.classList.toggle("active",truthMode);}
 
-/* CREATE CODE BOX AND TYPE */
+/* CREATE CODE BOX */
 function createCodeBoxElement(code, language="python"){
   let box=document.createElement("div");box.className="codeBox";
   let header=document.createElement("div");header.className="codeHeader";
   header.innerHTML=`${language.toUpperCase()} <span class="copyBtn" onclick="copyCode(this)">Copy</span>`;
   let content=document.createElement("pre");content.className="codeContent";
-  let codeEl=document.createElement("code");codeEl.className=`language-${language}`; 
-  content.appendChild(codeEl);box.appendChild(header);box.appendChild(content);
+  let codeEl=document.createElement("code");codeEl.className=`language-${language}`;
+  content.appendChild(codeEl);
+  box.appendChild(header);box.appendChild(content);
 
   let i=0;
   function typeChar(){
@@ -140,28 +142,32 @@ function copyCode(btn){
   btn.innerText="Copied!";setTimeout(()=>btn.innerText="Copy",1500);
 }
 
-/* FORMAT AI TEXT */
-function parseMarkdown(text){return text.replace(/\*\*(.*?)\*\*/g,'<b>$1</b>').replace(/\*(.*?)\*/g,'<i>$1</i>');}
-
-function formatText(text, parent){
+/* PARSE TEXT AND HANDLE OPEN/CLOSE */
+function parseText(text, container){
   let openCode=false;let codeBuffer="";let language="python";
-  const parts=text.split(/(<OPEN>|<CLOSE>|<LANG:.*?>)/g);
+  const parts=text.split(/(OPEN|CLOSE|LANG:.*?)/g);
   parts.forEach(p=>{
-    if(p.startsWith("<LANG:")){language=p.replace("<LANG:","").replace(">","");return;}
-    if(p=="<OPEN"){openCode=true;spinner.style.display="block";codeBuffer="";return;}
-    else if(p=="<CLOSE"){openCode=false;spinner.style.display="none";if(codeBuffer.trim()!==""){parent.appendChild(createCodeBoxElement(codeBuffer.trim(),language));}return;}
+    if(p.startsWith("LANG:")){language=p.replace("LANG:",""); return;}
+    if(p=="OPEN"){openCode=true;spinner.style.display="block";codeBuffer="";return;}
+    else if(p=="CLOSE"){openCode=false;spinner.style.display="none";if(codeBuffer.trim()!==""){container.appendChild(createCodeBoxElement(codeBuffer.trim(),language));}return;}
     else if(openCode){codeBuffer+=p;}
-    else{let span=document.createElement("span");span.innerHTML=parseMarkdown(p);parent.appendChild(span);}
+    else{
+      let span=document.createElement("span");
+      span.innerHTML=p.replace(/\n/g,"<br>");
+      container.appendChild(span);
+    }
   });
 }
 
+/* TYPING ANIMATION */
 function typeText(text, parent){
   spinner.style.display="block";
   let i=0;
+  parent.innerHTML="<b>Quadron:</b> ";
   function step(){
     if(i<=text.length){
-      parent.innerHTML="";
-      formatText(text.slice(0,i), parent);
+      parent.innerHTML="<b>Quadron:</b> ";
+      parseText(text.slice(0,i), parent);
       i++;
       setTimeout(step,10);
     } else spinner.style.display="none";
@@ -173,7 +179,7 @@ function typeText(text, parent){
 let codeModeActive=false;
 async function askAI(message){
   let prompt=message;
-  if(codeModeActive){prompt='You are Quadron AI developed by Rawat Systems. All code MUST be in code box. Use <OPEN> and <CLOSE>. '+prompt;}
+  if(codeModeActive){prompt='You are Quadron AI. All code MUST be in code box. Use OPEN and CLOSE.'+prompt;}
   spinner.style.display="block";
   let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:prompt})});
   let data=await res.json();
