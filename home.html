@@ -143,7 +143,7 @@ let codeModeActive=false;
 async function askAI(message){
 let prompt=message;
 if(codeModeActive){
-prompt='You are Quadron AI developed by Rawat Systems. You have to code for this. Use <OPEN> before writing code and <CLOSE> after finishing the code. '+prompt;
+prompt='You are Quadron AI developed by Rawat Systems. You have to code for this.You have a feature of code box in which user can access codes you wrote , its mandatory to do coding in a code box.Code box CAN ONLY CONTAIN PROGRAMMING LANGUAGE NOTHING ELSE, YOU CAN WRITE ONLY CODES IN CODE BOX . Use <OPEN> TO OPEN CODE BOX before writing code and USE <CLOSE> after finishing the code TO CLOSE CODE BOX (WARNING:YOU CAN ONLY WRITE CODES IN CODE BOX NOTHING ELSE). '+prompt;
 }
 let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:prompt})});
 let data=await res.json();return data.reply;
@@ -174,7 +174,7 @@ codeModeActive=true;
 closeMenu();
 let p=document.createElement("p");
 messages.appendChild(p);
-typeText("Describe what you want to code",p);
+typeText("Describe what you want to code ",p);
 }
 </script>
 </body>
