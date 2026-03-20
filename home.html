@@ -14,6 +14,12 @@ font-family:Arial;
 margin:0;
 }
 
+/* BLUR */
+.blur{
+filter:blur(5px);
+pointer-events:none;
+}
+
 /* HEADER */
 header{
 display:flex;
@@ -24,9 +30,14 @@ border-bottom:2px solid #ffd900;
 box-shadow:0 0 12px #ffd900;
 }
 
+#logo{
+font-weight:bold;
+font-size:18px;
+}
+
 #menuBtn{cursor:pointer;font-size:22px;}
 
-/* SIDE PANEL */
+/* OVERLAY */
 #overlay{
 position:fixed;
 width:100%;
@@ -36,6 +47,7 @@ display:none;
 z-index:900;
 }
 
+/* SIDE PANEL */
 #sidePanel{
 position:fixed;
 right:0;
@@ -50,34 +62,32 @@ z-index:1000;
 }
 #sidePanel.open{transform:translateX(0);}
 
-/* PROFILE */
+/* PROFILE TOP */
 #menuProfile{
-display:flex;
-gap:10px;
-cursor:pointer;
-padding:10px;
-border-bottom:1px solid #333;
-}
-
-/* MENU ITEM */
-.menuItem{
 display:flex;
 align-items:center;
 gap:10px;
 padding:10px;
+border-bottom:1px solid #333;
+}
+
+#menuProfile img{
+width:40px;
+height:40px;
+border-radius:50%;
+border:1px solid #ffd900;
+}
+
+/* MENU ITEM */
+.menuItem{
+padding:10px;
 cursor:pointer;
-transition:.2s;
 background:rgba(255,217,0,0.08);
 box-shadow:0 0 6px #ffd900;
+margin-top:8px;
 }
 .menuItem:hover{
 box-shadow:0 0 25px #ffd900;
-}
-
-/* ICON */
-.menuIcon img{
-width:20px;
-filter:drop-shadow(0 0 6px #ffd900);
 }
 
 /* SWITCH */
@@ -95,12 +105,9 @@ top:2px;left:2px;transition:.2s;
 .switch.active{background:#ffd900;}
 .switch.active::after{left:22px;background:#000;}
 
-/* INFO BUTTON */
 #truthInfoBtn{
-margin-left:auto;
-margin-right:6px;
+margin-left:6px;
 cursor:pointer;
-text-shadow:0 0 10px #ffd900;
 }
 
 /* CHAT */
@@ -117,6 +124,7 @@ background:#111;
 padding:10px;
 border:1px solid #ffd900;
 box-shadow:0 0 15px #ffd900;
+border-radius:12px;
 }
 
 /* INPUT */
@@ -132,60 +140,47 @@ padding:10px;
 background:black;
 color:#ffd900;
 border:1px solid #ffd900;
+border-radius:10px;
 }
 
-/* BUTTON FULL GLOW */
+/* BUTTON */
 button{
 padding:10px;
 background:#ffd900;
 color:#000;
 border:none;
 box-shadow:0 0 12px #ffd900;
-transition:.2s;
-}
-button:hover{
-box-shadow:0 0 35px #ffd900;
+cursor:pointer;
 }
 
-/* PROFILE PAGE */
-#profilePage{
-display:none;
-position:fixed;
-width:100%;
-height:100%;
-background:#0a0a0a;
-z-index:2000;
-align-items:center;
-justify-content:center;
-flex-direction:column;
-gap:15px;
-}
-
-/* POPUP */
-#truthPopup{
-display:none;
-position:fixed;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.7);
-z-index:3000;
-align-items:center;
-justify-content:center;
-}
-
-#truthBox{
-background:#111;
-padding:20px;
-border:1px solid #ffd900;
-box-shadow:0 0 20px #ffd900;
-text-align:center;
-}
-
-pre{
+/* CODE BOX */
+.codeBox{
 background:#000;
+border:1px solid #ffd900;
+margin-top:8px;
+box-shadow:0 0 10px #ffd900;
+border-radius:8px;
+}
+
+.codeHeader{
+display:flex;
+justify-content:space-between;
+padding:6px 10px;
+background:#111;
+font-size:12px;
+border-bottom:1px solid #ffd900;
+}
+
+.copyBtn{
+cursor:pointer;
+}
+
+.codeContent{
 padding:10px;
 overflow:auto;
-border:1px solid #ffd900;
+font-family:monospace;
+color:#00ffcc;
+white-space:pre;
 }
 
 /* FOOTER */
@@ -196,7 +191,6 @@ margin:10px;
 }
 .footer a{
 color:#ffd900;
-text-shadow:0 0 10px #ffd900;
 text-decoration:none;
 }
 
@@ -206,7 +200,7 @@ text-decoration:none;
 <body>
 
 <header>
-<div>Quadron AI</div>
+<div id="logo">Quadron AI</div>
 <div id="menuBtn" onclick="openMenu()">☰</div>
 </header>
 
@@ -215,51 +209,24 @@ text-decoration:none;
 <!-- SIDE PANEL -->
 <div id="sidePanel">
 
-<div id="menuProfile" onclick="openProfilePage()">
+<div id="menuProfile">
+<img src="https://via.placeholder.com/40">
+<div>
 <div id="profileName"></div>
+<div style="font-size:12px;" id="profileEmail"></div>
+</div>
 </div>
 
-<div class="menuItem" onclick="newChat()">
-<div class="menuIcon"><img src="icons/chat.png"></div>New Chat
-</div>
-
-<div class="menuItem" onclick="location.href='voice.html'">
-<div class="menuIcon"><img src="icons/voice.png"></div>Voice Mode
-</div>
+<div class="menuItem" onclick="newChat()">New Chat</div>
+<div class="menuItem" onclick="location.href='voice.html'">Voice Mode</div>
+<div class="menuItem" onclick="location.href='quadron7.html'">Quadron 7</div>
 
 <div class="menuItem">
-<div class="menuIcon"><img src="icons/quadron.png"></div>Quadron 7
-</div>
-
-<div class="menuItem">
-<div class="menuIcon"><img src="icons/truth.png"></div>Truth Protocol
-<div id="truthInfoBtn" onclick="openTruthInfo()">i</div>
+Truth Protocol
+<span id="truthInfoBtn" onclick="openTruthInfo()">i</span>
 <div class="switch" id="truthToggle" onclick="toggleTruth(event)"></div>
 </div>
 
-</div>
-
-<!-- PROFILE PAGE -->
-<div id="profilePage">
-<h2 id="profileNameBig"></h2>
-<p id="profileEmailBig"></p>
-
-<p>
-Quadron AI can make mistakes, By using it you agree our 
-<a href="terms.html">Terms & Conditions</a>
-</p>
-
-<button onclick="logout()">Logout</button>
-<button onclick="closeProfilePage()">Back</button>
-</div>
-
-<!-- TRUTH POPUP -->
-<div id="truthPopup">
-<div id="truthBox">
-<h3>Truth Protocol</h3>
-<p>Pure logic, scientific evidence, zero emotions.</p>
-<button onclick="closeTruthInfo()">Close</button>
-</div>
 </div>
 
 <!-- CHAT -->
@@ -267,7 +234,7 @@ Quadron AI can make mistakes, By using it you agree our
 <div id="messages"></div>
 
 <div id="inputArea">
-<input id="msg">
+<input id="msg" placeholder="Type here...">
 <button onclick="send()">Send</button>
 </div>
 </div>
@@ -280,23 +247,26 @@ Quadron AI can make mistakes, By using it you agree our
 <script>
 
 /* MENU */
-function openMenu(){sidePanel.classList.add("open");overlay.style.display="block";}
-function closeMenu(){sidePanel.classList.remove("open");overlay.style.display="none";}
+function openMenu(){
+sidePanel.classList.add("open");
+overlay.style.display="block";
+document.body.classList.add("blur");
+}
+function closeMenu(){
+sidePanel.classList.remove("open");
+overlay.style.display="none";
+document.body.classList.remove("blur");
+}
 
-/* PROFILE PAGE */
-function openProfilePage(){profilePage.style.display="flex";closeMenu();}
-function closeProfilePage(){profilePage.style.display="none";}
-
-/* USER / GUEST FIX */
+/* USER (ALLOW GUEST) */
 let user=JSON.parse(localStorage.getItem("quadronUser")||"{}")
 
-if(!user.email){
-user={name:"Guest777",email:""}
+if(!user.name){
+user={name:"Guest User",email:"Guest Mode"}
 }
 
 profileName.innerText=user.name
-profileNameBig.innerText=user.name
-profileEmailBig.innerText=user.email || "Guest Mode"
+profileEmail.innerText=user.email
 
 /* TRUTH */
 let truthMode=false
@@ -306,61 +276,83 @@ truthMode=!truthMode
 truthToggle.classList.toggle("active",truthMode)
 }
 
-/* POPUP */
-function openTruthInfo(){truthPopup.style.display="flex"}
-function closeTruthInfo(){truthPopup.style.display="none"}
-
-/* FORMAT */
-function formatText(text){
-return text.replace(/\n/g,"<br>").replace(/```([\s\S]*?)```/g,'<pre>$1</pre>')
+/* CODE DETECTION */
+function detectLang(code){
+if(code.startsWith("<")) return "HTML"
+if(code.includes("def ")) return "Python"
+if(code.includes("console.log")) return "JavaScript"
+if(code.includes("#include")) return "C/C++"
+if(code.includes("public class")) return "Java"
+return "Code"
 }
 
-/* TYPE */
+function createCodeBox(code){
+let lang=detectLang(code)
+return `
+<div class="codeBox">
+<div class="codeHeader">
+<span>${lang}</span>
+<span class="copyBtn" onclick="copyCode(this)">Copy</span>
+</div>
+<div class="codeContent">${code.replace(/</g,"&lt;")}</div>
+</div>`
+}
+
+function formatText(text){
+text=text.replace(/```([\s\S]*?)```/g,(m,c)=>createCodeBox(c))
+return text.replace(/\n/g,"<br>")
+}
+
+function copyCode(btn){
+let code=btn.parentElement.nextElementSibling.innerText
+navigator.clipboard.writeText(code)
+btn.innerText="Copied!"
+setTimeout(()=>btn.innerText="Copy",1500)
+}
+
+/* FIXED TYPE (NO BREAKING HTML) */
 function typeText(text,el){
-let i=0
 el.innerHTML="<b>Quadron:</b> "
-let int=setInterval(()=>{
-el.innerHTML+=text.charAt(i)
+let i=0
+
+let interval=setInterval(()=>{
+el.innerHTML="<b>Quadron:</b> "+formatText(text.slice(0,i))
 i++
-if(i>=text.length) clearInterval(int)
-},15)
+if(i>text.length) clearInterval(interval)
+},10)
 }
 
 /* AI */
 async function askAI(message){
 
 let truth=truthMode?
-"Explain it in ultra logical way mentioning all mathematical calculations, scientific evidences, discoveries and answer with no emotions, no sugarcoating, pure logic and data.":""
+"Answer with strict logic, scientific reasoning, no emotions. ":""
 
 let res=await fetch("/api/chat",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({message:`${truth} User: ${message}`})
+body:JSON.stringify({message:`${truth}User: ${message}`})
 })
 
 let data=await res.json()
 return data.reply
 }
 
-/* GREETING */
+/* GREETING (NO TIME/WEATHER) */
 window.onload=async()=>{
-let h=new Date().getHours()
-let time=h<12?"morning":h<18?"afternoon":"night"
-
-let reply=await askAI(`Greet sarcastically mentioning ${time} and weather.`)
-
+let reply=await askAI("Give a short sarcastic greeting.")
 let p=document.createElement("p")
 messages.appendChild(p)
 typeText(reply,p)
 }
 
+/* ENTER SEND */
+msg.addEventListener("keydown",function(e){
+if(e.key==="Enter") send()
+})
+
 /* SEND */
 async function send(){
-
-if(!user.email){
-alert("Login required to use Quadron")
-return
-}
 
 let text=msg.value.trim()
 if(!text)return
@@ -373,17 +365,10 @@ messages.appendChild(p)
 
 let reply=await askAI(text)
 typeText(reply,p)
-
 }
 
 /* NEW CHAT */
 function newChat(){messages.innerHTML=""}
-
-/* LOGOUT */
-function logout(){
-localStorage.removeItem("quadronUser")
-location.href="index.html"
-}
 
 </script>
 
