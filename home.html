@@ -11,127 +11,194 @@
 
 <style>
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
-header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#000;border-bottom:2px solid #ffd900;}
+.blur-bg{filter:blur(5px);}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 12px #ffd900;}
+#logo{font-weight:bold;font-size:18px;}
+#menuBtn{cursor:pointer;font-size:24px;}
+#overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;z-index:900;}
+#sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;overflow-y:auto;display:flex;flex-direction:column;}
+#sidePanel.open{transform:translateX(0);}
+#menuProfile{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid #333;}
+#menuProfile img{width:40px;height:40px;border-radius:50%;border:1px solid #ffd900;object-fit:cover;}
+.menuItem{padding:10px;cursor:pointer;margin-top:8px;color:#ffd900;font-weight:bold;transition:0.2s;position:relative;}
+.menuItem:hover{color:#ffd900;text-shadow:0 0 10px #ffd900;}
+.switch{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:40px;height:20px;background:#333;border-radius:20px;}
+.switch::after{content:"";position:absolute;width:16px;height:16px;background:#999;border-radius:50%;top:2px;left:2px;transition:.2s;}
+.switch.active{background:#ffd900;}
+.switch.active::after{left:22px;background:#000;}
 #chat{max-width:800px;margin:auto;padding:10px;}
 #messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;box-shadow:0 0 15px #ffd900;border-radius:12px;}
 #inputArea{display:flex;gap:8px;margin-top:10px;}
 input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
-button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;}
+button{padding:10px;background:#ffd900;color:#000;border:none;box-shadow:0 0 12px #ffd900;cursor:pointer;}
 .codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:auto;font-family:monospace;white-space:pre;line-height:1.3em;position:relative;}
 .codeHeader{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#111;font-size:12px;font-weight:bold;border-bottom:1px solid #ffd900;}
 .copyBtn{cursor:pointer;color:#ffd900;padding:2px 6px;border:1px solid #ffd900;border-radius:4px;font-size:12px;}
 .codeContent{padding:10px;overflow:auto;white-space:pre;}
-.spinnerInCode{position:absolute;top:6px;left:6px;width:20px;height:20px;border:3px solid #ffd900;border-top:3px solid transparent;border-radius:50%;animation:spin 1s linear infinite;display:none;}
+.footer{text-align:center;font-size:12px;margin:10px;}
+.footer a{color:#ffd900;text-decoration:none;}
+.menuFooter{margin-top:auto;text-align:center;font-size:12px;padding-bottom:10px;}
+.menuFooter span{font-weight:bold;color:#ffd900;text-shadow:0 0 10px #ffd900;}
+#spinner{display:none;width:30px;height:30px;border:4px solid #ffd900;border-top:4px solid transparent;border-radius:50%;animation:spin 1s linear infinite;margin:auto;margin-top:8px;}
 @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
 </style>
 </head>
 <body>
 
+<header>
+<div id="logo">Quadron AI</div>
+<div id="menuBtn" onclick="openMenu()">☰</div>
+</header>
+
+<div id="overlay" onclick="closeMenu()"></div>
+
+<div id="sidePanel">
+<div id="menuProfile">
+<img id="profilePic" src="">
+<div>
+<div id="profileName"></div>
+<div style="font-size:12px;" id="profileEmail"></div>
+</div>
+</div>
+
+<div class="menuItem" onclick="newChat()">New Chat</div>
+<div class="menuItem" onclick="location.href='voice.html'">Voice Mode</div>
+<div class="menuItem" onclick="location.href='quadron7.html'">Quadron 7</div>
+<div class="menuItem" onclick="codeMode()">Code /</div>
+
+<div class="menuItem" style="position:relative;">
+Truth Protocol
+<div class="switch" id="truthToggle" onclick="toggleTruth(event)"></div>
+</div>
+
+<div class="menuFooter">
+Developed by <span>Rawat Systems</span>
+</div>
+</div>
+
 <div id="chat">
 <div id="messages"></div>
+<div id="spinner"></div>
 <div id="inputArea">
 <input id="msg" placeholder="Type here...">
 <button onclick="send()">Send</button>
 </div>
 </div>
 
-<script>
-const messages=document.getElementById("messages");
-const msg=document.getElementById("msg");
+<div class="footer">
+Quadron AI can make mistakes, By using it you agree our 
+<a href="terms.html">Terms & Conditions</a>
+</div>
 
-// Copy code function
+<script>
+const chatSection=document.getElementById("chat");
+const footerSection=document.querySelector(".footer");
+const sidePanel=document.getElementById("sidePanel");
+const overlay=document.getElementById("overlay");
+const spinner=document.getElementById("spinner");
+
+function openMenu(){sidePanel.classList.add("open");overlay.style.display="block";chatSection.classList.add("blur-bg");footerSection.classList.add("blur-bg");}
+function closeMenu(){sidePanel.classList.remove("open");overlay.style.display="none";chatSection.classList.remove("blur-bg");footerSection.classList.remove("blur-bg");}
+
+/* USER PROFILE */
+let user=JSON.parse(localStorage.getItem("quadronUser")||"{}");
+if(!user.name){user={name:"Guest88",email:"Guest88@fakegmail.com"};profilePic.style.display="none";}
+else{profilePic.src=user.pic||"https://via.placeholder.com/40";profilePic.style.display="block";}
+profileName.innerText=user.name;
+profileEmail.innerText=user.email;
+
+/* TRUTH SWITCH */
+let truthMode=false;
+function toggleTruth(e){e.stopPropagation();truthMode=!truthMode;truthToggle.classList.toggle("active",truthMode);}
+
+/* CREATE CODE BOX AND TYPE */
+function createCodeBoxElement(code, language="python"){
+  let box=document.createElement("div");box.className="codeBox";
+  let header=document.createElement("div");header.className="codeHeader";
+  header.innerHTML=`${language.toUpperCase()} <span class="copyBtn" onclick="copyCode(this)">Copy</span>`;
+  let content=document.createElement("pre");content.className="codeContent";
+  let codeEl=document.createElement("code");codeEl.className=`language-${language}`; 
+  content.appendChild(codeEl);box.appendChild(header);box.appendChild(content);
+
+  let i=0;
+  function typeChar(){
+    if(i<code.length){
+      codeEl.textContent+=code[i];
+      hljs.highlightElement(codeEl);
+      i++;
+      setTimeout(typeChar,5);
+    }
+  }
+  typeChar();
+  return box;
+}
+
 function copyCode(btn){
   let code=btn.parentElement.nextElementSibling.innerText;
-  let textarea=document.createElement("textarea");textarea.value=code;document.body.appendChild(textarea);textarea.select();document.execCommand("copy");document.body.removeChild(textarea);
+  let textarea=document.createElement("textarea");textarea.value=code;document.body.appendChild(textarea);textarea.select();
+  document.execCommand("copy");document.body.removeChild(textarea);
   btn.innerText="Copied!";setTimeout(()=>btn.innerText="Copy",1500);
 }
 
-// Typing code inside box
-async function typeInCodeBox(codeBox, code){
-  const codeEl = codeBox.querySelector("code");
-  const spinner = codeBox.querySelector(".spinnerInCode");
-  spinner.style.display="block";
-  let lines = code.split("\n");
-  for (let line of lines){
-    codeEl.textContent += line + "\n";
-    hljs.highlightElement(codeEl);
-    codeBox.scrollTop = codeBox.scrollHeight;
-    await new Promise(r=>setTimeout(r,50));
-  }
-  spinner.style.display="none";
-}
+/* FORMAT AI TEXT */
+function parseMarkdown(text){return text.replace(/\*\*(.*?)\*\*/g,'<b>$1</b>').replace(/\*(.*?)\*/g,'<i>$1</i>');}
 
-// Parse AI response
-async function handleAIResponse(text){
-  let open=false;
-  let codeBuffer="";
-  let language="python";
-  const p=document.createElement("p");
-  messages.appendChild(p);
-
+function formatText(text, parent){
+  let openCode=false;let codeBuffer="";let language="python";
   const parts=text.split(/(<OPEN>|<CLOSE>|<LANG:.*?>)/g);
-  for(let part of parts){
-    if(part.startsWith("<LANG:")){language = part.replace("<LANG:","").replace(">",""); continue;}
-    if(part=="<OPEN"){open=true;
-      // Create code box immediately
-      var codeBox = document.createElement("div");
-      codeBox.className="codeBox";
-      codeBox.innerHTML=`<div class="codeHeader">${language.toUpperCase()} <span class="copyBtn" onclick="copyCode(this)">Copy</span></div><pre class="codeContent"><code class="language-${language}"></code></pre><div class="spinnerInCode"></div>`;
-      messages.appendChild(codeBox);
-      continue;
-    }
-    if(part=="<CLOSE"){open=false;
-      if(codeBuffer.trim()!="") await typeInCodeBox(codeBox, codeBuffer.trim());
-      codeBuffer=""; continue;
-    }
-    if(open){codeBuffer += part;} 
-    else {p.innerHTML += part.replace(/\n/g,"<br>");}
-  }
+  parts.forEach(p=>{
+    if(p.startsWith("<LANG:")){language=p.replace("<LANG:","").replace(">","");return;}
+    if(p=="<OPEN"){openCode=true;spinner.style.display="block";codeBuffer="";return;}
+    else if(p=="<CLOSE"){openCode=false;spinner.style.display="none";if(codeBuffer.trim()!==""){parent.appendChild(createCodeBoxElement(codeBuffer.trim(),language));}return;}
+    else if(openCode){codeBuffer+=p;}
+    else{let span=document.createElement("span");span.innerHTML=parseMarkdown(p);parent.appendChild(span);}
+  });
 }
 
-// Simulate sending message to AI
-async function askAI(text){
-  // For demo, we simulate AI response with <OPEN> code example
-  if(text.toLowerCase().includes("code")){
-    return `<OPEN><LANG:python>
-import random
-
-def greet():
-    greeting = random.choice(["Hello, human!", "Hey there, bot friend!", "Greetings, puny mortal!"])
-    return greeting
-
-def respond(input):
-    responses = {
-        "hello": ["Hi! 👋", "Hey, what's up? 😊"],
-        "how are you": ["I'm good, thanks! 😄", "I'm a bot, what's the opposite of fine? 😜"],
-        "what's your purpose": ["To assist you, human, of course!", "To drive you insane with endless trivia, muahahaha! 😈"]
-    }
-    try:
-        return random.choice(responses[input.lower()])
-    except KeyError:
-        return "That's a weird question. Try again, human! 🤔"
-
-def main():
-    print(greet())
-    while True:
-        user_input = input("> ")
-        print(respond(user_input))
-
-if __name__=="__main__":
-    main()
-<CLOSE>`;
+function typeText(text, parent){
+  spinner.style.display="block";
+  let i=0;
+  function step(){
+    if(i<=text.length){
+      parent.innerHTML="";
+      formatText(text.slice(0,i), parent);
+      i++;
+      setTimeout(step,10);
+    } else spinner.style.display="none";
   }
-  else return "Quadron: Haha, you want code? Type 'code'!";
+  step();
 }
 
-// Handle sending
+/* CHAT LOGIC */
+let codeModeActive=false;
+async function askAI(message){
+  let prompt=message;
+  if(codeModeActive){prompt='You are Quadron AI developed by Rawat Systems. All code MUST be in code box. Use <OPEN> and <CLOSE>. '+prompt;}
+  spinner.style.display="block";
+  let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:prompt})});
+  let data=await res.json();
+  spinner.style.display="none";
+  return data.reply;
+}
+
+window.onload=async()=>{
+  let reply=await askAI("Give a short sarcastic greeting USE EMOJI IF NECESSARY.");
+  let p=document.createElement("p");messages.appendChild(p);
+  typeText(reply,p);
+}
+
+msg.addEventListener("keydown",function(e){if(e.key==="Enter") send()})
+
 async function send(){
-  let text=msg.value.trim(); if(!text) return; msg.value="";
-  messages.innerHTML += `<p><b>You:</b> ${text}</p>`;
-  let reply = await askAI(text);
-  await handleAIResponse(reply);
+  let text=msg.value.trim();if(!text)return;
+  messages.innerHTML+=`<p><b>You:</b> ${text}</p>`;msg.value="";
+  let p=document.createElement("p");messages.appendChild(p);
+  let reply=await askAI(text);
+  typeText(reply,p);
 }
-</script>
 
+function newChat(){messages.innerHTML="";codeModeActive=false;}
+function codeMode(){newChat();codeModeActive=true;closeMenu();let p=document.createElement("p");messages.appendChild(p);typeText("Describe what you want to code ",p);}
+</script>
 </body>
 </html>
