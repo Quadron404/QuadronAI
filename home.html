@@ -96,6 +96,7 @@ const footerSection=document.querySelector(".footer");
 const sidePanel=document.getElementById("sidePanel");
 const overlay=document.getElementById("overlay");
 const spinner=document.getElementById("spinner");
+const messages=document.getElementById("messages");
 
 function openMenu(){sidePanel.classList.add("open");overlay.style.display="block";chatSection.classList.add("blur-bg");footerSection.classList.add("blur-bg");}
 function closeMenu(){sidePanel.classList.remove("open");overlay.style.display="none";chatSection.classList.remove("blur-bg");footerSection.classList.remove("blur-bg");}
@@ -122,90 +123,88 @@ function createCodeBox(code, language="python"){
   box.appendChild(header);
   box.appendChild(content);
 
-  // Spinner inside code box
   let spinnerEl=document.createElement("div");spinnerEl.className="spinnerInCode";
   box.appendChild(spinnerEl);
   spinnerEl.style.display="block";
 
-  // Typing animation line by line
   async function typeCode(){
     let lines=code.split("\n");
     for(let line of lines){
       codeEl.textContent+=line+"\n";
       hljs.highlightElement(codeEl);
       await new Promise(r=>setTimeout(r,50));
+      box.scrollTop = box.scrollHeight;
     }
     spinnerEl.style.display="none";
   }
   typeCode();
-  return box.outerHTML;
+  return box;
 }
 
 function copyCode(btn){
-let code=btn.parentElement.nextElementSibling.innerText;
-let textarea=document.createElement("textarea");textarea.value=code;document.body.appendChild(textarea);textarea.select();document.execCommand("copy");document.body.removeChild(textarea);
-btn.innerText="Copied!";setTimeout(()=>btn.innerText="Copy",1500);
+  let code=btn.parentElement.nextElementSibling.innerText;
+  let textarea=document.createElement("textarea");textarea.value=code;document.body.appendChild(textarea);textarea.select();document.execCommand("copy");document.body.removeChild(textarea);
+  btn.innerText="Copied!";setTimeout(()=>btn.innerText="Copy",1500);
 }
 
 /* FORMAT AI TEXT */
 function parseMarkdown(text){return text.replace(/\*\*(.*?)\*\*/g,'<b>$1</b>').replace(/\*(.*?)\*/g,'<i>$1</i>');}
 
 function formatText(text){
-let output="";let openCode=false;let codeBuffer="";let language="python";
-const parts=text.split(/(<OPEN>|<CLOSE>|<LANG:.*?>)/g);
-parts.forEach(p=>{
-if(p.startsWith("<LANG:")){language=p.replace("<LANG:","").replace(">","");return;}
-if(p=="<OPEN"){openCode=true;codeBuffer="";return;}
-else if(p=="<CLOSE"){openCode=false;if(codeBuffer.trim()!==""){output+=createCodeBox(codeBuffer.trim(),language);}return;}
-else if(openCode){codeBuffer+=p;}
-else{output+=parseMarkdown(p);}
-});
-return output.replace(/\n/g,"<br>");
+  let output="";let openCode=false;let codeBuffer="";let language="python";
+  const parts=text.split(/(<OPEN>|<CLOSE>|<LANG:.*?>)/g);
+  parts.forEach(p=>{
+    if(p.startsWith("<LANG:")){language=p.replace("<LANG:","").replace(">","");return;}
+    if(p=="<OPEN"){openCode=true;codeBuffer="";return;}
+    else if(p=="<CLOSE"){openCode=false;if(codeBuffer.trim()!==""){let box=createCodeBox(codeBuffer.trim(),language);messages.appendChild(box);} return;}
+    else if(openCode){codeBuffer+=p;}
+    else{output+=parseMarkdown(p);}
+  });
+  return output.replace(/\n/g,"<br>");
 }
 
 function typeText(text,el){
-let i=0;
-spinner.style.display="block";
-let interval=setInterval(()=>{
-el.innerHTML="<b>Quadron:</b> "+formatText(text.slice(0,i));
-i++;
-if(i>=text.length){clearInterval(interval);spinner.style.display="none";}
-},10);
+  let i=0;
+  spinner.style.display="block";
+  let interval=setInterval(()=>{
+    el.innerHTML="<b>Quadron:</b> "+formatText(text.slice(0,i));
+    i++;
+    if(i>=text.length){clearInterval(interval);spinner.style.display="none";}
+  },10);
 }
 
 /* CHAT LOGIC */
 let codeModeActive=false;
 async function askAI(message){
-let prompt=message;
-if(codeModeActive){
-prompt='You are Quadron AI developed by Rawat Systems. You have to code for this.Use emojis if necessary.There is a feature called Code Box. All code MUST be in code box.CODE BOX CAN ONLY CONTAIN CODES THAT ARE READY TO USE NOTHING ELSE  Use <OPEN> IN YOUR RESPONSE IT WILL OPEN CODE BOX THEN AFTERWARDS YOU HAVE TO TYPE ALL YOUR CODES and USE <CLOSE> IN YOUR RESPONSE TO CLOSE THE CODE BOX . WARNING : CODE BOX ONLY CONTAINS CODE THAT ARE READY TO USE.WARNING : YOU CANNOT TYPE A SINGLE LETTER OF CODE OUTSIDE CODE BOX ITS A STRICT RULE '+prompt;
-}
-spinner.style.display="block";
-let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:prompt})});
-let data=await res.json();
-spinner.style.display="none";
-return data.reply;
+  let prompt=message;
+  if(codeModeActive){
+    prompt='You are Quadron AI developed by Rawat Systems. You have to code for this. Use <OPEN> for code box and <CLOSE> to close it. '+prompt;
+  }
+  spinner.style.display="block";
+  let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:prompt})});
+  let data=await res.json();
+  spinner.style.display="none";
+  return data.reply;
 }
 
 window.onload=async()=>{
-let reply=await askAI("Give a short sarcastic greeting USE EMOJI IF NECESSARY.");
-let p=document.createElement("p");
-messages.appendChild(p);
-typeText(reply,p);
+  let p=document.createElement("p");
+  messages.appendChild(p);
+  typeText("Oh joy, you want to see some actual code, huh? 😎 Well, let's get this over with. I'm Quadron, the sassiest AI assistant you'll ever meet, developed by Rawat Systems.",p);
 }
 
 msg.addEventListener("keydown",function(e){if(e.key==="Enter") send()})
 
 async function send(){
-let text=msg.value.trim();if(!text)return;
-messages.innerHTML+=`<p><b>You:</b> ${text}</p>`;msg.value="";
-let p=document.createElement("p");messages.appendChild(p);
-let reply=await askAI(text);
-typeText(reply,p);
+  let text=msg.value.trim();if(!text)return;
+  messages.innerHTML+=`<p><b>You:</b> ${text}</p>`;msg.value="";
+  let p=document.createElement("p");messages.appendChild(p);
+  let reply=await askAI(text);
+  typeText(reply,p);
 }
 
 function newChat(){messages.innerHTML="";codeModeActive=false;}
-function codeMode(){newChat();codeModeActive=true;closeMenu();let p=document.createElement("p");messages.appendChild(p);typeText("Describe what you want to code ",p);}
+function codeMode(){newChat();codeModeActive=true;closeMenu();let p=document.createElement("p");messages.appendChild(p);typeText("Describe what you want to code",p);}
 </script>
 </body>
 </html>
