@@ -150,11 +150,11 @@ function formatText(text){
 let output = "";
 let openCode = false;
 let codeBuffer = "";
-const parts = text.split(/(<IAMCODING>|<IHAVEDONECODING>)/g);
+const parts = text.split(/(<OPEN>|<CLOSE>)/g);
 parts.forEach(p=>{
-if(p=="<IAMCODING>"){openCode=true;codeBuffer="";return;}
-else if(p=="<IHAVEDONECODING>"){openCode=false;if(codeBuffer.trim()!==""){output+=createCodeBox(codeBuffer.trim());}return;}
-else if(openCode){codeBuffer+=p;}
+if(p=="<OPEN>"){openCode=true;codeBuffer=""; return;}
+if(p=="<CLOSE>"){openCode=false; if(codeBuffer.trim()!==""){output+=createCodeBox(codeBuffer.trim());} return;}
+if(openCode){codeBuffer+=p;}
 else{output+=parseMarkdown(p);}
 });
 return output.replace(/\n/g,"<br>");
@@ -178,12 +178,25 @@ if(i>=text.length) clearInterval(interval);
 let codeModeActive=false;
 
 async function askAI(message){
-let prompt=message;
+let prompt = `
+You are Quadron AI developed by Rawat Systems. You have a feature to write code in code boxes.
+Whenever you need to output code:
+1) Start with <OPEN>
+2) Write your code normally
+3) End with <CLOSE> after finishing the code
+
+Now respond to this: ${message}
+`;
 if(codeModeActive){
-prompt='Code for this also when you write the first letter of code just before writing that type "<IAMCODING>" Exactly and just after finishing codes type "<IHAVEDONECODING>" '+prompt+' USE EMOJI IF NECESSARY';
+prompt += ` Additionally, always write code in <OPEN> ... <CLOSE> blocks if requested. Use emojis if necessary.`;
 }
-let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:prompt})});
-let data=await res.json();return data.reply;
+let res = await fetch("/api/chat",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({message:prompt})
+});
+let data = await res.json();
+return data.reply;
 }
 
 window.onload=async()=>{
