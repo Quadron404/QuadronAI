@@ -16,23 +16,21 @@ export async function onRequest(context) {
       return new Response("Missing GROQ_API_KEY", { status: 500 });
     }
 
-    // 🧠 SMART SYSTEM PROMPT
+    /* 🧠 SYSTEM PROMPT */
     let systemPrompt = `
 You are Quadron AI.
 You are sarcastic, witty, and smart.
-Give accurate answers.
 
 RULES:
-- If "REAL-TIME MODE" → ONLY use given data
-- If "KNOWLEDGE MODE" → explain clearly using data
+- If REAL-TIME MODE → use ONLY provided data
+- If KNOWLEDGE MODE → explain clearly using data
 - Never say data is outdated
-- Keep answers clean & confident
 `;
 
     const apiRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": \`Bearer \${env.GROQ_API_KEY}\`,
+        "Authorization": "Bearer " + env.GROQ_API_KEY,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
@@ -46,7 +44,16 @@ RULES:
 
     const data = await apiRes.json();
 
-    const reply = data?.choices?.[0]?.message?.content || "No reply";
+    if (!apiRes.ok) {
+      return new Response(JSON.stringify({
+        error: "Groq API failed",
+        details: data
+      }), { status: 500 });
+    }
+
+    const reply =
+      data?.choices?.[0]?.message?.content ||
+      "No reply";
 
     return new Response(JSON.stringify({ reply }), {
       headers: { "Content-Type": "application/json" }
