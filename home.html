@@ -11,33 +11,37 @@
 
 <style>
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
-.blur-bg{filter:blur(5px);}
 header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 12px #ffd900;}
 #logo{font-weight:bold;font-size:18px;}
 #menuBtn{cursor:pointer;font-size:24px;}
 #overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;z-index:900;}
-#sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;overflow-y:auto;display:flex;flex-direction:column;}
+#sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;}
 #sidePanel.open{transform:translateX(0);}
-#menuProfile{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid #333;}
-#menuProfile img{width:40px;height:40px;border-radius:50%;border:1px solid #ffd900;object-fit:cover;}
-.menuItem{padding:10px;cursor:pointer;margin-top:8px;color:#ffd900;font-weight:bold;transition:0.2s;position:relative;}
-.menuItem:hover{color:#ffd900;text-shadow:0 0 10px #ffd900;}
+.menuItem{padding:10px;cursor:pointer;margin-top:8px;color:#ffd900;font-weight:bold;}
 #chat{max-width:800px;margin:auto;padding:10px;}
-#messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;box-shadow:0 0 15px #ffd900;border-radius:12px;}
+#messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;border-radius:12px;}
 #inputArea{display:flex;gap:8px;margin-top:10px;}
 input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
-button{padding:10px;background:#ffd900;color:#000;border:none;box-shadow:0 0 12px #ffd900;cursor:pointer;}
-.codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:hidden;font-family:monospace;line-height:1.3em;position:relative;}
-.codeHeader{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#111;font-size:12px;font-weight:bold;border-bottom:1px solid #ffd900;}
-.codeLang{font-style:italic;}
-.copyBtn{cursor:pointer;color:#ffd900;padding:2px 6px;border:1px solid #ffd900;border-radius:4px;font-size:12px;}
-.codeContent{padding:10px;overflow:auto;white-space:pre;min-height:20px;}
-.spinner{position:absolute;width:16px;height:16px;border:3px solid #ffd900;border-top:3px solid transparent;border-radius:50%;animation:spin 1s linear infinite;top:8px;left:8px;}
-@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
-.footer{text-align:center;font-size:12px;margin:10px;}
-.footer a{color:#ffd900;text-decoration:none;}
-.menuFooter{margin-top:15px;text-align:center;font-size:12px;padding-bottom:10px;}
-.menuFooter span{font-weight:bold;color:#ffd900;text-shadow:0 0 10px #ffd900;}
+button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;}
+
+.codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:hidden;position:relative;}
+.codeHeader{display:flex;justify-content:space-between;padding:6px;background:#111;border-bottom:1px solid #ffd900;}
+.codeContent{padding:10px;white-space:pre;overflow:auto;}
+
+.spinner{
+position:absolute;
+right:10px;
+top:8px;
+width:14px;
+height:14px;
+border:2px solid #ffd900;
+border-top:2px solid transparent;
+border-radius:50%;
+animation:spin 1s linear infinite;
+}
+@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+
+img{border-radius:6px;}
 </style>
 </head>
 
@@ -51,24 +55,10 @@ button{padding:10px;background:#ffd900;color:#000;border:none;box-shadow:0 0 12p
 <div id="overlay" onclick="closeMenu()"></div>
 
 <div id="sidePanel">
-<div id="menuProfile">
-<img id="profilePic" src="">
-<div>
-<div id="profileName"></div>
-<div style="font-size:12px;" id="profileEmail"></div>
-</div>
-</div>
-
 <div class="menuItem" onclick="newChat()">New Chat</div>
-<div class="menuItem" onclick="location.href='voice.html'">Voice Mode</div>
-<div class="menuItem" onclick="location.href='quadron7.html'">Quadron 7</div>
 <div class="menuItem" onclick="codeMode()">Code /</div>
 <div class="menuItem" onclick="exploreMode()">Explore</div>
 <div class="menuItem" onclick="evaluateModeUI()">Evaluate</div>
-
-<div class="menuFooter">
-Developed by <span>Rawat Systems</span>
-</div>
 </div>
 
 <div id="chat">
@@ -79,19 +69,8 @@ Developed by <span>Rawat Systems</span>
 </div>
 </div>
 
-<div class="footer">
-Quadron AI can make mistakes, By using it you agree our 
-<a href="terms.html">Terms & Conditions</a>
-</div>
-
 <script>
 const messages=document.getElementById("messages");
-const sidePanel=document.getElementById("sidePanel");
-const overlay=document.getElementById("overlay");
-
-/* MENU */
-function openMenu(){sidePanel.classList.add("open");overlay.style.display="block";}
-function closeMenu(){sidePanel.classList.remove("open");overlay.style.display="none";}
 
 /* MODES */
 let exploreActive=false;
@@ -99,73 +78,71 @@ let codeModeActive=false;
 let evaluateMode=false;
 
 /* PROMPT */
-function buildPrompt(userText){
-
-if(codeModeActive){
-return `Return ONLY code. One code block. No explanation.\nUser: ${userText}`;
+function buildPrompt(text){
+if(codeModeActive) return "Only code block.\n"+text;
+if(exploreActive) return "Explain deeply with images.\n"+text;
+if(evaluateMode) return "Give analysis with chart JSON.\n"+text;
+return text;
 }
 
-if(exploreActive){
-return `Deep exploration with insights.
-Include DIRECT image links (.jpg/.png).
-User: ${userText}`;
+/* TEXT FORMAT */
+function formatText(t){
+return t.replace(/\*\*(.*?)\*\*/g,"<b>$1</b>").replace(/\n/g,"<br>");
 }
 
-if(evaluateMode){
-return `Strict evaluation.
-No humor.
-Include JSON graph:
-{"type":"bar","labels":["A","B"],"values":[10,20]}
-User: ${userText}`;
+/* IMAGE */
+function renderImages(el,text){
+let md=[...text.matchAll(/!\[.*?\]\((.*?)\)/g)];
+md.forEach(m=>{
+let img=document.createElement("img");
+img.src=m[1];
+img.style.maxWidth="100%";
+img.style.marginTop="10px";
+el.appendChild(img);
+});
 }
 
-return `You are Quadron AI. Sarcastic.\nUser: ${userText}`;
+/* CHART */
+function renderChart(el,text){
+let match=text.match(/\{[\s\S]*"type"[\s\S]*\}/);
+if(!match)return;
+
+try{
+let d=JSON.parse(match[0]);
+
+let canvas=document.createElement("canvas");
+canvas.style.marginTop="15px";
+el.appendChild(canvas);
+
+new Chart(canvas,{
+type:d.type,
+data:{labels:d.labels,datasets:[{data:d.values}]},
+options:{animation:false}
+});
+
+}catch(e){}
 }
 
-/* TYPING */
+/* TYPE */
 function typeText(el,text){
 let span=document.createElement("span");
 el.innerHTML="<b>Quadron:</b> ";
 el.appendChild(span);
 
+let clean=formatText(text);
 let i=0;
+
 function t(){
-span.textContent=text.slice(0,i);
+span.innerHTML=clean.slice(0,i);
 i++;
-if(i<=text.length) requestAnimationFrame(t);
+if(i<=clean.length){
+requestAnimationFrame(t);
+}else{
+renderImages(el,text);
+renderChart(el,text);
+}
 }
 t();
-}
-
-/* IMAGE FIX */
-function renderImages(container,text){
-let urls=text.match(/https?:\/\/[^\s]+/g);
-if(!urls)return;
-
-urls.forEach(u=>{
-let img=document.createElement("img");
-img.src="https://image.thum.io/get/width/600/"+u;
-img.style.maxWidth="100%";
-img.style.marginTop="10px";
-container.appendChild(img);
-});
-}
-
-/* CHART */
-function renderChart(container,text){
-try{
-let match=text.match(/\{[\s\S]*\}/);
-if(!match)return;
-
-let d=JSON.parse(match[0]);
-let c=document.createElement("canvas");
-container.appendChild(c);
-
-new Chart(c,{
-type:d.type,
-data:{labels:d.labels,datasets:[{data:d.values}]}
-});
-}catch(e){}
 }
 
 /* SEND */
@@ -183,114 +160,57 @@ let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"applicat
 let data=await res.json();
 let reply=data.reply;
 
-/* CODE */
 let m=reply.match(/```(\w+)?\n([\s\S]*?)```/);
 
 if(m){
-let lang=m[1]||"text";
-let code=m[2];
-
-p.innerHTML="<b>Quadron:</b>";
-
 let box=document.createElement("div");
 box.className="codeBox";
 
 let header=document.createElement("div");
 header.className="codeHeader";
-header.innerHTML=`<span class="codeLang">&lt;/&gt; ${lang}</span><span class="copyBtn" onclick="copyCode(this)">Copy</span>`;
+header.innerText=m[1]||"code";
 
 let spin=document.createElement("div");
 spin.className="spinner";
 
-let content=document.createElement("pre");
-content.className="codeContent";
+let pre=document.createElement("pre");
+pre.className="codeContent";
 
 box.appendChild(header);
 box.appendChild(spin);
-box.appendChild(content);
+box.appendChild(pre);
 p.appendChild(box);
 
+let code=m[2];
 let i=0;
-function tc(){
-content.textContent+=code[i];
+
+function t(){
+pre.textContent+=code[i];
 i++;
 if(i<code.length){
-requestAnimationFrame(tc);
+requestAnimationFrame(t);
 }else{
 spin.remove();
-hljs.highlightElement(content);
+hljs.highlightElement(pre);
 renderChart(p,code);
 }
 }
-tc();
+t();
 
 }else{
 typeText(p,reply);
-renderImages(p,reply);
-renderChart(p,reply);
 }
 
 messages.scrollTop=messages.scrollHeight;
 }
 
-/* COPY */
-function copyCode(btn){
-navigator.clipboard.writeText(btn.parentElement.nextElementSibling.textContent);
-btn.innerText="Copied!";
-setTimeout(()=>btn.innerText="Copy",1500);
-}
+/* MODES */
+function newChat(){messages.innerHTML="";}
+function codeMode(){messages.innerHTML="";codeModeActive=true;exploreActive=false;evaluateMode=false;}
+function exploreMode(){messages.innerHTML="";exploreActive=true;codeModeActive=false;evaluateMode=false;}
+function evaluateModeUI(){messages.innerHTML="";evaluateMode=true;exploreActive=false;codeModeActive=false;}
 
-/* MODES WITH TYPING */
-function newChat(){
-messages.innerHTML="";
-exploreActive=false;
-codeModeActive=false;
-evaluateMode=false;
-closeMenu();
-}
-
-function codeMode(){
-messages.innerHTML="";
-codeModeActive=true;
-exploreActive=false;
-evaluateMode=false;
-closeMenu();
-
-let p=document.createElement("p");
-messages.appendChild(p);
-typeText(p,"Describe what you want to code");
-}
-
-function exploreMode(){
-messages.innerHTML="";
-exploreActive=true;
-codeModeActive=false;
-evaluateMode=false;
-closeMenu();
-
-let p=document.createElement("p");
-messages.appendChild(p);
-typeText(p,"Explore the Universe");
-}
-
-function evaluateModeUI(){
-messages.innerHTML="";
-evaluateMode=true;
-exploreActive=false;
-codeModeActive=false;
-closeMenu();
-
-let p=document.createElement("p");
-messages.appendChild(p);
-typeText(p,"Describe what you want to evaluate");
-}
-
-/* INIT */
-window.onload=()=>{newChat();}
-
-msg.addEventListener("keydown",e=>{
-if(e.key==="Enter") send();
-});
+msg.addEventListener("keydown",e=>{if(e.key==="Enter")send();});
 </script>
 
 </body>
