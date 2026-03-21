@@ -11,48 +11,45 @@
 
 <style>
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
-header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 12px #ffd900;}
-#logo{font-weight:bold;font-size:18px;}
-#menuBtn{cursor:pointer;font-size:24px;}
-#overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;z-index:900;}
-#sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;}
+header{display:flex;justify-content:space-between;padding:12px;background:#000;border-bottom:2px solid #ffd900;}
+#menuBtn{font-size:24px;cursor:pointer;}
+#overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.5);display:none;}
+#sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;}
 #sidePanel.open{transform:translateX(0);}
-.menuItem{padding:10px;cursor:pointer;margin-top:8px;color:#ffd900;font-weight:bold;}
+.menuItem{padding:10px;color:#ffd900;cursor:pointer;}
+
 #chat{max-width:800px;margin:auto;padding:10px;}
 #messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;border-radius:12px;}
-#inputArea{display:flex;gap:8px;margin-top:10px;}
-input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
-button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;}
+#inputArea{display:flex;margin-top:10px;}
+input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;}
+button{padding:10px;background:#ffd900;border:none;}
 
-.codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:hidden;position:relative;}
-.codeHeader{display:flex;justify-content:space-between;padding:6px;background:#111;border-bottom:1px solid #ffd900;}
-.codeContent{padding:10px;white-space:pre;overflow:auto;}
+.codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;position:relative;}
+.codeHeader{background:#111;padding:6px;}
+.codeContent{padding:10px;white-space:pre;}
 
 .spinner{
 position:absolute;
 right:10px;
 top:8px;
-width:14px;
-height:14px;
+width:14px;height:14px;
 border:2px solid #ffd900;
 border-top:2px solid transparent;
 border-radius:50%;
 animation:spin 1s linear infinite;
 }
-@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
-
-img{border-radius:6px;}
+@keyframes spin{100%{transform:rotate(360deg);}}
 </style>
 </head>
 
 <body>
 
 <header>
-<div id="logo">Quadron AI</div>
-<div id="menuBtn" onclick="openMenu()">☰</div>
+<div>Quadron AI</div>
+<div id="menuBtn">☰</div>
 </header>
 
-<div id="overlay" onclick="closeMenu()"></div>
+<div id="overlay"></div>
 
 <div id="sidePanel">
 <div class="menuItem" onclick="newChat()">New Chat</div>
@@ -64,34 +61,67 @@ img{border-radius:6px;}
 <div id="chat">
 <div id="messages"></div>
 <div id="inputArea">
-<input id="msg" placeholder="Type here...">
+<input id="msg">
 <button onclick="send()">Send</button>
 </div>
 </div>
 
 <script>
 const messages=document.getElementById("messages");
+const menu=document.getElementById("menuBtn");
+const panel=document.getElementById("sidePanel");
+const overlay=document.getElementById("overlay");
+
+/* MENU FIX */
+menu.onclick=()=>{
+panel.classList.add("open");
+overlay.style.display="block";
+};
+overlay.onclick=()=>{
+panel.classList.remove("open");
+overlay.style.display="none";
+};
 
 /* MODES */
-let exploreActive=false;
-let codeModeActive=false;
-let evaluateMode=false;
+let mode="normal";
 
-/* PROMPT */
-function buildPrompt(text){
-if(codeModeActive) return "Only code block.\n"+text;
-if(exploreActive) return "Explain deeply with images.\n"+text;
-if(evaluateMode) return "Give analysis with chart JSON.\n"+text;
-return text;
+function newChat(){messages.innerHTML="";mode="normal";}
+function codeMode(){messages.innerHTML="";mode="code";}
+function exploreMode(){messages.innerHTML="";mode="explore";}
+function evaluateModeUI(){messages.innerHTML="";mode="evaluate";}
+
+/* PROMPT FIX */
+function buildPrompt(t){
+
+if(mode==="code")
+return `ONLY code block.\n${t}`;
+
+if(mode==="explore")
+return `Explain with images. Use image URLs.\n${t}`;
+
+if(mode==="evaluate")
+return `Give answer + include graph JSON strictly:
+{"type":"line","labels":["A","B"],"values":[10,20]}
+${t}`;
+
+return `You are Quadron AI.
+Never say you cannot show images or links.
+Always generate graphs when asked.
+${t}`;
 }
 
-/* TEXT FORMAT */
+/* FORMAT */
 function formatText(t){
-return t.replace(/\*\*(.*?)\*\*/g,"<b>$1</b>").replace(/\n/g,"<br>");
+return t
+.replace(/\*\*(.*?)\*\*/g,"<b>$1</b>")
+.replace(/\n/g,"<br>")
+.replace(/https?:\/\/[^\s]+/g,""); // remove links from text
 }
 
-/* IMAGE */
+/* IMAGE FIX */
 function renderImages(el,text){
+
+// markdown
 let md=[...text.matchAll(/!\[.*?\]\((.*?)\)/g)];
 md.forEach(m=>{
 let img=document.createElement("img");
@@ -100,31 +130,66 @@ img.style.maxWidth="100%";
 img.style.marginTop="10px";
 el.appendChild(img);
 });
+
+// direct links
+let urls=text.match(/https?:\/\/[^\s]+/g);
+if(!urls)return;
+
+urls.forEach(u=>{
+if(/\.(jpg|png|jpeg|webp)/i.test(u)){
+let img=document.createElement("img");
+img.src=u;
+img.style.maxWidth="100%";
+img.style.marginTop="10px";
+el.appendChild(img);
+}
+});
 }
 
-/* CHART */
+/* GRAPH FIX */
 function renderChart(el,text){
-let match=text.match(/\{[\s\S]*"type"[\s\S]*\}/);
-if(!match)return;
+
+// detect keywords if no JSON
+if(text.toLowerCase().includes("pie chart")){
+createChart(el,"pie",["A","B"],[50,50]);
+return;
+}
+
+// JSON detect
+let m=text.match(/\{[\s\S]*"type"[\s\S]*\}/);
+if(!m)return;
 
 try{
-let d=JSON.parse(match[0]);
+let d=JSON.parse(m[0]);
+createChart(el,d.type,d.labels,d.values);
+}catch(e){}
+}
+
+function createChart(el,type,labels,data){
 
 let canvas=document.createElement("canvas");
 canvas.style.marginTop="15px";
 el.appendChild(canvas);
 
 new Chart(canvas,{
-type:d.type,
-data:{labels:d.labels,datasets:[{data:d.values}]},
-options:{animation:false}
+type:type,
+data:{
+labels:labels,
+datasets:[{
+data:data,
+borderWidth:2
+}]
+},
+options:{
+responsive:true,
+animation:false
+}
 });
-
-}catch(e){}
 }
 
 /* TYPE */
 function typeText(el,text){
+
 let span=document.createElement("span");
 el.innerHTML="<b>Quadron:</b> ";
 el.appendChild(span);
@@ -135,6 +200,7 @@ let i=0;
 function t(){
 span.innerHTML=clean.slice(0,i);
 i++;
+
 if(i<=clean.length){
 requestAnimationFrame(t);
 }else{
@@ -156,10 +222,16 @@ msg.value="";
 let p=document.createElement("p");
 messages.appendChild(p);
 
-let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:buildPrompt(text)})});
+let res=await fetch("/api/chat",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({message:buildPrompt(text)})
+});
+
 let data=await res.json();
 let reply=data.reply;
 
+/* CODE */
 let m=reply.match(/```(\w+)?\n([\s\S]*?)```/);
 
 if(m){
@@ -187,6 +259,7 @@ let i=0;
 function t(){
 pre.textContent+=code[i];
 i++;
+
 if(i<code.length){
 requestAnimationFrame(t);
 }else{
@@ -204,13 +277,9 @@ typeText(p,reply);
 messages.scrollTop=messages.scrollHeight;
 }
 
-/* MODES */
-function newChat(){messages.innerHTML="";}
-function codeMode(){messages.innerHTML="";codeModeActive=true;exploreActive=false;evaluateMode=false;}
-function exploreMode(){messages.innerHTML="";exploreActive=true;codeModeActive=false;evaluateMode=false;}
-function evaluateModeUI(){messages.innerHTML="";evaluateMode=true;exploreActive=false;codeModeActive=false;}
-
-msg.addEventListener("keydown",e=>{if(e.key==="Enter")send();});
+msg.addEventListener("keydown",e=>{
+if(e.key==="Enter") send();
+});
 </script>
 
 </body>
