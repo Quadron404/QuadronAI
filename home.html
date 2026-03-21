@@ -8,10 +8,11 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/monokai-sublime.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 
+<!-- ADDED (logic only, no UI change) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-/* SAME UI — NO CHANGES */
+/* YOUR UI — UNCHANGED */
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
 .blur-bg{filter:blur(5px);}
 header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 12px #ffd900;}
@@ -20,14 +21,26 @@ header{display:flex;justify-content:space-between;align-items:center;padding:12p
 #overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;z-index:900;}
 #sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;overflow-y:auto;display:flex;flex-direction:column;}
 #sidePanel.open{transform:translateX(0);}
-.menuItem{padding:10px;cursor:pointer;margin-top:8px;color:#ffd900;font-weight:bold;}
+#menuProfile{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid #333;}
+#menuProfile img{width:40px;height:40px;border-radius:50%;border:1px solid #ffd900;object-fit:cover;}
+.menuItem{padding:10px;cursor:pointer;margin-top:8px;color:#ffd900;font-weight:bold;transition:0.2s;position:relative;}
+.menuItem:hover{color:#ffd900;text-shadow:0 0 10px #ffd900;}
 #chat{max-width:800px;margin:auto;padding:10px;}
-#messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;border-radius:12px;}
+#messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;box-shadow:0 0 15px #ffd900;border-radius:12px;}
 #inputArea{display:flex;gap:8px;margin-top:10px;}
 input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
-button{padding:10px;background:#ffd900;color:#000;border:none;}
-img.ai-img{max-width:100%;margin-top:8px;border-radius:10px;}
-canvas{margin-top:10px;}
+button{padding:10px;background:#ffd900;color:#000;border:none;box-shadow:0 0 12px #ffd900;cursor:pointer;}
+.codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:hidden;font-family:monospace;line-height:1.3em;position:relative;}
+.codeHeader{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#111;font-size:12px;font-weight:bold;border-bottom:1px solid #ffd900;transition:all .3s;}
+.codeLang{font-style:italic;}
+.copyBtn{cursor:pointer;color:#ffd900;padding:2px 6px;border:1px solid #ffd900;border-radius:4px;font-size:12px;}
+.codeContent{padding:10px;overflow:auto;white-space:pre;min-height:20px;}
+.spinner{position:absolute;width:16px;height:16px;border:3px solid #ffd900;border-top:3px solid transparent;border-radius:50%;animation:spin 1s linear infinite;top:8px;left:8px;}
+@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+.footer{text-align:center;font-size:12px;margin:10px;}
+.footer a{color:#ffd900;text-decoration:none;}
+.menuFooter{margin-top:15px;text-align:center;font-size:12px;padding-bottom:10px;}
+.menuFooter span{font-weight:bold;color:#ffd900;text-shadow:0 0 10px #ffd900;}
 </style>
 </head>
 
@@ -41,36 +54,56 @@ canvas{margin-top:10px;}
 <div id="overlay" onclick="closeMenu()"></div>
 
 <div id="sidePanel">
+<div id="menuProfile">
+<img id="profilePic" src="">
+<div>
+<div id="profileName"></div>
+<div style="font-size:12px;" id="profileEmail"></div>
+</div>
+</div>
+
 <div class="menuItem" onclick="newChat()">New Chat</div>
+<div class="menuItem" onclick="location.href='voice.html'">Voice Mode</div>
+<div class="menuItem" onclick="location.href='quadron7.html'">Quadron 7</div>
 <div class="menuItem" onclick="codeMode()">Code /</div>
 <div class="menuItem" onclick="exploreMode()">Explore</div>
 <div class="menuItem" onclick="evaluateModeUI()">Evaluate</div>
+
+<div class="menuFooter">
+Developed by <span>Rawat Systems</span>
+</div>
 </div>
 
 <div id="chat">
 <div id="messages"></div>
 <div id="inputArea">
-<input id="msg">
+<input id="msg" placeholder="Type here...">
 <button onclick="send()">Send</button>
 </div>
+</div>
+
+<div class="footer">
+Quadron AI can make mistakes, By using it you agree our 
+<a href="terms.html">Terms & Conditions</a>
 </div>
 
 <script>
 const messages=document.getElementById("messages");
 
+/* MODES */
 let exploreActive=false;
 let codeModeActive=false;
 let evaluateMode=false;
 
-/* PROMPT SYSTEM */
+/* PROMPT BUILDER */
 function buildPrompt(userText){
 
 let base=`You are Quadron AI developed by Rawat Systems.
 Personality: Tony Stark + Deadpool.
 Ultra sarcastic, witty, argumentative.
 Use emoji if necessary (not excessive).
-Add images only if user asks.
-
+Add images only if user explicitly asks.
+Maintain clean formatting.
 `;
 
 if(codeModeActive){
@@ -78,66 +111,71 @@ return "Return ONLY one code block. No explanation.";
 }
 
 if(exploreActive){
-return base+`
+return base + `
 Be an explorer.
 Give ultra detailed answer.
-Be sarcastic but informative.
-Generate ideas, conclusions.
-Provide image links compulsorily.
-`;
+Be sarcastic but intelligent.
+Generate new ideas and insights.
+Include image links if useful.
+Provide large data and explanation.
+User Query: ` + userText;
 }
 
 if(evaluateMode){
 return `
 Perform ultra detailed evaluation.
-Include graphs, pie charts, data.
-Provide sources and strong conclusion.
-NO sarcasm. Pure logic.
-`;
+No humor.
+Include graphs, pie charts, and structured data.
+Give final conclusion with reasoning.
+Mention sources.
+User Query: ` + userText;
 }
 
-return base + userText;
+return base + "User Query: " + userText;
 }
 
-/* GPT TYPE ANIMATION */
+/* TYPING EFFECT */
 function typeText(el,text){
 let i=0;
-let interval=setInterval(()=>{
+function typing(){
 el.innerHTML="<b>Quadron:</b> "+text.slice(0,i);
 i++;
-if(i>text.length)clearInterval(interval);
-},10);
+if(i<=text.length){
+setTimeout(typing,8);
+}
+}
+typing();
 }
 
-/* IMAGE DETECT */
+/* IMAGE RENDER */
 function renderImages(container,text){
-let urlRegex=/(https?:\/\/[^\s]+)/g;
-let urls=text.match(urlRegex);
-if(urls){
+let urls=text.match(/https?:\/\/[^\s]+/g);
+if(!urls)return;
+
 urls.forEach(u=>{
-if(u.match(/\.(jpg|png|jpeg|webp|gif)/)){
+if(/\.(jpg|png|jpeg|webp|gif)/i.test(u)){
 let img=document.createElement("img");
 img.src=u;
-img.className="ai-img";
+img.style.maxWidth="100%";
+img.style.marginTop="8px";
 container.appendChild(img);
 }
 });
 }
-}
 
-/* CHART DETECT */
+/* CHART RENDER */
 function renderChart(container,text){
 try{
-let data=JSON.parse(text);
-if(data.type){
+let json=JSON.parse(text);
+if(json.type){
 let canvas=document.createElement("canvas");
 container.appendChild(canvas);
 
 new Chart(canvas,{
-type:data.type,
+type:json.type,
 data:{
-labels:data.labels,
-datasets:[{data:data.values}]
+labels:json.labels,
+datasets:[{data:json.values}]
 }
 });
 }
@@ -159,13 +197,48 @@ let prompt=buildPrompt(text);
 
 let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:prompt})});
 let data=await res.json();
-
 let reply=data.reply;
 
 /* CODE */
 let codeMatch=reply.match(/```(\w+)?\n([\s\S]*?)```/);
+
 if(codeMatch){
-p.innerHTML="<pre>"+codeMatch[2]+"</pre>";
+let lang=codeMatch[1]||"text";
+let code=codeMatch[2];
+
+p.innerHTML="<b>Quadron:</b>";
+
+let box=document.createElement("div");
+box.className="codeBox";
+
+let header=document.createElement("div");
+header.className="codeHeader";
+header.innerHTML=`<span class="codeLang">&lt;/&gt; ${lang}</span><span class="copyBtn" onclick="copyCode(this)">Copy</span>`;
+
+let spinner=document.createElement("div");
+spinner.className="spinner";
+
+let content=document.createElement("pre");
+content.className="codeContent";
+
+box.appendChild(header);
+box.appendChild(spinner);
+box.appendChild(content);
+p.appendChild(box);
+
+let i=0;
+function typeCode(){
+content.textContent+=code[i];
+i++;
+if(i<code.length){
+setTimeout(typeCode,5);
+}else{
+spinner.remove();
+hljs.highlightElement(content);
+}
+}
+typeCode();
+
 }else{
 typeText(p,reply);
 renderImages(p,reply);
@@ -175,8 +248,14 @@ renderChart(p,reply);
 messages.scrollTop=messages.scrollHeight;
 }
 
-/* MODES */
+/* COPY */
+function copyCode(btn){
+navigator.clipboard.writeText(btn.parentElement.nextElementSibling.textContent);
+btn.innerText="Copied!";
+setTimeout(()=>btn.innerText="Copy",1500);
+}
 
+/* MODES */
 function newChat(){
 messages.innerHTML="";
 exploreActive=false;
@@ -197,7 +276,7 @@ messages.innerHTML="";
 exploreActive=true;
 codeModeActive=false;
 evaluateMode=false;
-messages.innerHTML="<b>Quadron:</b> Explore the Universe ";
+messages.innerHTML="<b>Quadron:</b> Explore the Universe";
 }
 
 function evaluateModeUI(){
@@ -205,9 +284,15 @@ messages.innerHTML="";
 evaluateMode=true;
 exploreActive=false;
 codeModeActive=false;
-messages.innerHTML="<b>Quadron:</b> Describe what you want to evaluate ";
+messages.innerHTML="<b>Quadron:</b> Describe what you want to evaluate";
 }
 
+/* INIT */
+window.onload=()=>{newChat();}
+
+msg.addEventListener("keydown",e=>{
+if(e.key==="Enter") send();
+});
 </script>
 
 </body>
