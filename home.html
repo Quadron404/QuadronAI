@@ -147,7 +147,26 @@ let finalMessage=text;
 
 if(evaluateMode){
 let liveData=await fetchTavily(text); // ONE CALL
-finalMessage=`REAL-TIME DATA:\n${liveData}\n\nUSER QUERY:\n${text}\n\nGive strict evaluation with conclusion.`;
+finalMessage = `
+You are in EVALUATION MODE.
+
+You MUST:
+- Use the REAL-TIME DATA provided below
+- DO NOT say you lack real-time data
+- DO NOT give generic answers
+- Extract exact facts (price, numbers, trends)
+- Give a FINAL ANSWER clearly
+
+REAL-TIME DATA:
+${liveData}
+
+USER QUESTION:
+${text}
+
+Now respond with:
+1. Key Data Found
+2. Final Answer (clear & direct)
+`;
 }
 
 let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:finalMessage})});
