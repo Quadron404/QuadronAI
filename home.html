@@ -100,34 +100,26 @@ let evaluateMode=false;
 
 /* PROMPT */
 function buildPrompt(userText){
-let base=`You are Quadron AI developed by Rawat Systems.
-Tony Stark + Deadpool personality.
-Sarcastic, witty, argumentative.
-Use emoji if necessary (not excessive).
 
-IMPORTANT:
-- If user asks for images → give direct image links.
-- Never say "I am text-based".
-`;
-
-if(codeModeActive) return "Return ONLY one code block.";
+if(codeModeActive){
+return `Return ONLY code. One code block. No explanation.\nUser: ${userText}`;
+}
 
 if(exploreActive){
-return base+`Give deep exploration, ideas, insights.
-Include image links compulsorily.
-User: `+userText;
+return `Deep exploration with insights.
+Include DIRECT image links (.jpg/.png).
+User: ${userText}`;
 }
 
 if(evaluateMode){
-return `Ultra detailed evaluation.
+return `Strict evaluation.
 No humor.
-Include JSON graph data like:
+Include JSON graph:
 {"type":"bar","labels":["A","B"],"values":[10,20]}
-Give conclusion + sources.
-User: `+userText;
+User: ${userText}`;
 }
 
-return base+"User: "+userText;
+return `You are Quadron AI. Sarcastic.\nUser: ${userText}`;
 }
 
 /* TYPING */
@@ -145,19 +137,17 @@ if(i<=text.length) requestAnimationFrame(t);
 t();
 }
 
-/* IMAGE */
+/* IMAGE FIX */
 function renderImages(container,text){
 let urls=text.match(/https?:\/\/[^\s]+/g);
 if(!urls)return;
 
 urls.forEach(u=>{
-if(/\.(jpg|png|jpeg|webp|gif)/i.test(u)){
 let img=document.createElement("img");
-img.src=u;
+img.src="https://image.thum.io/get/width/600/"+u;
 img.style.maxWidth="100%";
 img.style.marginTop="10px";
 container.appendChild(img);
-}
 });
 }
 
@@ -168,11 +158,13 @@ let match=text.match(/\{[\s\S]*\}/);
 if(!match)return;
 
 let d=JSON.parse(match[0]);
-
 let c=document.createElement("canvas");
 container.appendChild(c);
 
-new Chart(c,{type:d.type,data:{labels:d.labels,datasets:[{data:d.values}]}})
+new Chart(c,{
+type:d.type,
+data:{labels:d.labels,datasets:[{data:d.values}]}
+});
 }catch(e){}
 }
 
@@ -227,6 +219,7 @@ requestAnimationFrame(tc);
 }else{
 spin.remove();
 hljs.highlightElement(content);
+renderChart(p,code);
 }
 }
 tc();
@@ -247,7 +240,7 @@ btn.innerText="Copied!";
 setTimeout(()=>btn.innerText="Copy",1500);
 }
 
-/* MODES */
+/* MODES WITH TYPING */
 function newChat(){
 messages.innerHTML="";
 exploreActive=false;
@@ -262,7 +255,10 @@ codeModeActive=true;
 exploreActive=false;
 evaluateMode=false;
 closeMenu();
-messages.innerHTML="<b>Quadron:</b> Describe what you want to code";
+
+let p=document.createElement("p");
+messages.appendChild(p);
+typeText(p,"Describe what you want to code");
 }
 
 function exploreMode(){
@@ -271,7 +267,10 @@ exploreActive=true;
 codeModeActive=false;
 evaluateMode=false;
 closeMenu();
-messages.innerHTML="<b>Quadron:</b> Explore the Universe";
+
+let p=document.createElement("p");
+messages.appendChild(p);
+typeText(p,"Explore the Universe");
 }
 
 function evaluateModeUI(){
@@ -280,7 +279,10 @@ evaluateMode=true;
 exploreActive=false;
 codeModeActive=false;
 closeMenu();
-messages.innerHTML="<b>Quadron:</b> Describe what you want to evaluate";
+
+let p=document.createElement("p");
+messages.appendChild(p);
+typeText(p,"Describe what you want to evaluate");
 }
 
 /* INIT */
