@@ -7,28 +7,87 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/monokai-sublime.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Optional Python support -->
+<link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
+<script defer src="https://pyscript.net/latest/pyscript.js"></script>
 
 <style>
-/* UI SAME */
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
-header{display:flex;justify-content:space-between;padding:12px;background:#000;border-bottom:2px solid #ffd900;}
-#menuBtn{cursor:pointer;font-size:24px;}
-#overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;z-index:900;}
-#sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;}
-#sidePanel.open{transform:translateX(0);}
-.menuItem{padding:10px;color:#ffd900;cursor:pointer;}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#000;border-bottom:2px solid #ffd900;}
 #chat{max-width:800px;margin:auto;padding:10px;}
 #messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;border-radius:12px;}
-#inputArea{display:flex;margin-top:10px;}
-input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;}
-button{padding:10px;background:#ffd900;border:none;}
+#inputArea{display:flex;gap:8px;margin-top:10px;}
+input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
+button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;}
 
-.codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;position:relative;}
-.codeHeader{background:#111;padding:6px;}
-.codeContent{padding:10px;white-space:pre;}
-.spinner{position:absolute;top:8px;left:8px;width:14px;height:14px;border:2px solid #ffd900;border-top:2px solid transparent;border-radius:50%;animation:spin 1s linear infinite;}
-@keyframes spin{100%{transform:rotate(360deg);}}
+.codeBox{
+  background:#000;
+  border:1px solid #ffd900;
+  margin-top:8px;
+  border-radius:8px;
+  overflow:hidden;
+  font-family:monospace;
+  position:relative;
+}
+
+.codeHeader{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:6px 10px;
+  background:#111;
+  border-bottom:1px solid #ffd900;
+}
+
+.codeLang{font-style:italic;}
+
+.btnGroup{
+  display:flex;
+  gap:6px;
+}
+
+.copyBtn,.runBtn{
+  cursor:pointer;
+  color:#ffd900;
+  padding:2px 6px;
+  border:1px solid #ffd900;
+  border-radius:4px;
+  font-size:12px;
+}
+
+.codeContent{
+  padding:10px;
+  overflow:auto;
+  white-space:pre;
+}
+
+.output{
+  border-top:1px solid #ffd900;
+  padding:10px;
+  color:#00ffcc;
+}
+
+.error{
+  color:red;
+}
+
+.spinner{
+  position:absolute;
+  width:16px;
+  height:16px;
+  border:3px solid #ffd900;
+  border-top:3px solid transparent;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+  top:35px; /* moved BELOW header */
+  left:10px;
+}
+
+@keyframes spin{
+  0%{transform:rotate(0deg);}
+  100%{transform:rotate(360deg);}
+}
 </style>
 </head>
 
@@ -36,143 +95,174 @@ button{padding:10px;background:#ffd900;border:none;}
 
 <header>
 <div>Quadron AI</div>
-<div id="menuBtn">☰</div>
 </header>
-
-<div id="overlay"></div>
-
-<div id="sidePanel">
-<div class="menuItem" onclick="newChat()">New Chat</div>
-<div class="menuItem" onclick="codeMode()">Code /</div>
-<div class="menuItem" onclick="exploreMode()">Explore</div>
-<div class="menuItem" onclick="evaluateModeUI()">Evaluate</div>
-</div>
 
 <div id="chat">
 <div id="messages"></div>
+
 <div id="inputArea">
-<input id="msg">
+<input id="msg" placeholder="Type here...">
 <button onclick="send()">Send</button>
 </div>
 </div>
 
 <script>
 const messages=document.getElementById("messages");
-const sidePanel=document.getElementById("sidePanel"); // ✅ FIX
-const overlay=document.getElementById("overlay");     // ✅ FIX
-const menuBtn=document.getElementById("menuBtn");
-
-/* MENU FIX */
-menuBtn.onclick=()=>{sidePanel.classList.add("open");overlay.style.display="block";};
-overlay.onclick=()=>{sidePanel.classList.remove("open");overlay.style.display="none";};
-
-/* MODES */
-let mode="normal";
-function newChat(){messages.innerHTML="";mode="normal";}
-function codeMode(){messages.innerHTML="";mode="code";}
-function exploreMode(){messages.innerHTML="";mode="explore";}
-function evaluateModeUI(){messages.innerHTML="";mode="evaluate";}
-
-/* STRONG PROMPT FIX */
-function buildPrompt(t){
-if(mode==="code") return "ONLY code. No explanation.\n"+t;
-
-if(mode==="explore")
-return "Give explanation with REAL IMAGE LINKS ONLY. No code.\n"+t;
-
-if(mode==="evaluate")
-return 'Give answer + graph JSON like {"type":"line","labels":["A"],"values":[10]}. No code.\n'+t;
-
-return "Never give code unless asked. Provide images if needed.\n"+t;
-}
-
-/* IMAGE FIX */
-function renderImages(el,text){
-let urls=text.match(/https?:\/\/[^\s]+/g)||[];
-urls.forEach(u=>{
-if(/\.(jpg|png|jpeg|webp)/i.test(u)){
-let img=document.createElement("img");
-img.src=u;
-img.style.maxWidth="100%";
-img.style.marginTop="10px";
-el.appendChild(img);
-}
-});
-}
-
-/* GRAPH FIX */
-function renderChart(el,text){
-let m=text.match(/\{[^{}]*"type"[^{}]*\}/);
-if(!m)return;
-
-try{
-let d=JSON.parse(m[0]);
-let c=document.createElement("canvas");
-el.appendChild(c);
-new Chart(c,{type:d.type,data:{labels:d.labels,datasets:[{data:d.values}]}})
-}catch(e){}
-}
 
 /* SEND */
 async function send(){
-let text=msg.value.trim();
-if(!text)return;
+ let text=msg.value.trim();
+ if(!text)return;
 
-messages.innerHTML+=`<p><b>You:</b> ${text}</p>`;
-msg.value="";
+ messages.innerHTML+=`<p><b>You:</b> ${text}</p>`;
+ msg.value="";
 
-let p=document.createElement("p");
-messages.appendChild(p);
+ let p=document.createElement("p");
+ messages.appendChild(p);
 
-let res=await fetch("/api/chat",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({message:buildPrompt(text)})
-});
+ let res=await fetch("/api/chat",{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({message:text})
+ });
 
-let reply=(await res.json()).reply;
+ let data=await res.json();
+ let reply=data.reply;
 
-/* CODE DETECTION SAFE */
+/* CODE DETECT */
 let m=reply.match(/```(\w+)?\n([\s\S]*?)```/);
 
 if(m){
-let box=document.createElement("div");
-box.className="codeBox";
+ let lang=m[1]||"text";
+ let code=m[2];
 
-let header=document.createElement("div");
-header.className="codeHeader";
-header.innerText=m[1]||"code";
+ p.innerHTML="<b>Quadron:</b>";
 
-let spin=document.createElement("div");
-spin.className="spinner";
+ let box=document.createElement("div");
+ box.className="codeBox";
 
-let pre=document.createElement("pre");
-pre.className="codeContent";
+ let header=document.createElement("div");
+ header.className="codeHeader";
 
-box.appendChild(header);
-box.appendChild(spin);
-box.appendChild(pre);
-p.appendChild(box);
+ let btnGroup=document.createElement("div");
+ btnGroup.className="btnGroup";
 
-let code=m[2],i=0;
-function t(){
-pre.textContent+=code[i]||"";
-i++;
-if(i<code.length) requestAnimationFrame(t);
-else{spin.remove();hljs.highlightElement(pre);}
-}
-t();
+ btnGroup.innerHTML=`
+   <span class="runBtn" onclick="runCode(this)">Execute ▸</span>
+   <span class="copyBtn" onclick="copyCode(this)">Copy</span>
+ `;
+
+ header.innerHTML=`<span class="codeLang">&lt;/&gt; ${lang}</span>`;
+ header.appendChild(btnGroup);
+
+ let spin=document.createElement("div");
+ spin.className="spinner";
+
+ let content=document.createElement("pre");
+ content.className="codeContent";
+ content.textContent=code;
+
+ let output=document.createElement("div");
+ output.className="output";
+
+ box.appendChild(header);
+ box.appendChild(spin);
+ box.appendChild(content);
+ box.appendChild(output);
+
+ p.appendChild(box);
+
+ setTimeout(()=>{
+   spin.remove();
+   hljs.highlightElement(content);
+ },500);
 
 }else{
-p.innerHTML="<b>Quadron:</b> "+reply;
-renderImages(p,reply);
-renderChart(p,reply);
+ p.innerHTML="<b>Quadron:</b> "+reply;
 }
 
 messages.scrollTop=messages.scrollHeight;
 }
 
-msg.addEventListener("keydown",e=>{if(e.key==="Enter")send();});
+/* COPY */
+function copyCode(btn){
+ let code=btn.closest(".codeBox").querySelector(".codeContent").textContent;
+ navigator.clipboard.writeText(code);
+ btn.innerText="Copied!";
+ setTimeout(()=>btn.innerText="Copy",1500);
+}
+
+/* EXECUTE */
+function runCode(btn){
+ let box=btn.closest(".codeBox");
+ let code=box.querySelector(".codeContent").textContent;
+ let output=box.querySelector(".output");
+
+ output.innerHTML="";
+
+/* External library detection */
+if(/import |require\(|#include <|pip install|cdn|script src/i.test(code)){
+ output.innerHTML='<div class="error">External Libraries Used In The Code</div>';
+ return;
+}
+
+/* LANGUAGE DETECTION */
+let lang=box.querySelector(".codeLang").innerText.toLowerCase();
+
+/* HTML */
+if(lang.includes("html")){
+ let iframe=document.createElement("iframe");
+ iframe.style.width="100%";
+ iframe.style.height="200px";
+ iframe.srcdoc=code;
+ output.appendChild(iframe);
+ return;
+}
+
+/* JS */
+if(lang.includes("javascript")||lang.includes("js")){
+ try{
+   let result=eval(code);
+   output.innerText=result!==undefined?result:"Executed.";
+ }catch(e){
+   output.innerHTML='<span class="error">'+e+'</span>';
+ }
+ return;
+}
+
+/* JSON */
+if(lang.includes("json")){
+ try{
+   let obj=JSON.parse(code);
+   output.innerText=JSON.stringify(obj,null,2);
+ }catch(e){
+   output.innerHTML='<span class="error">Invalid JSON</span>';
+ }
+ return;
+}
+
+/* PYTHON */
+if(lang.includes("python")){
+ let py=document.createElement("py-script");
+ py.innerHTML=code;
+ output.appendChild(py);
+ return;
+}
+
+/* C / C++ */
+if(lang.includes("c")){
+ output.innerHTML='<span class="error">C/C++ cannot run in browser</span>';
+ return;
+}
+
+/* DEFAULT */
+output.innerText="Execution not supported.";
+}
+
+/* ENTER */
+msg.addEventListener("keydown",e=>{
+ if(e.key==="Enter") send();
+});
 </script>
 
 </body>
