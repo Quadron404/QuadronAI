@@ -13,7 +13,6 @@
 <script defer src="https://pyscript.net/latest/pyscript.js"></script>
 
 <style>
-/* UI COMPLETELY UNCHANGED */
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
 .blur-bg{filter:blur(5px);}
 header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 12px #ffd900;}
@@ -110,7 +109,7 @@ function closeMenu(){sidePanel.classList.remove("open");overlay.style.display="n
 /* MODES */
 let evaluateMode=false;
 
-/* TAVILY FETCH (ONLY USED IN EVALUATE MODE) */
+/* TAVILY */
 async function fetchTavily(query){
 try{
 let res=await fetch("https://api.tavily.com/search",{
@@ -119,10 +118,7 @@ headers:{
 "Content-Type":"application/json",
 "Authorization":"Bearer TAVILY__API"
 },
-body:JSON.stringify({
-query:query,
-max_results:5
-})
+body:JSON.stringify({query:query,max_results:5})
 });
 let data=await res.json();
 return data.results.map(r=>r.content).join("\n");
@@ -136,36 +132,37 @@ async function send(){
 let text=msg.value.trim();
 if(!text)return;
 
+console.log("Evaluate Mode:", evaluateMode);
+
 messages.innerHTML+=`<p><b>You:</b> ${text}</p>`;
 msg.value="";
 
 let p=document.createElement("p");
 messages.appendChild(p);
 
-/* Inject real-time data ONLY in evaluate mode */
 let finalMessage=text;
 
 if(evaluateMode){
-let liveData=await fetchTavily(text); // ONE CALL
+let liveData=await fetchTavily(text);
+
 finalMessage = `
-You are in EVALUATION MODE.
+STRICT REAL-TIME MODE ENABLED
 
 You MUST:
-- Use the REAL-TIME DATA provided below
-- DO NOT say you lack real-time data
-- DO NOT give generic answers
-- Extract exact facts (price, numbers, trends)
-- Give a FINAL ANSWER clearly
+- Use the data below
+- NEVER say "I don't have real-time data"
+- NEVER mention training cutoff
+- Extract exact numbers
+- Give a FINAL direct answer
 
-REAL-TIME DATA:
+DATA:
 ${liveData}
 
-USER QUESTION:
+QUESTION:
 ${text}
 
-Now respond with:
-1. Key Data Found
-2. Final Answer (clear & direct)
+FORMAT:
+Answer: <direct answer with latest value>
 `;
 }
 
@@ -173,7 +170,7 @@ let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"applicat
 let data=await res.json();
 let reply=data.reply;
 
-/* CODE */
+/* CODE HANDLING */
 let m=reply.match(/```(\w+)?\n([\s\S]*?)```/);
 
 if(m){
@@ -235,7 +232,7 @@ btn.innerText="Copied!";
 setTimeout(()=>btn.innerText="Copy",1500);
 }
 
-/* EXECUTE + BACK (UNCHANGED) */
+/* EXECUTE */
 function runCode(btn){
 let box=btn.closest(".codeBox");
 let content=box.querySelector(".codeContent");
@@ -297,7 +294,11 @@ btn.innerText="Back";
 function newChat(){messages.innerHTML="";evaluateMode=false;closeMenu();}
 function codeMode(){messages.innerHTML="<b>Quadron:</b> Describe what you want to code";evaluateMode=false;closeMenu();}
 function exploreMode(){messages.innerHTML="<b>Quadron:</b> Explore the Universe";evaluateMode=false;closeMenu();}
-function evaluateModeUI(){messages.innerHTML="<b>Quadron:</b> Evaluate mode (real-time enabled)";evaluateMode=true;closeMenu();}
+function evaluateModeUI(){
+evaluateMode=true;
+messages.innerHTML="<b>Quadron:</b> 🔎 Evaluate mode ON (real-time enabled)";
+closeMenu();
+}
 
 msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
 </script>
