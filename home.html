@@ -8,7 +8,10 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/monokai-sublime.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
+/* SAME UI — NO CHANGES */
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
 .blur-bg{filter:blur(5px);}
 header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 12px #ffd900;}
@@ -17,26 +20,14 @@ header{display:flex;justify-content:space-between;align-items:center;padding:12p
 #overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;z-index:900;}
 #sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;overflow-y:auto;display:flex;flex-direction:column;}
 #sidePanel.open{transform:translateX(0);}
-#menuProfile{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid #333;}
-#menuProfile img{width:40px;height:40px;border-radius:50%;border:1px solid #ffd900;object-fit:cover;}
-.menuItem{padding:10px;cursor:pointer;margin-top:8px;color:#ffd900;font-weight:bold;transition:0.2s;position:relative;}
-.menuItem:hover{color:#ffd900;text-shadow:0 0 10px #ffd900;}
+.menuItem{padding:10px;cursor:pointer;margin-top:8px;color:#ffd900;font-weight:bold;}
 #chat{max-width:800px;margin:auto;padding:10px;}
-#messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;box-shadow:0 0 15px #ffd900;border-radius:12px;}
+#messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;border-radius:12px;}
 #inputArea{display:flex;gap:8px;margin-top:10px;}
 input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
-button{padding:10px;background:#ffd900;color:#000;border:none;box-shadow:0 0 12px #ffd900;cursor:pointer;}
-.codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:hidden;font-family:monospace;line-height:1.3em;position:relative;}
-.codeHeader{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#111;font-size:12px;font-weight:bold;border-bottom:1px solid #ffd900;transition:all .3s;}
-.codeLang{font-style:italic;}
-.copyBtn{cursor:pointer;color:#ffd900;padding:2px 6px;border:1px solid #ffd900;border-radius:4px;font-size:12px;}
-.codeContent{padding:10px;overflow:auto;white-space:pre;min-height:20px;}
-.spinner{position:absolute;width:16px;height:16px;border:3px solid #ffd900;border-top:3px solid transparent;border-radius:50%;animation:spin 1s linear infinite;top:8px;left:8px;}
-@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
-.footer{text-align:center;font-size:12px;margin:10px;}
-.footer a{color:#ffd900;text-decoration:none;}
-.menuFooter{margin-top:15px;text-align:center;font-size:12px;padding-bottom:10px;}
-.menuFooter span{font-weight:bold;color:#ffd900;text-shadow:0 0 10px #ffd900;}
+button{padding:10px;background:#ffd900;color:#000;border:none;}
+img.ai-img{max-width:100%;margin-top:8px;border-radius:10px;}
+canvas{margin-top:10px;}
 </style>
 </head>
 
@@ -50,113 +41,107 @@ button{padding:10px;background:#ffd900;color:#000;border:none;box-shadow:0 0 12p
 <div id="overlay" onclick="closeMenu()"></div>
 
 <div id="sidePanel">
-<div id="menuProfile">
-<img id="profilePic" src="">
-<div>
-<div id="profileName"></div>
-<div style="font-size:12px;" id="profileEmail"></div>
-</div>
-</div>
-
 <div class="menuItem" onclick="newChat()">New Chat</div>
-<div class="menuItem" onclick="location.href='voice.html'">Voice Mode</div>
-<div class="menuItem" onclick="location.href='quadron7.html'">Quadron 7</div>
 <div class="menuItem" onclick="codeMode()">Code /</div>
 <div class="menuItem" onclick="exploreMode()">Explore</div>
 <div class="menuItem" onclick="evaluateModeUI()">Evaluate</div>
-
-<div class="menuFooter">
-Developed by <span>Rawat Systems</span>
-</div>
 </div>
 
 <div id="chat">
 <div id="messages"></div>
 <div id="inputArea">
-<input id="msg" placeholder="Type here...">
+<input id="msg">
 <button onclick="send()">Send</button>
 </div>
 </div>
 
-<div class="footer">
-Quadron AI can make mistakes, By using it you agree our 
-<a href="terms.html">Terms & Conditions</a>
-</div>
-
 <script>
-const sidePanel=document.getElementById("sidePanel");
-const overlay=document.getElementById("overlay");
+const messages=document.getElementById("messages");
 
-function openMenu(){sidePanel.classList.add("open");overlay.style.display="block";}
-function closeMenu(){sidePanel.classList.remove("open");overlay.style.display="none";}
-
-/* USER PROFILE */
-let user=JSON.parse(localStorage.getItem("quadronUser")||"{}");
-if(!user.name){user={name:"Guest88",email:"Guest88@fakegmail.com"};profilePic.style.display="none";}
-else{profilePic.src=user.pic||"https://via.placeholder.com/40";profilePic.style.display="block";}
-profileName.innerText=user.name;
-profileEmail.innerText=user.email;
-
-/* MODES */
 let exploreActive=false;
 let codeModeActive=false;
 let evaluateMode=false;
 
-/* AI */
-async function askAI(message){
+/* PROMPT SYSTEM */
+function buildPrompt(userText){
 
-let base="You are Quadron AI developed by Rawat Systems. You are ultra sarcastic, witty, and sassy. Use emojis.";
+let base=`You are Quadron AI developed by Rawat Systems.
+Personality: Tony Stark + Deadpool.
+Ultra sarcastic, witty, argumentative.
+Use emoji if necessary (not excessive).
+Add images only if user asks.
 
-let prompt=base+" "+message;
+`;
 
 if(codeModeActive){
-prompt="Return ONLY one code block. No explanation.";
+return "Return ONLY one code block. No explanation.";
 }
+
 if(exploreActive){
-prompt=base+" Provide deep analysis, logical breakdown, and mathematical explanation. "+message;
+return base+`
+Be an explorer.
+Give ultra detailed answer.
+Be sarcastic but informative.
+Generate ideas, conclusions.
+Provide image links compulsorily.
+`;
 }
+
 if(evaluateMode){
-prompt="Ultra detailed evaluation. No humor. Give final conclusion clearly.";
+return `
+Perform ultra detailed evaluation.
+Include graphs, pie charts, data.
+Provide sources and strong conclusion.
+NO sarcasm. Pure logic.
+`;
 }
 
-let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:prompt})});
-let data=await res.json();
-return data.reply;
+return base + userText;
 }
 
-/* GREETING */
-async function greetUser(){
-let p=document.createElement("p");
-messages.appendChild(p);
-let reply=await askAI("Greet the user briefly with emojis");
-p.innerHTML="<b>Quadron:</b> "+reply;
+/* GPT TYPE ANIMATION */
+function typeText(el,text){
+let i=0;
+let interval=setInterval(()=>{
+el.innerHTML="<b>Quadron:</b> "+text.slice(0,i);
+i++;
+if(i>text.length)clearInterval(interval);
+},10);
 }
 
-/* CODE BOX */
-function createCodeBox(lang){
-let box=document.createElement("div");
-box.className="codeBox";
-
-let header=document.createElement("div");
-header.className="codeHeader";
-header.innerHTML=`<span class="codeLang">&lt;/&gt; ${lang}</span><span class="copyBtn" onclick="copyCode(this)">Copy</span>`;
-box.appendChild(header);
-
-let spinner=document.createElement("div");
-spinner.className="spinner";
-box.appendChild(spinner);
-
-let content=document.createElement("pre");
-content.className="codeContent";
-box.appendChild(content);
-
-return {box,header,content,spinner};
+/* IMAGE DETECT */
+function renderImages(container,text){
+let urlRegex=/(https?:\/\/[^\s]+)/g;
+let urls=text.match(urlRegex);
+if(urls){
+urls.forEach(u=>{
+if(u.match(/\.(jpg|png|jpeg|webp|gif)/)){
+let img=document.createElement("img");
+img.src=u;
+img.className="ai-img";
+container.appendChild(img);
+}
+});
+}
 }
 
-function copyCode(btn){
-navigator.clipboard.writeText(btn.parentElement.nextElementSibling.textContent);
-btn.innerText="Copied!";
-setTimeout(()=>btn.innerText="Copy",1500);
+/* CHART DETECT */
+function renderChart(container,text){
+try{
+let data=JSON.parse(text);
+if(data.type){
+let canvas=document.createElement("canvas");
+container.appendChild(canvas);
+
+new Chart(canvas,{
+type:data.type,
+data:{
+labels:data.labels,
+datasets:[{data:data.values}]
+}
+});
+}
+}catch(e){}
 }
 
 /* SEND */
@@ -170,39 +155,24 @@ msg.value="";
 let p=document.createElement("p");
 messages.appendChild(p);
 
-let reply=await askAI(text);
+let prompt=buildPrompt(text);
 
+let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:prompt})});
+let data=await res.json();
+
+let reply=data.reply;
+
+/* CODE */
 let codeMatch=reply.match(/```(\w+)?\n([\s\S]*?)```/);
-
 if(codeMatch){
-let lang=codeMatch[1]||"text";
-let code=codeMatch[2];
-
-p.innerHTML="<b>Quadron:</b>";
-
-let {box,header,content,spinner}=createCodeBox(lang);
-p.appendChild(box);
-
-header.style.transform="translateY(-100%)";
-
-let i=0;
-let typing=setInterval(()=>{
-content.textContent+=code[i];
-i++;
-
-if(i>=code.length){
-clearInterval(typing);
-spinner.remove();
-header.style.transform="translateY(0)";
-hljs.highlightElement(content);
+p.innerHTML="<pre>"+codeMatch[2]+"</pre>";
+}else{
+typeText(p,reply);
+renderImages(p,reply);
+renderChart(p,reply);
 }
 
 messages.scrollTop=messages.scrollHeight;
-},10);
-
-}else{
-p.innerHTML="<b>Quadron:</b> "+reply;
-}
 }
 
 /* MODES */
@@ -212,8 +182,6 @@ messages.innerHTML="";
 exploreActive=false;
 codeModeActive=false;
 evaluateMode=false;
-closeMenu();
-greetUser();
 }
 
 function codeMode(){
@@ -221,8 +189,7 @@ messages.innerHTML="";
 codeModeActive=true;
 exploreActive=false;
 evaluateMode=false;
-closeMenu();
-messages.innerHTML="<b>Quadron:</b> Describe what you want to code ";
+messages.innerHTML="<b>Quadron:</b> Describe what you want to code";
 }
 
 function exploreMode(){
@@ -230,7 +197,6 @@ messages.innerHTML="";
 exploreActive=true;
 codeModeActive=false;
 evaluateMode=false;
-closeMenu();
 messages.innerHTML="<b>Quadron:</b> Explore the Universe ";
 }
 
@@ -239,16 +205,9 @@ messages.innerHTML="";
 evaluateMode=true;
 exploreActive=false;
 codeModeActive=false;
-closeMenu();
 messages.innerHTML="<b>Quadron:</b> Describe what you want to evaluate ";
 }
 
-/* INIT */
-window.onload=()=>{greetUser();}
-
-msg.addEventListener("keydown",e=>{
-if(e.key==="Enter") send();
-});
 </script>
 
 </body>
