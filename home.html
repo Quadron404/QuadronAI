@@ -13,6 +13,7 @@
 <script defer src="https://pyscript.net/latest/pyscript.js"></script>
 
 <style>
+/* UI UNCHANGED */
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
 .blur-bg{filter:blur(5px);}
 header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 12px #ffd900;}
@@ -22,17 +23,17 @@ header{display:flex;justify-content:space-between;align-items:center;padding:12p
 #sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;overflow-y:auto;display:flex;flex-direction:column;}
 #sidePanel.open{transform:translateX(0);}
 #menuProfile{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid #333;}
-#menuProfile img{width:40px;height:40px;border-radius:50%;border:1px solid #ffd900;object-fit:cover;}
-.menuItem{padding:10px;cursor:pointer;margin-top:8px;color:#ffd900;font-weight:bold;transition:0.2s;}
+#menuProfile img{width:40px;height:40px;border-radius:50%;border:1px solid #ffd900;}
+.menuItem{padding:10px;cursor:pointer;margin-top:8px;color:#ffd900;font-weight:bold;}
 .menuItem:hover{text-shadow:0 0 10px #ffd900;}
 #chat{max-width:800px;margin:auto;padding:10px;}
-#messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;box-shadow:0 0 15px #ffd900;border-radius:12px;}
+#messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;border-radius:12px;}
 #inputArea{display:flex;gap:8px;margin-top:10px;}
 input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
-button{padding:10px;background:#ffd900;color:#000;border:none;box-shadow:0 0 12px #ffd900;cursor:pointer;}
+button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;}
 
 .codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:hidden;font-family:monospace;position:relative;}
-.codeHeader{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#111;font-size:12px;font-weight:bold;border-bottom:1px solid #ffd900;}
+.codeHeader{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#111;border-bottom:1px solid #ffd900;}
 .codeLang{font-style:italic;}
 .copyBtn,.runBtn{cursor:pointer;color:#ffd900;padding:2px 6px;border:1px solid #ffd900;border-radius:4px;font-size:12px;margin-left:5px;}
 .codeContent{padding:10px;white-space:pre;min-height:20px;}
@@ -49,9 +50,6 @@ top:34px;
 left:8px;
 }
 @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
-
-.footer{text-align:center;font-size:12px;margin:10px;}
-.footer a{color:#ffd900;text-decoration:none;}
 </style>
 </head>
 
@@ -65,24 +63,10 @@ left:8px;
 <div id="overlay" onclick="closeMenu()"></div>
 
 <div id="sidePanel">
-<div id="menuProfile">
-<img id="profilePic" src="">
-<div>
-<div id="profileName"></div>
-<div style="font-size:12px;" id="profileEmail"></div>
-</div>
-</div>
-
 <div class="menuItem" onclick="newChat()">New Chat</div>
-<div class="menuItem" onclick="location.href='voice.html'">Voice Mode</div>
-<div class="menuItem" onclick="location.href='quadron7.html'">Quadron 7</div>
 <div class="menuItem" onclick="codeMode()">Code /</div>
 <div class="menuItem" onclick="exploreMode()">Explore</div>
 <div class="menuItem" onclick="evaluateModeUI()">Evaluate</div>
-
-<div class="menuFooter">
-Developed by <span>Rawat Systems</span>
-</div>
 </div>
 
 <div id="chat">
@@ -94,17 +78,32 @@ Developed by <span>Rawat Systems</span>
 </div>
 </div>
 
-<div class="footer">
-Quadron AI can make mistakes, By using it you agree our
-<a href="terms.html">Terms & Conditions</a>
-</div>
-
 <script>
 const messages=document.getElementById("messages");
 
-/* MENU */
-function openMenu(){sidePanel.classList.add("open");overlay.style.display="block";}
-function closeMenu(){sidePanel.classList.remove("open");overlay.style.display="none";}
+/* MODES */
+let evaluateMode=false;
+
+/* TAVILY FETCH */
+async function fetchTavily(query){
+try{
+let res=await fetch("https://api.tavily.com/search",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"Authorization":"Bearer TAVILY__API"
+},
+body:JSON.stringify({
+query:query,
+max_results:5
+})
+});
+let data=await res.json();
+return data.results.map(r=>r.content).join("\n");
+}catch(e){
+return "No real-time data available.";
+}
+}
 
 /* SEND */
 async function send(){
@@ -117,10 +116,24 @@ msg.value="";
 let p=document.createElement("p");
 messages.appendChild(p);
 
-let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:text})});
+let finalPrompt=text;
+
+/* ONLY IN EVALUATE MODE */
+if(evaluateMode){
+let liveData=await fetchTavily(text);
+finalPrompt=`REAL-TIME DATA:\n${liveData}\n\nUSER QUERY:\n${text}\n\nGive strict evaluation + conclusion.`;
+}
+
+let res=await fetch("/api/chat",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({message:finalPrompt})
+});
+
 let data=await res.json();
 let reply=data.reply;
 
+/* CODE DETECT */
 let m=reply.match(/```(\w+)?\n([\s\S]*?)```/);
 
 if(m){
@@ -141,32 +154,16 @@ header.innerHTML=`<span class="codeLang">&lt;/&gt; ${lang}</span>
 <span class="copyBtn" onclick="copyCode(this)">Copy</span>
 </span>`;
 
-let spin=document.createElement("div");
-spin.className="spinner";
-
 let content=document.createElement("pre");
 content.className="codeContent";
 content.dataset.original=code;
+content.textContent=code;
 
 box.appendChild(header);
-box.appendChild(spin);
 box.appendChild(content);
-
 p.appendChild(box);
 
-/* typing */
-let i=0;
-function tc(){
-content.textContent+=code[i];
-i++;
-if(i<code.length){
-requestAnimationFrame(tc);
-}else{
-spin.remove();
 hljs.highlightElement(content);
-}
-}
-tc();
 
 }else{
 p.innerHTML="<b>Quadron:</b> "+reply;
@@ -175,15 +172,7 @@ p.innerHTML="<b>Quadron:</b> "+reply;
 messages.scrollTop=messages.scrollHeight;
 }
 
-/* COPY */
-function copyCode(btn){
-let code=btn.closest(".codeBox").querySelector(".codeContent").textContent;
-navigator.clipboard.writeText(code);
-btn.innerText="Copied!";
-setTimeout(()=>btn.innerText="Copy",1500);
-}
-
-/* EXECUTE + BACK */
+/* EXECUTE SAME BOX */
 function runCode(btn){
 let box=btn.closest(".codeBox");
 let content=box.querySelector(".codeContent");
@@ -196,7 +185,7 @@ btn.innerText="Execute ▸";
 return;
 }
 
-/* external lib */
+/* External check */
 if(/import |require\(|#include <|script src|cdn/i.test(original)){
 content.innerHTML='<span class="error">External Libraries Used In The Code</span>';
 btn.innerText="Back";
@@ -251,6 +240,22 @@ content.innerHTML='<span class="error">C/C++ cannot run in browser</span>';
 btn.innerText="Back";
 }
 
+/* COPY */
+function copyCode(btn){
+let code=btn.closest(".codeBox").querySelector(".codeContent").textContent;
+navigator.clipboard.writeText(code);
+btn.innerText="Copied!";
+setTimeout(()=>btn.innerText="Copy",1500);
+}
+
+/* MODES */
+function newChat(){messages.innerHTML="";evaluateMode=false;}
+function codeMode(){messages.innerHTML="<b>Quadron:</b> Code mode";evaluateMode=false;}
+function exploreMode(){messages.innerHTML="<b>Quadron:</b> Explore mode";evaluateMode=false;}
+function evaluateModeUI(){messages.innerHTML="<b>Quadron:</b> Evaluate mode (real-time enabled)";evaluateMode=true;}
+
+/* INIT */
+window.onload=()=>{newChat();}
 msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
 </script>
 
