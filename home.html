@@ -7,95 +7,90 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/monokai-sublime.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Optional Python support -->
+<!-- Python support -->
 <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
 <script defer src="https://pyscript.net/latest/pyscript.js"></script>
 
 <style>
+/* YOUR UI UNCHANGED */
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
-header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#000;border-bottom:2px solid #ffd900;}
+.blur-bg{filter:blur(5px);}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 12px #ffd900;}
+#logo{font-weight:bold;font-size:18px;}
+#menuBtn{cursor:pointer;font-size:24px;}
+#overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;z-index:900;}
+#sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;overflow-y:auto;display:flex;flex-direction:column;}
+#sidePanel.open{transform:translateX(0);}
+#menuProfile{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid #333;}
+#menuProfile img{width:40px;height:40px;border-radius:50%;border:1px solid #ffd900;object-fit:cover;}
+.menuItem{padding:10px;cursor:pointer;margin-top:8px;color:#ffd900;font-weight:bold;transition:0.2s;position:relative;}
+.menuItem:hover{color:#ffd900;text-shadow:0 0 10px #ffd900;}
 #chat{max-width:800px;margin:auto;padding:10px;}
-#messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;border-radius:12px;}
+#messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;box-shadow:0 0 15px #ffd900;border-radius:12px;}
 #inputArea{display:flex;gap:8px;margin-top:10px;}
 input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
-button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;}
+button{padding:10px;background:#ffd900;color:#000;border:none;box-shadow:0 0 12px #ffd900;cursor:pointer;}
 
-.codeBox{
-  background:#000;
-  border:1px solid #ffd900;
-  margin-top:8px;
-  border-radius:8px;
-  overflow:hidden;
-  font-family:monospace;
-  position:relative;
-}
-
-.codeHeader{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:6px 10px;
-  background:#111;
-  border-bottom:1px solid #ffd900;
-}
-
+.codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:hidden;font-family:monospace;line-height:1.3em;position:relative;}
+.codeHeader{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#111;font-size:12px;font-weight:bold;border-bottom:1px solid #ffd900;}
 .codeLang{font-style:italic;}
+.copyBtn,.runBtn{cursor:pointer;color:#ffd900;padding:2px 6px;border:1px solid #ffd900;border-radius:4px;font-size:12px;margin-left:5px;}
+.codeContent{padding:10px;overflow:auto;white-space:pre;min-height:20px;}
+.output{border-top:1px solid #ffd900;padding:10px;color:#00ffcc;}
+.error{color:red;}
 
-.btnGroup{
-  display:flex;
-  gap:6px;
-}
-
-.copyBtn,.runBtn{
-  cursor:pointer;
-  color:#ffd900;
-  padding:2px 6px;
-  border:1px solid #ffd900;
-  border-radius:4px;
-  font-size:12px;
-}
-
-.codeContent{
-  padding:10px;
-  overflow:auto;
-  white-space:pre;
-}
-
-.output{
-  border-top:1px solid #ffd900;
-  padding:10px;
-  color:#00ffcc;
-}
-
-.error{
-  color:red;
-}
-
+/* FIXED SPINNER POSITION */
 .spinner{
-  position:absolute;
-  width:16px;
-  height:16px;
-  border:3px solid #ffd900;
-  border-top:3px solid transparent;
-  border-radius:50%;
-  animation:spin 1s linear infinite;
-  top:35px; /* moved BELOW header */
-  left:10px;
+position:absolute;
+width:16px;height:16px;
+border:3px solid #ffd900;
+border-top:3px solid transparent;
+border-radius:50%;
+animation:spin 1s linear infinite;
+top:34px; /* FIXED */
+left:8px;
 }
 
-@keyframes spin{
-  0%{transform:rotate(0deg);}
-  100%{transform:rotate(360deg);}
-}
+@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+
+.footer{text-align:center;font-size:12px;margin:10px;}
+.footer a{color:#ffd900;text-decoration:none;}
+.menuFooter{margin-top:15px;text-align:center;font-size:12px;padding-bottom:10px;}
+.menuFooter span{font-weight:bold;color:#ffd900;text-shadow:0 0 10px #ffd900;}
 </style>
 </head>
 
 <body>
 
 <header>
-<div>Quadron AI</div>
+<div id="logo">Quadron AI</div>
+<div id="menuBtn" onclick="openMenu()">☰</div>
 </header>
+
+<div id="overlay" onclick="closeMenu()"></div>
+
+<div id="sidePanel">
+<div id="menuProfile">
+<img id="profilePic" src="">
+<div>
+<div id="profileName"></div>
+<div style="font-size:12px;" id="profileEmail"></div>
+</div>
+</div>
+
+<div class="menuItem" onclick="newChat()">New Chat</div>
+<div class="menuItem" onclick="location.href='voice.html'">Voice Mode</div>
+<div class="menuItem" onclick="location.href='quadron7.html'">Quadron 7</div>
+<div class="menuItem" onclick="codeMode()">Code /</div>
+<div class="menuItem" onclick="exploreMode()">Explore</div>
+<div class="menuItem" onclick="evaluateModeUI()">Evaluate</div>
+
+<div class="menuFooter">
+Developed by <span>Rawat Systems</span>
+</div>
+</div>
 
 <div id="chat">
 <div id="messages"></div>
@@ -106,79 +101,93 @@ button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;}
 </div>
 </div>
 
+<div class="footer">
+Quadron AI can make mistakes, By using it you agree our
+<a href="terms.html">Terms & Conditions</a>
+</div>
+
 <script>
 const messages=document.getElementById("messages");
+const sidePanel=document.getElementById("sidePanel");
+const overlay=document.getElementById("overlay");
+
+/* MENU */
+function openMenu(){sidePanel.classList.add("open");overlay.style.display="block";}
+function closeMenu(){sidePanel.classList.remove("open");overlay.style.display="none";}
+
+/* MODES */
+let exploreActive=false;
+let codeModeActive=false;
+let evaluateMode=false;
 
 /* SEND */
 async function send(){
- let text=msg.value.trim();
- if(!text)return;
+let text=msg.value.trim();
+if(!text)return;
 
- messages.innerHTML+=`<p><b>You:</b> ${text}</p>`;
- msg.value="";
+messages.innerHTML+=`<p><b>You:</b> ${text}</p>`;
+msg.value="";
 
- let p=document.createElement("p");
- messages.appendChild(p);
+let p=document.createElement("p");
+messages.appendChild(p);
 
- let res=await fetch("/api/chat",{
-   method:"POST",
-   headers:{"Content-Type":"application/json"},
-   body:JSON.stringify({message:text})
- });
+let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:text})});
+let data=await res.json();
+let reply=data.reply;
 
- let data=await res.json();
- let reply=data.reply;
-
-/* CODE DETECT */
+/* CODE */
 let m=reply.match(/```(\w+)?\n([\s\S]*?)```/);
 
 if(m){
- let lang=m[1]||"text";
- let code=m[2];
+let lang=m[1]||"text";
+let code=m[2];
 
- p.innerHTML="<b>Quadron:</b>";
+p.innerHTML="<b>Quadron:</b>";
 
- let box=document.createElement("div");
- box.className="codeBox";
+let box=document.createElement("div");
+box.className="codeBox";
 
- let header=document.createElement("div");
- header.className="codeHeader";
+let header=document.createElement("div");
+header.className="codeHeader";
 
- let btnGroup=document.createElement("div");
- btnGroup.className="btnGroup";
+header.innerHTML=`<span class="codeLang">&lt;/&gt; ${lang}</span>
+<span>
+<span class="runBtn" onclick="runCode(this)">Execute ▸</span>
+<span class="copyBtn" onclick="copyCode(this)">Copy</span>
+</span>`;
 
- btnGroup.innerHTML=`
-   <span class="runBtn" onclick="runCode(this)">Execute ▸</span>
-   <span class="copyBtn" onclick="copyCode(this)">Copy</span>
- `;
+let spin=document.createElement("div");
+spin.className="spinner";
 
- header.innerHTML=`<span class="codeLang">&lt;/&gt; ${lang}</span>`;
- header.appendChild(btnGroup);
+let content=document.createElement("pre");
+content.className="codeContent";
 
- let spin=document.createElement("div");
- spin.className="spinner";
+let output=document.createElement("div");
+output.className="output";
 
- let content=document.createElement("pre");
- content.className="codeContent";
- content.textContent=code;
+box.appendChild(header);
+box.appendChild(spin);
+box.appendChild(content);
+box.appendChild(output);
 
- let output=document.createElement("div");
- output.className="output";
+p.appendChild(box);
 
- box.appendChild(header);
- box.appendChild(spin);
- box.appendChild(content);
- box.appendChild(output);
-
- p.appendChild(box);
-
- setTimeout(()=>{
-   spin.remove();
-   hljs.highlightElement(content);
- },500);
+/* typing */
+let i=0;
+function tc(){
+content.textContent+=code[i];
+i++;
+if(i<code.length){
+requestAnimationFrame(tc);
+}else{
+spin.remove();
+hljs.highlightElement(content);
+}
+}
+tc();
 
 }else{
- p.innerHTML="<b>Quadron:</b> "+reply;
+p.innerHTML="<b>Quadron:</b> "+reply;
 }
 
 messages.scrollTop=messages.scrollHeight;
@@ -186,83 +195,85 @@ messages.scrollTop=messages.scrollHeight;
 
 /* COPY */
 function copyCode(btn){
- let code=btn.closest(".codeBox").querySelector(".codeContent").textContent;
- navigator.clipboard.writeText(code);
- btn.innerText="Copied!";
- setTimeout(()=>btn.innerText="Copy",1500);
+let code=btn.closest(".codeBox").querySelector(".codeContent").textContent;
+navigator.clipboard.writeText(code);
+btn.innerText="Copied!";
+setTimeout(()=>btn.innerText="Copy",1500);
 }
 
 /* EXECUTE */
 function runCode(btn){
- let box=btn.closest(".codeBox");
- let code=box.querySelector(".codeContent").textContent;
- let output=box.querySelector(".output");
+let box=btn.closest(".codeBox");
+let code=box.querySelector(".codeContent").textContent;
+let output=box.querySelector(".output");
+output.innerHTML="";
 
- output.innerHTML="";
-
-/* External library detection */
-if(/import |require\(|#include <|pip install|cdn|script src/i.test(code)){
- output.innerHTML='<div class="error">External Libraries Used In The Code</div>';
- return;
+/* external lib detection */
+if(/import |require\(|#include <|script src|cdn/i.test(code)){
+output.innerHTML='<span class="error">External Libraries Used In The Code</span>';
+return;
 }
 
-/* LANGUAGE DETECTION */
 let lang=box.querySelector(".codeLang").innerText.toLowerCase();
 
 /* HTML */
 if(lang.includes("html")){
- let iframe=document.createElement("iframe");
- iframe.style.width="100%";
- iframe.style.height="200px";
- iframe.srcdoc=code;
- output.appendChild(iframe);
- return;
+let iframe=document.createElement("iframe");
+iframe.style.width="100%";
+iframe.style.height="200px";
+iframe.srcdoc=code;
+output.appendChild(iframe);
+return;
 }
 
 /* JS */
-if(lang.includes("javascript")||lang.includes("js")){
- try{
-   let result=eval(code);
-   output.innerText=result!==undefined?result:"Executed.";
- }catch(e){
-   output.innerHTML='<span class="error">'+e+'</span>';
- }
- return;
+if(lang.includes("js")){
+try{
+let result=eval(code);
+output.innerText=result||"Executed.";
+}catch(e){
+output.innerHTML='<span class="error">'+e+'</span>';
+}
+return;
 }
 
 /* JSON */
 if(lang.includes("json")){
- try{
-   let obj=JSON.parse(code);
-   output.innerText=JSON.stringify(obj,null,2);
- }catch(e){
-   output.innerHTML='<span class="error">Invalid JSON</span>';
- }
- return;
+try{
+let obj=JSON.parse(code);
+output.innerText=JSON.stringify(obj,null,2);
+}catch(e){
+output.innerHTML='<span class="error">Invalid JSON</span>';
+}
+return;
 }
 
 /* PYTHON */
 if(lang.includes("python")){
- let py=document.createElement("py-script");
- py.innerHTML=code;
- output.appendChild(py);
- return;
+let py=document.createElement("py-script");
+py.innerHTML=code;
+output.appendChild(py);
+return;
 }
 
-/* C / C++ */
+/* C */
 if(lang.includes("c")){
- output.innerHTML='<span class="error">C/C++ cannot run in browser</span>';
- return;
+output.innerHTML='<span class="error">C/C++ cannot run in browser</span>';
+return;
 }
 
-/* DEFAULT */
 output.innerText="Execution not supported.";
 }
 
-/* ENTER */
-msg.addEventListener("keydown",e=>{
- if(e.key==="Enter") send();
-});
+/* MODES */
+function newChat(){messages.innerHTML="";closeMenu();}
+function codeMode(){messages.innerHTML="<b>Quadron:</b> Describe what you want to code";closeMenu();}
+function exploreMode(){messages.innerHTML="<b>Quadron:</b> Explore the Universe";closeMenu();}
+function evaluateModeUI(){messages.innerHTML="<b>Quadron:</b> Describe what you want to evaluate";closeMenu();}
+
+/* INIT */
+window.onload=()=>{newChat();}
+msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
 </script>
 
 </body>
