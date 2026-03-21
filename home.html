@@ -118,21 +118,25 @@ headers:{
 "Content-Type":"application/json",
 "Authorization":"Bearer TAVILY__API"
 },
-body:JSON.stringify({query:query,max_results:5})
+body:JSON.stringify({query:query,max_results:3})
 });
 let data=await res.json();
 return data.results.map(r=>r.content).join("\n");
 }catch{
-return "No real-time data available.";
+return null;
 }
+}
+
+/* CHECK TAVILY STATUS */
+async function checkTavily(){
+let test=await fetchTavily("test query");
+return test && test.length>10;
 }
 
 /* SEND */
 async function send(){
 let text=msg.value.trim();
 if(!text)return;
-
-console.log("Evaluate Mode:", evaluateMode);
 
 messages.innerHTML+=`<p><b>You:</b> ${text}</p>`;
 msg.value="";
@@ -148,156 +152,39 @@ let liveData=await fetchTavily(text);
 finalMessage = `
 STRICT REAL-TIME MODE ENABLED
 
-You MUST:
-- Use the data below
-- NEVER say "I don't have real-time data"
-- NEVER mention training cutoff
-- Extract exact numbers
-- Give a FINAL direct answer
-
-DATA:
+Use this data:
 ${liveData}
 
-QUESTION:
-${text}
-
-FORMAT:
-Answer: <direct answer with latest value>
+Answer directly.
 `;
 }
 
 let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:finalMessage})});
 let data=await res.json();
-let reply=data.reply;
-
-/* CODE HANDLING */
-let m=reply.match(/```(\w+)?\n([\s\S]*?)```/);
-
-if(m){
-let lang=m[1]||"text";
-let code=m[2];
-
-p.innerHTML="<b>Quadron:</b>";
-
-let box=document.createElement("div");
-box.className="codeBox";
-
-let header=document.createElement("div");
-header.className="codeHeader";
-
-header.innerHTML=`<span class="codeLang">&lt;/&gt; ${lang}</span>
-<span>
-<span class="runBtn" onclick="runCode(this)">Execute ▸</span>
-<span class="copyBtn" onclick="copyCode(this)">Copy</span>
-</span>`;
-
-let spin=document.createElement("div");
-spin.className="spinner";
-
-let content=document.createElement("pre");
-content.className="codeContent";
-content.dataset.original=code;
-
-box.appendChild(header);
-box.appendChild(spin);
-box.appendChild(content);
-
-p.appendChild(box);
-
-let i=0;
-function tc(){
-content.textContent+=code[i];
-i++;
-if(i<code.length){
-requestAnimationFrame(tc);
-}else{
-spin.remove();
-hljs.highlightElement(content);
-}
-}
-tc();
-
-}else{
-p.innerHTML="<b>Quadron:</b> "+reply;
-}
+p.innerHTML="<b>Quadron:</b> "+data.reply;
 
 messages.scrollTop=messages.scrollHeight;
-}
-
-/* COPY */
-function copyCode(btn){
-let code=btn.closest(".codeBox").querySelector(".codeContent").textContent;
-navigator.clipboard.writeText(code);
-btn.innerText="Copied!";
-setTimeout(()=>btn.innerText="Copy",1500);
-}
-
-/* EXECUTE */
-function runCode(btn){
-let box=btn.closest(".codeBox");
-let content=box.querySelector(".codeContent");
-let original=content.dataset.original;
-
-if(btn.innerText==="Back"){
-content.textContent=original;
-hljs.highlightElement(content);
-btn.innerText="Execute ▸";
-return;
-}
-
-if(/import |require\(|#include <|script src|cdn/i.test(original)){
-content.innerHTML='<span class="error">External Libraries Used In The Code</span>';
-btn.innerText="Back";
-return;
-}
-
-let lang=box.querySelector(".codeLang").innerText.toLowerCase();
-
-if(lang.includes("html")){
-content.innerHTML="";
-let iframe=document.createElement("iframe");
-iframe.style.width="100%";
-iframe.style.height="200px";
-iframe.srcdoc=original;
-content.appendChild(iframe);
-}
-else if(lang.includes("js")){
-try{
-let result=eval(original);
-content.textContent=result||"Executed.";
-}catch(e){
-content.innerHTML='<span class="error">'+e+'</span>';
-}
-}
-else if(lang.includes("json")){
-try{
-let obj=JSON.parse(original);
-content.textContent=JSON.stringify(obj,null,2);
-}catch{
-content.innerHTML='<span class="error">Invalid JSON</span>';
-}
-}
-else if(lang.includes("python")){
-content.innerHTML="";
-let py=document.createElement("py-script");
-py.innerHTML=original;
-content.appendChild(py);
-}
-else if(lang.includes("c")){
-content.innerHTML='<span class="error">C/C++ cannot run in browser</span>';
-}
-
-btn.innerText="Back";
 }
 
 /* MODES */
 function newChat(){messages.innerHTML="";evaluateMode=false;closeMenu();}
 function codeMode(){messages.innerHTML="<b>Quadron:</b> Describe what you want to code";evaluateMode=false;closeMenu();}
 function exploreMode(){messages.innerHTML="<b>Quadron:</b> Explore the Universe";evaluateMode=false;closeMenu();}
-function evaluateModeUI(){
+
+/* EVALUATE MODE WITH STATUS */
+async function evaluateModeUI(){
 evaluateMode=true;
-messages.innerHTML="<b>Quadron:</b> 🔎 Evaluate mode ON (real-time enabled)";
 closeMenu();
+
+messages.innerHTML="<b>Quadron:</b> Checking Tavily status...";
+
+let working=await checkTavily();
+
+if(working){
+messages.innerHTML="<b>Quadron:</b> 🔎 Evaluate Mode ON<br>✅ Tavily Working (Real-time enabled)";
+}else{
+messages.innerHTML="<b>Quadron:</b> 🔎 Evaluate Mode ON<br>❌ Tavily Not Working (Check API key)";
+}
 }
 
 msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
