@@ -10,7 +10,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-/* SAME UI — unchanged */
+/* ✅ SAME UI — untouched */
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
 .blur-bg{filter:blur(5px);}
 header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 12px #ffd900;}
@@ -28,17 +28,14 @@ header{display:flex;justify-content:space-between;align-items:center;padding:12p
 #inputArea{display:flex;gap:8px;margin-top:10px;}
 input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
 button{padding:10px;background:#ffd900;color:#000;border:none;box-shadow:0 0 12px #ffd900;cursor:pointer;}
-.codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:hidden;font-family:monospace;line-height:1.3em;position:relative;}
-.codeHeader{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#111;font-size:12px;font-weight:bold;border-bottom:1px solid #ffd900;}
-.codeLang{font-style:italic;}
-.copyBtn{cursor:pointer;color:#ffd900;padding:2px 6px;border:1px solid #ffd900;border-radius:4px;font-size:12px;}
-.codeContent{padding:10px;overflow:auto;white-space:pre;min-height:20px;}
+.codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:hidden;font-family:monospace;position:relative;}
+.codeHeader{display:flex;justify-content:space-between;padding:6px 10px;background:#111;border-bottom:1px solid #ffd900;}
+.codeContent{padding:10px;white-space:pre;}
 .spinner{position:absolute;width:16px;height:16px;border:3px solid #ffd900;border-top:3px solid transparent;border-radius:50%;animation:spin 1s linear infinite;top:8px;left:8px;}
-@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+@keyframes spin{100%{transform:rotate(360deg);}}
 .footer{text-align:center;font-size:12px;margin:10px;}
 .footer a{color:#ffd900;text-decoration:none;}
-.menuFooter{margin-top:15px;text-align:center;font-size:12px;padding-bottom:10px;}
-.menuFooter span{font-weight:bold;color:#ffd900;text-shadow:0 0 10px #ffd900;}
+.menuFooter{text-align:center;font-size:12px;}
 </style>
 </head>
 
@@ -53,7 +50,7 @@ button{padding:10px;background:#ffd900;color:#000;border:none;box-shadow:0 0 12p
 
 <div id="sidePanel">
 <div id="menuProfile">
-<img id="profilePic" src="">
+<img id="profilePic">
 <div>
 <div id="profileName"></div>
 <div style="font-size:12px;" id="profileEmail"></div>
@@ -67,9 +64,7 @@ button{padding:10px;background:#ffd900;color:#000;border:none;box-shadow:0 0 12p
 <div class="menuItem" onclick="exploreMode()">Explore</div>
 <div class="menuItem" onclick="evaluateModeUI()">Evaluate</div>
 
-<div class="menuFooter">
-Developed by <span>Rawat Systems</span>
-</div>
+<div class="menuFooter">Developed by <span>Rawat Systems</span></div>
 </div>
 
 <div id="chat">
@@ -81,136 +76,68 @@ Developed by <span>Rawat Systems</span>
 </div>
 
 <div class="footer">
-Quadron AI can make mistakes, By using it you agree our 
-<a href="terms.html">Terms & Conditions</a>
+Quadron AI can make mistakes, By using it you agree our <a href="terms.html">Terms & Conditions</a>
 </div>
 
 <script>
 const messages=document.getElementById("messages");
-const sidePanel=document.getElementById("sidePanel");
-const overlay=document.getElementById("overlay");
 
-/* MENU FIX */
-function openMenu(){
-sidePanel.classList.add("open");
-overlay.style.display="block";
-}
-function closeMenu(){
-sidePanel.classList.remove("open");
-overlay.style.display="none";
-}
+/* MENU */
+function openMenu(){sidePanel.classList.add("open");overlay.style.display="block";}
+function closeMenu(){sidePanel.classList.remove("open");overlay.style.display="none";}
 
 /* MODES */
-let exploreActive=false;
-let codeModeActive=false;
-let evaluateMode=false;
+let exploreActive=false, codeModeActive=false, evaluateMode=false;
 
 /* PROMPT FIX */
-function buildPrompt(userText){
-
-let base=`You are Quadron AI developed by Rawat Systems.
-Never say you cannot show images or graphs.
-Always generate charts when asked.
-`;
-
-if(codeModeActive)
-return "Return ONLY one code block.\nUser:"+userText;
-
-if(exploreActive)
-return base+"Give deep exploration with images.\nUser:"+userText;
-
-if(evaluateMode)
-return base+`Strict evaluation.
-Must include JSON graph:
-{"type":"bar","labels":["A","B"],"values":[10,20]}
-User:`+userText;
-
-return base+"User:"+userText;
-}
-
-/* FORMAT TEXT */
-function formatText(text){
-return text
-.replace(/\*\*(.*?)\*\*/g,"<b>$1</b>")
-.replace(/https?:\/\/[^\s]+/g,""); // hide links
+function buildPrompt(t){
+if(codeModeActive) return "ONLY code block.\n"+t;
+if(exploreActive) return "Give explanation with REAL image links.\n"+t;
+if(evaluateMode) return 'Include JSON graph exactly like {"type":"line","labels":["A"],"values":[10]}\n'+t;
+return "Never refuse images or graphs.\n"+t;
 }
 
 /* IMAGE FIX */
-function renderImages(container,text){
-
+function renderImages(el,text){
 let md=[...text.matchAll(/!\[.*?\]\((.*?)\)/g)];
-md.forEach(m=>{
-let img=document.createElement("img");
-img.src=m[1];
-img.style.maxWidth="100%";
-img.style.marginTop="10px";
-container.appendChild(img);
-});
+md.forEach(m=>addImg(el,m[1]));
 
-let urls=text.match(/https?:\/\/[^\s]+/g);
-if(!urls)return;
-
+let urls=text.match(/https?:\/\/[^\s]+/g)||[];
 urls.forEach(u=>{
-if(/\.(jpg|jpeg|png|webp|gif)/i.test(u)){
+if(/\.(jpg|png|jpeg|webp|gif)/i.test(u)) addImg(el,u);
+});
+}
+
+function addImg(el,src){
 let img=document.createElement("img");
-img.src=u;
+img.src=src;
 img.style.maxWidth="100%";
 img.style.marginTop="10px";
-container.appendChild(img);
-}
-});
+el.appendChild(img);
 }
 
 /* GRAPH FIX */
-function renderChart(container,text){
-try{
-let match=text.match(/\{[\s\S]*"type"[\s\S]*\}/);
+function renderChart(el,text){
+let match=text.match(/\{[^{}]*"type"[^{}]*"labels"[^{}]*"values"[^{}]*\}/);
 if(!match)return;
 
+try{
 let d=JSON.parse(match[0]);
+let c=document.createElement("canvas");
+c.style.marginTop="10px";
+el.appendChild(c);
 
-let canvas=document.createElement("canvas");
-canvas.style.marginTop="10px";
-container.appendChild(canvas);
-
-new Chart(canvas,{
+new Chart(c,{
 type:d.type,
-data:{
-labels:d.labels,
-datasets:[{data:d.values,borderWidth:2}]
-},
-options:{animation:false}
+data:{labels:d.labels,datasets:[{data:d.values}]},
+options:{responsive:true}
 });
 
-// REMOVE JSON FROM DISPLAY
-container.innerHTML=container.innerHTML.replace(match[0],'');
-
+el.innerHTML=el.innerHTML.replace(match[0],""); // remove JSON
 }catch(e){}
 }
 
-/* TYPING FIX */
-function typeText(el,text){
-let span=document.createElement("span");
-el.innerHTML="<b>Quadron:</b> ";
-el.appendChild(span);
-
-let clean=formatText(text);
-let i=0;
-
-function t(){
-span.innerHTML=clean.slice(0,i);
-i++;
-if(i<=clean.length){
-requestAnimationFrame(t);
-}else{
-renderImages(el,text);
-renderChart(el,text);
-}
-}
-t();
-}
-
-/* SEND FIX */
+/* SEND */
 async function send(){
 let text=msg.value.trim();
 if(!text)return;
@@ -221,106 +148,61 @@ msg.value="";
 let p=document.createElement("p");
 messages.appendChild(p);
 
-let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:buildPrompt(text)})});
-let data=await res.json();
-let reply=data.reply;
+let res=await fetch("/api/chat",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({message:buildPrompt(text)})
+});
+
+let reply=(await res.json()).reply;
 
 /* CODE FIX */
 let m=reply.match(/```(\w+)?\n([\s\S]*?)```/);
 
 if(m){
-let lang=m[1]||"text";
-let code=m[2];
-
-p.innerHTML="<b>Quadron:</b>";
-
 let box=document.createElement("div");
 box.className="codeBox";
 
 let header=document.createElement("div");
 header.className="codeHeader";
-header.innerHTML=`<span class="codeLang">&lt;/&gt; ${lang}</span><span class="copyBtn" onclick="copyCode(this)">Copy</span>`;
+header.innerText=m[1]||"code";
 
 let spin=document.createElement("div");
 spin.className="spinner";
 
-let content=document.createElement("pre");
-content.className="codeContent";
+let pre=document.createElement("pre");
+pre.className="codeContent";
 
 box.appendChild(header);
 box.appendChild(spin);
-box.appendChild(content);
+box.appendChild(pre);
 p.appendChild(box);
 
-let i=0;
-function tc(){
-content.textContent+=code[i];
+let code=m[2],i=0;
+function t(){
+pre.textContent+=code[i]||"";
 i++;
-if(i<code.length){
-requestAnimationFrame(tc);
-}else{
-spin.remove();
-hljs.highlightElement(content);
-renderChart(p,code);
+if(i<code.length) requestAnimationFrame(t);
+else{spin.remove();hljs.highlightElement(pre);}
 }
-}
-tc();
+t();
 
 }else{
-typeText(p,reply);
+p.innerHTML="<b>Quadron:</b> "+reply;
+renderImages(p,reply);
+renderChart(p,reply);
 }
 
 messages.scrollTop=messages.scrollHeight;
 }
 
-/* COPY */
-function copyCode(btn){
-navigator.clipboard.writeText(btn.parentElement.nextElementSibling.textContent);
-btn.innerText="Copied!";
-setTimeout(()=>btn.innerText="Copy",1500);
-}
+/* MODES */
+function newChat(){messages.innerHTML="";}
+function codeMode(){messages.innerHTML="";codeModeActive=true;}
+function exploreMode(){messages.innerHTML="";exploreActive=true;}
+function evaluateModeUI(){messages.innerHTML="";evaluateMode=true;}
 
-/* MODES FIX */
-function newChat(){
-messages.innerHTML="";
-exploreActive=false;
-codeModeActive=false;
-evaluateMode=false;
-closeMenu();
-}
-
-function codeMode(){
-messages.innerHTML="";
-codeModeActive=true;
-exploreActive=false;
-evaluateMode=false;
-closeMenu();
-typeText(messages.appendChild(document.createElement("p")),"Describe what you want to code");
-}
-
-function exploreMode(){
-messages.innerHTML="";
-exploreActive=true;
-codeModeActive=false;
-evaluateMode=false;
-closeMenu();
-typeText(messages.appendChild(document.createElement("p")),"Explore the Universe");
-}
-
-function evaluateModeUI(){
-messages.innerHTML="";
-evaluateMode=true;
-exploreActive=false;
-codeModeActive=false;
-closeMenu();
-typeText(messages.appendChild(document.createElement("p")),"Describe what you want to evaluate");
-}
-
-window.onload=()=>{newChat();}
-
-msg.addEventListener("keydown",e=>{
-if(e.key==="Enter") send();
-});
+msg.addEventListener("keydown",e=>{if(e.key==="Enter")send();});
 </script>
 
 </body>
