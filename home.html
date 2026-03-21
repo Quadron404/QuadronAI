@@ -7,12 +7,9 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/monokai-sublime.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
-
-<!-- ADDED (logic only, no UI change) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-/* YOUR UI — UNCHANGED */
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
 .blur-bg{filter:blur(5px);}
 header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 12px #ffd900;}
@@ -31,7 +28,7 @@ header{display:flex;justify-content:space-between;align-items:center;padding:12p
 input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
 button{padding:10px;background:#ffd900;color:#000;border:none;box-shadow:0 0 12px #ffd900;cursor:pointer;}
 .codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:hidden;font-family:monospace;line-height:1.3em;position:relative;}
-.codeHeader{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#111;font-size:12px;font-weight:bold;border-bottom:1px solid #ffd900;transition:all .3s;}
+.codeHeader{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#111;font-size:12px;font-weight:bold;border-bottom:1px solid #ffd900;}
 .codeLang{font-style:italic;}
 .copyBtn{cursor:pointer;color:#ffd900;padding:2px 6px;border:1px solid #ffd900;border-radius:4px;font-size:12px;}
 .codeContent{padding:10px;overflow:auto;white-space:pre;min-height:20px;}
@@ -89,65 +86,66 @@ Quadron AI can make mistakes, By using it you agree our
 
 <script>
 const messages=document.getElementById("messages");
+const sidePanel=document.getElementById("sidePanel");
+const overlay=document.getElementById("overlay");
+
+/* MENU */
+function openMenu(){sidePanel.classList.add("open");overlay.style.display="block";}
+function closeMenu(){sidePanel.classList.remove("open");overlay.style.display="none";}
 
 /* MODES */
 let exploreActive=false;
 let codeModeActive=false;
 let evaluateMode=false;
 
-/* PROMPT BUILDER */
+/* PROMPT */
 function buildPrompt(userText){
-
 let base=`You are Quadron AI developed by Rawat Systems.
-Personality: Tony Stark + Deadpool.
-Ultra sarcastic, witty, argumentative.
+Tony Stark + Deadpool personality.
+Sarcastic, witty, argumentative.
 Use emoji if necessary (not excessive).
-Add images only if user explicitly asks.
-Maintain clean formatting.
+
+IMPORTANT:
+- If user asks for images → give direct image links.
+- Never say "I am text-based".
 `;
 
-if(codeModeActive){
-return "Return ONLY one code block. No explanation.";
-}
+if(codeModeActive) return "Return ONLY one code block.";
 
 if(exploreActive){
-return base + `
-Be an explorer.
-Give ultra detailed answer.
-Be sarcastic but intelligent.
-Generate new ideas and insights.
-Include image links if useful.
-Provide large data and explanation.
-User Query: ` + userText;
+return base+`Give deep exploration, ideas, insights.
+Include image links compulsorily.
+User: `+userText;
 }
 
 if(evaluateMode){
-return `
-Perform ultra detailed evaluation.
+return `Ultra detailed evaluation.
 No humor.
-Include graphs, pie charts, and structured data.
-Give final conclusion with reasoning.
-Mention sources.
-User Query: ` + userText;
+Include JSON graph data like:
+{"type":"bar","labels":["A","B"],"values":[10,20]}
+Give conclusion + sources.
+User: `+userText;
 }
 
-return base + "User Query: " + userText;
+return base+"User: "+userText;
 }
 
-/* TYPING EFFECT */
+/* TYPING */
 function typeText(el,text){
+let span=document.createElement("span");
+el.innerHTML="<b>Quadron:</b> ";
+el.appendChild(span);
+
 let i=0;
-function typing(){
-el.innerHTML="<b>Quadron:</b> "+text.slice(0,i);
+function t(){
+span.textContent=text.slice(0,i);
 i++;
-if(i<=text.length){
-setTimeout(typing,8);
+if(i<=text.length) requestAnimationFrame(t);
 }
-}
-typing();
+t();
 }
 
-/* IMAGE RENDER */
+/* IMAGE */
 function renderImages(container,text){
 let urls=text.match(/https?:\/\/[^\s]+/g);
 if(!urls)return;
@@ -157,28 +155,24 @@ if(/\.(jpg|png|jpeg|webp|gif)/i.test(u)){
 let img=document.createElement("img");
 img.src=u;
 img.style.maxWidth="100%";
-img.style.marginTop="8px";
+img.style.marginTop="10px";
 container.appendChild(img);
 }
 });
 }
 
-/* CHART RENDER */
+/* CHART */
 function renderChart(container,text){
 try{
-let json=JSON.parse(text);
-if(json.type){
-let canvas=document.createElement("canvas");
-container.appendChild(canvas);
+let match=text.match(/\{[\s\S]*\}/);
+if(!match)return;
 
-new Chart(canvas,{
-type:json.type,
-data:{
-labels:json.labels,
-datasets:[{data:json.values}]
-}
-});
-}
+let d=JSON.parse(match[0]);
+
+let c=document.createElement("canvas");
+container.appendChild(c);
+
+new Chart(c,{type:d.type,data:{labels:d.labels,datasets:[{data:d.values}]}})
 }catch(e){}
 }
 
@@ -193,18 +187,16 @@ msg.value="";
 let p=document.createElement("p");
 messages.appendChild(p);
 
-let prompt=buildPrompt(text);
-
-let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:prompt})});
+let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:buildPrompt(text)})});
 let data=await res.json();
 let reply=data.reply;
 
 /* CODE */
-let codeMatch=reply.match(/```(\w+)?\n([\s\S]*?)```/);
+let m=reply.match(/```(\w+)?\n([\s\S]*?)```/);
 
-if(codeMatch){
-let lang=codeMatch[1]||"text";
-let code=codeMatch[2];
+if(m){
+let lang=m[1]||"text";
+let code=m[2];
 
 p.innerHTML="<b>Quadron:</b>";
 
@@ -215,29 +207,29 @@ let header=document.createElement("div");
 header.className="codeHeader";
 header.innerHTML=`<span class="codeLang">&lt;/&gt; ${lang}</span><span class="copyBtn" onclick="copyCode(this)">Copy</span>`;
 
-let spinner=document.createElement("div");
-spinner.className="spinner";
+let spin=document.createElement("div");
+spin.className="spinner";
 
 let content=document.createElement("pre");
 content.className="codeContent";
 
 box.appendChild(header);
-box.appendChild(spinner);
+box.appendChild(spin);
 box.appendChild(content);
 p.appendChild(box);
 
 let i=0;
-function typeCode(){
+function tc(){
 content.textContent+=code[i];
 i++;
 if(i<code.length){
-setTimeout(typeCode,5);
+requestAnimationFrame(tc);
 }else{
-spinner.remove();
+spin.remove();
 hljs.highlightElement(content);
 }
 }
-typeCode();
+tc();
 
 }else{
 typeText(p,reply);
@@ -261,6 +253,7 @@ messages.innerHTML="";
 exploreActive=false;
 codeModeActive=false;
 evaluateMode=false;
+closeMenu();
 }
 
 function codeMode(){
@@ -268,6 +261,7 @@ messages.innerHTML="";
 codeModeActive=true;
 exploreActive=false;
 evaluateMode=false;
+closeMenu();
 messages.innerHTML="<b>Quadron:</b> Describe what you want to code";
 }
 
@@ -276,6 +270,7 @@ messages.innerHTML="";
 exploreActive=true;
 codeModeActive=false;
 evaluateMode=false;
+closeMenu();
 messages.innerHTML="<b>Quadron:</b> Explore the Universe";
 }
 
@@ -284,6 +279,7 @@ messages.innerHTML="";
 evaluateMode=true;
 exploreActive=false;
 codeModeActive=false;
+closeMenu();
 messages.innerHTML="<b>Quadron:</b> Describe what you want to evaluate";
 }
 
