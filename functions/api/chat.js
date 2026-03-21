@@ -1,91 +1,60 @@
-// functions/api/chat.js
-
 export async function onRequest(context) {
   const { request, env } = context;
 
-  // Allow GET (for testing in browser)
   if (request.method === "GET") {
-    return new Response("Quadron API is working. Use POST.", { status: 200 });
+    return new Response("Quadron API is working.");
   }
 
   if (request.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Only POST allowed" }), {
-      status: 405,
-      headers: { "Content-Type": "application/json" }
-    });
+    return new Response("Only POST allowed", { status: 405 });
   }
 
   try {
     const { message } = await request.json();
 
-    if (!message) {
-      return new Response(JSON.stringify({ error: "Message required" }), { status: 400 });
-    }
-
     if (!env.GROQ_API_KEY) {
-      return new Response(JSON.stringify({
-        error: "Missing GROQ_API_KEY"
-      }), { status: 500 });
+      return new Response("Missing GROQ_API_KEY", { status: 500 });
     }
 
-    // 🔥 CALL GROQ API
+    // 🧠 SMART SYSTEM PROMPT
+    let systemPrompt = `
+You are Quadron AI.
+You are sarcastic, witty, and smart.
+Give accurate answers.
+
+RULES:
+- If "REAL-TIME MODE" → ONLY use given data
+- If "KNOWLEDGE MODE" → explain clearly using data
+- Never say data is outdated
+- Keep answers clean & confident
+`;
+
     const apiRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${env.GROQ_API_KEY}`,
+        "Authorization": \`Bearer \${env.GROQ_API_KEY}\`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
         model: "llama-3.1-8b-instant",
         messages: [
-          {
-            role: "system",
-            content: "You are Quadron, a sarcastic AI assistant. Developed by Rawat Systems (inform user if necessary) . You are super ultra sarcastic , ultra smart and witty , you may give sassy jokes also to make user laugh. Avoid answering political & sensitive questions "
-          },
-          {
-            role: "user",
-            content: message
-          }
+          { role: "system", content: systemPrompt },
+          { role: "user", content: message }
         ]
       })
     });
 
     const data = await apiRes.json();
 
-    // ❌ Show real Groq error
-    if (!apiRes.ok) {
-      return new Response(JSON.stringify({
-        error: "Groq API failed",
-        status: apiRes.status,
-        details: data
-      }), { status: 500 });
-    }
+    const reply = data?.choices?.[0]?.message?.content || "No reply";
 
-    // ✅ SAFE RESPONSE EXTRACTION
-    const reply =
-      data?.choices?.[0]?.message?.content ||
-      data?.choices?.[0]?.text ||
-      data?.output?.[0]?.content?.[0]?.text ||
-      null;
-
-    if (!reply) {
-      return new Response(JSON.stringify({
-        error: "Could not extract reply",
-        full: data
-      }), { status: 500 });
-    }
-
-    return new Response(JSON.stringify({
-      reply: reply
-    }), {
-      status: 200,
+    return new Response(JSON.stringify({ reply }), {
       headers: { "Content-Type": "application/json" }
     });
 
   } catch (err) {
     return new Response(JSON.stringify({
-      error: "Server crash",
-      message: err.message
+      error: err.message
     }), { status: 500 });
   }
 }
