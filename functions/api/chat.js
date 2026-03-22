@@ -13,23 +13,68 @@ export async function onRequest(context) {
     }
 
     let priceData = null;
+    let tavilyContent = "";
+    let isFinance = false;
 
-    /* 🔎 REAL GRAPH DATA (TWELVE DATA) */
-    if (evaluate && env.twelve__KEY) {
+    const msg = message.toLowerCase();
+
+    /* 🔎 FINANCE DETECTION */
+    const financeKeywords = [
+      "btc","bitcoin","eth","crypto","price","stock",
+      "share","market","trading","forex","nifty","sensex"
+    ];
+
+    isFinance = financeKeywords.some(k => msg.includes(k));
+
+    /* 🌐 TAVILY (TEXT DATA FOR ALL QUERIES IN EVALUATE MODE) */
+    if (evaluate && env.TAVILY__API) {
       try {
-        // extract crypto symbol (basic)
-        let symbol = "BTC/USD";
-        if (message.toLowerCase().includes("eth")) symbol = "ETH/USD";
-        if (message.toLowerCase().includes("bitcoin")) symbol = "BTC/USD";
+        const tavilyRes = await fetch("https://api.tavily.com/search", {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer " + env.TAVILY__API,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            query: message,
+            max_results: 3
+          })
+        });
 
-        const tdRes = await fetch(
-          `https://api.twelvedata.com/time_series?symbol=${symbol}&interval=1h&outputsize=24&apikey=${env.twelve__KEY}`
-        );
+        const tavilyData = await tavilyRes.json();
 
-        const tdData = await tdRes.json();
+        if (tavilyData?.results) {
+          tavilyContent = tavilyData.results
+            .map(r => r.content)
+            .join("\n\n");
+        }
 
-        if (tdData?.values) {
-          priceData = tdData.values.reverse(); // oldest → newest
+      } catch {
+        tavilyContent = "";
+      }
+    }
+
+    /* 📊 TWELVE DATA (ONLY IF FINANCE) */
+    if (evaluate && isFinance && env.twelve__KEY) {
+      try {
+        let symbol = null;
+
+        if (msg.includes("eth")) symbol = "ETH/USD";
+        else if (msg.includes("btc") || msg.includes("bitcoin")) symbol = "BTC/USD";
+        else if (msg.includes("apple")) symbol = "AAPL";
+        else if (msg.includes("tesla")) symbol = "TSLA";
+        else if (msg.includes("reliance")) symbol = "RELIANCE.NSE";
+
+        if (symbol) {
+          const tdRes = await fetch(
+            `https://api.twelvedata.com/time_series?symbol=${symbol}&interval=1h&outputsize=24&apikey=${env.twelve__KEY}`
+          );
+
+          const tdData = await tdRes.json();
+
+          if (tdData?.values) {
+            priceData = tdData.values.reverse();
+          }
         }
 
       } catch {
@@ -37,7 +82,7 @@ export async function onRequest(context) {
       }
     }
 
-    /* 🧠 AI TEXT RESPONSE */
+    /* 🧠 AI RESPONSE */
     const textRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -53,16 +98,16 @@ export async function onRequest(context) {
 You are Quadron AI.
 
 RULES:
-- Write EXACTLY 3 paragraphs
-- Each paragraph ~120–150 words
-- Be clear and structured
-- If financial data is given → explain trend
+- If real-time data is provided → ONLY use that
+- Write 3 paragraphs
+- Maintain clarity and structure
+- If financial data present → explain trends
 `
           },
           {
             role: "user",
-            content: evaluate && priceData
-              ? `Analyze this price data:\n${JSON.stringify(priceData)}`
+            content: tavilyContent
+              ? `Use ONLY this real-time data:\n${tavilyContent}`
               : message
           }
         ]
@@ -70,13 +115,14 @@ RULES:
     });
 
     const textData = await textRes.json();
+
     const reply =
       textData?.choices?.[0]?.message?.content || "No reply";
 
-    /* 📊 SEND RAW DATA TO FRONTEND */
     return new Response(JSON.stringify({
       reply,
-      prices: priceData
+      prices: priceData,
+      showGraph: !!priceData
     }), {
       headers: { "Content-Type": "application/json" }
     });
