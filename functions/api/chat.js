@@ -12,43 +12,32 @@ export async function onRequest(context) {
       return new Response("Missing GROQ_API_KEY", { status: 500 });
     }
 
-    let tavilyContent = "";
+    let priceData = null;
 
-    /* 🔎 FETCH REAL-TIME DATA */
-    if (evaluate) {
+    /* 🔎 REAL GRAPH DATA (TWELVE DATA) */
+    if (evaluate && env.twelve__KEY) {
       try {
-        const tavilyRes = await fetch("https://api.tavily.com/search", {
-          method: "POST",
-          headers: {
-            "Authorization": "Bearer " + env.TAVILY__API,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            query: message,
-            max_results: 3
-          })
-        });
+        // extract crypto symbol (basic)
+        let symbol = "BTC/USD";
+        if (message.toLowerCase().includes("eth")) symbol = "ETH/USD";
+        if (message.toLowerCase().includes("bitcoin")) symbol = "BTC/USD";
 
-        const tavilyData = await tavilyRes.json();
+        const tdRes = await fetch(
+          `https://api.twelvedata.com/time_series?symbol=${symbol}&interval=1h&outputsize=24&apikey=${env.twelve__KEY}`
+        );
 
-        if (!tavilyData?.results || tavilyData.results.length === 0) {
-          return new Response(JSON.stringify({
-            error: "❌ Tavily Not Working (Check API key)"
-          }), { status: 200 });
+        const tdData = await tdRes.json();
+
+        if (tdData?.values) {
+          priceData = tdData.values.reverse(); // oldest → newest
         }
 
-        tavilyContent = tavilyData.results
-          .map(r => r.content)
-          .join("\n\n");
-
-      } catch (err) {
-        return new Response(JSON.stringify({
-          error: "❌ Tavily Fetch Failed"
-        }), { status: 200 });
+      } catch {
+        priceData = null;
       }
     }
 
-    /* 🧠 TEXT RESPONSE (3 PARAGRAPHS ~150 WORDS EACH) */
+    /* 🧠 AI TEXT RESPONSE */
     const textRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -62,20 +51,18 @@ export async function onRequest(context) {
             role: "system",
             content: `
 You are Quadron AI.
-You are smart, clear, and slightly sarcastic.
 
 RULES:
-- If real-time data is provided → ONLY use that
-- Maintain high scale numerical data 
 - Write EXACTLY 3 paragraphs
-- Each paragraph should be about 150 words
-- Maintain logical flow
+- Each paragraph ~120–150 words
+- Be clear and structured
+- If financial data is given → explain trend
 `
           },
           {
             role: "user",
-            content: evaluate
-              ? `Use ONLY this real-time data:\n${tavilyContent}`
+            content: evaluate && priceData
+              ? `Analyze this price data:\n${JSON.stringify(priceData)}`
               : message
           }
         ]
@@ -83,107 +70,13 @@ RULES:
     });
 
     const textData = await textRes.json();
-
-    if (!textRes.ok) {
-      return new Response(JSON.stringify({
-        error: "Groq text generation failed",
-        details: textData
-      }), { status: 500 });
-    }
-
     const reply =
       textData?.choices?.[0]?.message?.content || "No reply";
 
-    let graphs = [];
-
-    /* 📊 GRAPH 1 (ACCURATE DATA CHART) */
-    if (evaluate) {
-      try {
-        const g1 = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": "Bearer " + env.GROQ_API_KEY,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            model: "llama-3.1-8b-instant",
-            messages: [
-              {
-                role: "system",
-                content: `
-Return ONLY valid JavaScript using Chart.js.
-
-STRICT RULES:
-- Use ONLY real numeric values found in the data given to you 
-- Do NOT invent or guess numbers
-- The graph must be very detailed with lots of values 
-- MUST include:
-const ctx = document.getElementById("canvas").getContext("2d");
-- No explanation, no markdown
-`
-              },
-              {
-                role: "user",
-                content: `Create an accurate chart from:\n${tavilyContent}`
-              }
-            ]
-          })
-        });
-
-        const g1Data = await g1.json();
-        graphs.push(g1Data?.choices?.[0]?.message?.content || null);
-
-      } catch {
-        graphs.push(null);
-      }
-
-      /* 🔥 GRAPH 2 (HEATMAP STYLE) */
-      try {
-        const g2 = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": "Bearer " + env.GROQ_API_KEY,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            model: "llama-3.1-8b-instant",
-            messages: [
-              {
-                role: "system",
-                content: `
-Return ONLY JavaScript using Chart.js.
-
-Simulate a graph visualization.
-
-RULES:
-- Use structured data from input
-- Dont give error fallbacks
-- High Detailing
-- Use multiple datasets or color intensity
-- MUST include:
-const ctx = document.getElementById("canvas").getContext("2d");
-- No text, no markdown
-`
-              },
-              {
-                role: "user",
-                content: `Create a detailed heatmap-style chart from:\n${tavilyContent}`
-              }
-            ]
-          })
-        });
-
-        const g2Data = await g2.json();
-        graphs.push(g2Data?.choices?.[0]?.message?.content || null);
-
-      } catch {
-        graphs.push(null);
-      }
-    }
-
+    /* 📊 SEND RAW DATA TO FRONTEND */
     return new Response(JSON.stringify({
       reply,
-      graphs
+      prices: priceData
     }), {
       headers: { "Content-Type": "application/json" }
     });
