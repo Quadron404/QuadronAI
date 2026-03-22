@@ -10,7 +10,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;transition:.3s;}
+body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
+
 .blur-bg{filter:blur(6px);}
 
 /* HEADER */
@@ -23,14 +24,10 @@ box-shadow:0 0 12px #ffd900;
 
 /* HAMBURGER */
 #menuBtn{
-cursor:pointer;font-size:24px;
-color:#ffd900;
-text-shadow:0 0 10px #ffd900;
-transition:.3s;
+cursor:pointer;font-size:24px;color:#ffd900;
+text-shadow:0 0 10px #ffd900;transition:.3s;
 }
-#menuBtn:hover{
-text-shadow:0 0 20px #ffd900,0 0 30px #ffd900;
-}
+#menuBtn:hover{ text-shadow:0 0 20px #ffd900,0 0 40px #ffd900; }
 
 /* MENU */
 #overlay{
@@ -48,27 +45,18 @@ display:flex;flex-direction:column;justify-content:space-between;
 .menuItem{
 padding:10px;cursor:pointer;margin-top:8px;
 font-weight:bold;color:#ffd900;
-transition:.2s;
 }
 .menuItem:hover{text-shadow:0 0 10px #ffd900;}
 
-/* MENU FOOTER */
-.menuFooter{
-margin-top:auto;
-font-size:12px;
-color:white;
-}
-.menuFooter span{
-color:#ffd900;
-text-shadow:0 0 10px #ffd900;
-}
+.menuFooter{color:white;font-size:12px;}
+.menuFooter span{color:#ffd900;text-shadow:0 0 10px #ffd900;}
 
 /* CHAT */
 #chat{max-width:800px;margin:auto;padding:10px;}
 #messages{
 height:65vh;overflow:auto;background:#111;padding:10px;
 border:1px solid #ffd900;border-radius:12px;
-box-shadow:0 0 10px #ffd900,0 0 20px #ffd900 inset;
+box-shadow:0 0 10px #ffd900 inset;
 }
 
 /* INPUT */
@@ -80,54 +68,54 @@ border:1px solid #ffd900;border-radius:10px;
 
 /* SEND BUTTON */
 button{
-padding:10px 16px;
-background:#ffd900;color:#000;border:none;
-border-radius:25px;
-cursor:pointer;
-box-shadow:0 0 10px #ffd900;
+padding:10px 16px;background:#ffd900;color:#000;
+border:none;border-radius:25px;
+cursor:pointer;box-shadow:0 0 10px #ffd900;
 transition:.3s;
 }
 button:hover{
 box-shadow:0 0 20px #ffd900,0 0 40px #ffd900;
 }
 
-/* CODE BOX (CHATGPT STYLE) */
+/* CODE BOX */
 .codeBox{
-background:#0d0d0d;
-border:1px solid #333;
-border-radius:12px;
-margin-top:10px;
-overflow:hidden;
+background:#000;border:1px solid #ffd900;
+margin-top:10px;border-radius:8px;overflow:hidden;
+position:relative;
 }
 .codeHeader{
-display:flex;
-justify-content:space-between;
-padding:8px;
-background:#1a1a1a;
-font-size:12px;
+display:flex;justify-content:space-between;
+align-items:center;padding:6px 10px;background:#111;
+border-bottom:1px solid #ffd900;font-size:12px;
 }
+.codeLang{transition:0.2s;}
 .codeBtns button{
 margin-left:5px;
-border-radius:6px;
-padding:4px 8px;
+background:none;
+color:#ffd900;
+border:1px solid #ffd900;
+padding:2px 6px;
+border-radius:4px;
+cursor:pointer;
 }
-.codeContent{
-padding:10px;
-white-space:pre;
-overflow:auto;
+.codeContent{padding:10px;white-space:pre;overflow:auto;}
+
+/* SPINNER */
+.spinner{
+position:absolute;width:16px;height:16px;
+border:3px solid #ffd900;border-top:3px solid transparent;
+border-radius:50%;animation:spin 1s linear infinite;
+top:8px;left:8px;
 }
+@keyframes spin{100%{transform:rotate(360deg);}}
 
 /* FOOTER */
 .footer{
-text-align:center;
-font-size:13px;
-margin:10px;
-color:white;
+text-align:center;font-size:13px;margin:10px;color:white;
 }
 .footer a{
-color:#ffd900;
+color:#ffd900;text-decoration:none;
 text-shadow:0 0 10px #ffd900;
-text-decoration:none;
 }
 </style>
 </head>
@@ -170,30 +158,26 @@ Quadron AI can make mistakes, by using it you agree our
 
 <script>
 const messages=document.getElementById("messages");
+const chat=document.getElementById("chat");
 
 /* MENU */
 function openMenu(){
 sidePanel.classList.add("open");
 overlay.style.display="block";
-document.body.classList.add("blur-bg");
+chat.classList.add("blur-bg"); // ✅ only chat blurred
 }
 function closeMenu(){
 sidePanel.classList.remove("open");
 overlay.style.display="none";
-document.body.classList.remove("blur-bg");
+chat.classList.remove("blur-bg");
 }
 
-/* MODES */
-let exploreActive=false;
-let codeModeActive=false;
-let evaluateMode=false;
-
-/* TEXT FORMAT (BOLD SUPPORT) */
-function formatText(text){
-return text.replace(/\*\*(.*?)\*\*/g,"<b>$1</b>");
+/* TEXT FORMAT */
+function formatText(t){
+return t.replace(/\*\*(.*?)\*\*/g,"<b>$1</b>");
 }
 
-/* FAST TYPING */
+/* FAST TYPE */
 function typeText(el,text){
 let span=document.createElement("span");
 el.innerHTML="<b>Quadron:</b> ";
@@ -214,8 +198,8 @@ function renderCode(container,reply){
 let m=reply.match(/```(\w+)?\n([\s\S]*?)```/);
 if(!m) return false;
 
+let lang=m[1]||"text";
 let code=m[2];
-let lang=m[1]||"html";
 
 container.innerHTML="<b>Quadron:</b>";
 
@@ -226,22 +210,41 @@ let header=document.createElement("div");
 header.className="codeHeader";
 
 header.innerHTML=`
-<span>${lang}</span>
+<span class="codeLang">&lt;/&gt; ${lang}</span>
 <div class="codeBtns">
 <button onclick="copyCode(this)">Copy</button>
 <button onclick="runCode(this)">Execute</button>
-</div>
-`;
+</div>`;
 
 let content=document.createElement("pre");
 content.className="codeContent";
-content.textContent=code;
+
+let spinner=document.createElement("div");
+spinner.className="spinner";
 
 box.appendChild(header);
+box.appendChild(spinner);
 box.appendChild(content);
 container.appendChild(box);
 
+/* SHIFT TEXT */
+let langEl=header.querySelector(".codeLang");
+langEl.style.marginLeft="20px";
+
+/* TYPE CODE */
+let i=0;
+function tc(){
+content.textContent+=code[i];
+i++;
+if(i<code.length){
+requestAnimationFrame(tc);
+}else{
+spinner.remove();
+langEl.style.marginLeft="0px"; // restore
 hljs.highlightElement(content);
+}
+}
+tc();
 
 return true;
 }
@@ -252,23 +255,25 @@ let code=btn.closest(".codeBox").querySelector("pre").textContent;
 navigator.clipboard.writeText(code);
 }
 
-/* RUN */
+/* EXECUTE */
 function runCode(btn){
 let box=btn.closest(".codeBox");
 let code=box.querySelector("pre").textContent;
 
 if(btn.innerText==="Back"){
 box.innerHTML="";
-renderCode(box.parentElement, "```html\n"+code+"\n```");
+renderCode(box.parentElement,"```html\n"+code+"\n```");
 return;
 }
 
-if(code.includes("cdn") || code.includes("script src")){
+if(code.includes("cdn")||code.includes("script src")){
 alert("External Libraries Used In The Code");
 return;
 }
 
 let iframe=document.createElement("iframe");
+iframe.style.width="100%";
+iframe.style.height="250px";
 iframe.srcdoc=code;
 
 box.innerHTML="";
@@ -289,11 +294,9 @@ msg.value="";
 let p=document.createElement("p");
 messages.appendChild(p);
 
-let res=await fetch("/api/chat",{
-method:"POST",
+let res=await fetch("/api/chat",{method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({message:text,evaluate:evaluateMode})
-});
+body:JSON.stringify({message:text})});
 
 let data=await res.json();
 
@@ -304,67 +307,10 @@ typeText(p,data.reply);
 messages.scrollTop=messages.scrollHeight;
 }
 
-/* MODES */
-function newChat(){
-messages.innerHTML="";
-exploreActive=false;
-codeModeActive=false;
-evaluateMode=false;
-closeMenu();
-fetchGreeting();
-}
-
-function codeMode(){
-messages.innerHTML="";
-codeModeActive=true;
-closeMenu();
-let p=document.createElement("p");
-messages.appendChild(p);
-typeText(p,"Describe what you want to code");
-}
-
-function exploreMode(){
-messages.innerHTML="";
-exploreActive=true;
-closeMenu();
-let p=document.createElement("p");
-messages.appendChild(p);
-typeText(p,"Explore anything...");
-}
-
-function evaluateModeUI(){
-messages.innerHTML="";
-evaluateMode=true;
-closeMenu();
-let p=document.createElement("p");
-messages.appendChild(p);
-typeText(p,"What should I evaluate?");
-}
-
-/* GREETING (NOT IN MODES) */
-async function fetchGreeting(){
-if(codeModeActive || exploreActive || evaluateMode) return;
-
-let p=document.createElement("p");
-messages.appendChild(p);
-
-let res=await fetch("/api/chat",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({message:"Give a short sarcastic greeting"})
-});
-
-let data=await res.json();
-typeText(p,data.reply);
-}
-
-/* ENTER */
+/* INIT */
 msg.addEventListener("keydown",e=>{
 if(e.key==="Enter") send();
 });
-
-/* INIT */
-window.onload=()=>{newChat();}
 </script>
 
 </body>
