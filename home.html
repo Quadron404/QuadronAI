@@ -96,9 +96,9 @@ function renderEvaluate(reply, prices){
     messages.appendChild(p);
 
     /* AFTER PARA 1 → GRAPH */
-    if(i===0 && prices){
-      createRealChart(prices);
-    }
+    if(i===0 && prices && data.showGraph){
+  createRealChart(prices);
+}
 
     /* AFTER PARA 2 → SECOND GRAPH */
     if(i===1 && prices){
@@ -125,7 +125,7 @@ body:JSON.stringify({message:text,evaluate:true})
 
 let data=await res.json();
 
-renderEvaluate(data.reply, data.prices);
+renderEvaluate(data.reply, data.prices,data );
 
 }else{
 
