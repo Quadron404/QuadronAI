@@ -66,6 +66,7 @@ You are smart, clear, and slightly sarcastic.
 
 RULES:
 - If real-time data is provided → ONLY use that
+- Maintain high scale numerical data 
 - Write EXACTLY 3 paragraphs
 - Each paragraph should be about 150 words
 - Maintain logical flow
@@ -152,10 +153,12 @@ const ctx = document.getElementById("canvas").getContext("2d");
                 content: `
 Return ONLY JavaScript using Chart.js.
 
-Simulate a pie chart visualization.
+Simulate a graph visualization.
 
 RULES:
 - Use structured numeric data from input
+- Dont give error fallbacks
+- High Detailing
 - Use multiple datasets or color intensity
 - MUST include:
 const ctx = document.getElementById("canvas").getContext("2d");
