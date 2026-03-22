@@ -7,82 +7,89 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/monokai-sublime.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script> 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
+<script defer src="https://pyscript.net/latest/pyscript.js"></script>
 
 <style>
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
-header{display:flex;justify-content:space-between;padding:12px;background:#000;border-bottom:2px solid #ffd900;}
+.blur-bg{filter:blur(5px);}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 12px #ffd900;}
+#logo{font-weight:bold;font-size:18px;}
 #menuBtn{cursor:pointer;font-size:24px;}
-#overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;}
-#sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;}
+#overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;z-index:900;}
+#sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;overflow-y:auto;display:flex;flex-direction:column;}
 #sidePanel.open{transform:translateX(0);}
-.menuItem{padding:10px;cursor:pointer;color:#ffd900;}
+#menuProfile{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid #333;}
+#menuProfile img{width:40px;height:40px;border-radius:50%;border:1px solid #ffd900;object-fit:cover;}
+.menuItem{padding:10px;cursor:pointer;margin-top:8px;color:#ffd900;font-weight:bold;transition:0.2s;}
+.menuItem:hover{text-shadow:0 0 10px #ffd900;}
 #chat{max-width:800px;margin:auto;padding:10px;}
-#messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;}
+#messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;box-shadow:0 0 15px #ffd900;border-radius:12px;}
 #inputArea{display:flex;gap:8px;margin-top:10px;}
-input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;}
-button{padding:10px;background:#ffd900;color:#000;border:none;}
+input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
+button{padding:10px;background:#ffd900;color:#000;border:none;box-shadow:0 0 12px #ffd900;cursor:pointer;}
+
+.footer{text-align:center;font-size:12px;margin:10px;}
+.footer a{color:#ffd900;text-decoration:none;}
 </style>
 </head>
 
 <body>
 
 <header>
-<div>Quadron AI</div>
+<div id="logo">Quadron AI</div>
 <div id="menuBtn" onclick="openMenu()">☰</div>
 </header>
 
 <div id="overlay" onclick="closeMenu()"></div>
 
 <div id="sidePanel">
+<div id="menuProfile">
+<img id="profilePic" src="">
+<div>
+<div id="profileName"></div>
+<div style="font-size:12px;" id="profileEmail"></div>
+</div>
+</div>
+
 <div class="menuItem" onclick="newChat()">New Chat</div>
+<div class="menuItem" onclick="location.href='voice.html'">Voice Mode</div>
+<div class="menuItem" onclick="location.href='quadron7.html'">Quadron 7</div>
+<div class="menuItem" onclick="codeMode()">Code /</div>
 <div class="menuItem" onclick="exploreMode()">Explore</div>
 <div class="menuItem" onclick="evaluateModeUI()">Evaluate</div>
+
+<div class="menuFooter">
+Developed by <span>Rawat Systems</span>
+</div>
 </div>
 
 <div id="chat">
 <div id="messages"></div>
 
 <div id="inputArea">
-<input id="msg">
+<input id="msg" placeholder="Type here...">
 <button onclick="send()">Send</button>
 </div>
+</div>
+
+<div class="footer">
+Quadron AI can make mistakes, By using it you agree our
+<a href="terms.html">Terms & Conditions</a>
 </div>
 
 <script>
 const messages=document.getElementById("messages");
 
-let evaluateMode=false;
-let exploreModeOn=false;
-
 /* MENU */
 function openMenu(){sidePanel.classList.add("open");overlay.style.display="block";}
 function closeMenu(){sidePanel.classList.remove("open");overlay.style.display="none";}
 
-/* WIKIPEDIA */
-async function fetchWiki(query){
-try{
-let res=await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
-let data=await res.json();
-return data.extract;
-}catch{
-return null;
-}
-}
-
-/* TAVILY */
-async function fetchTavily(query){
-try{
-let res=await fetch("/api/tavily",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({query})
-});
-let data=await res.json();
-return data.result;
-}catch{
-return null;
-}
-}
+/* MODES */
+let evaluateMode=false;
+let exploreModeOn=false;
 
 /* SEND */
 async function send(){
@@ -95,51 +102,38 @@ msg.value="";
 let p=document.createElement("p");
 messages.appendChild(p);
 
-let finalMessage=text;
-
-/* 🔴 EVALUATE MODE */
-if(evaluateMode){
-let live=await fetchTavily(text);
-
-finalMessage=`
-REAL-TIME MODE
-
-Data:
-${live}
-
-Answer using only this.
-`;
-}
-
-/* 🟢 EXPLORE MODE */
-if(exploreModeOn){
-let wiki=await fetchWiki(text);
-
-finalMessage=`
-KNOWLEDGE MODE
-
-Wikipedia Data:
-${wiki}
-
-Explain clearly.
-`;
-}
-
-/* AI */
+/* SEND MODES TO BACKEND */
 let res=await fetch("/api/chat",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({message:finalMessage})
+body:JSON.stringify({
+message:text,
+evaluate:evaluateMode,
+explore:exploreModeOn
+})
 });
 
 let data=await res.json();
+
+if(data.error){
+p.innerHTML="<b>Quadron:</b> ❌ "+data.error;
+}else{
 p.innerHTML="<b>Quadron:</b> "+data.reply;
+}
+
 messages.scrollTop=messages.scrollHeight;
 }
 
 /* MODES */
 function newChat(){
 messages.innerHTML="";
+evaluateMode=false;
+exploreModeOn=false;
+closeMenu();
+}
+
+function codeMode(){
+messages.innerHTML="<b>Quadron:</b> Describe what you want to code";
 evaluateMode=false;
 exploreModeOn=false;
 closeMenu();
@@ -152,20 +146,11 @@ messages.innerHTML="<b>Quadron:</b> 🌍 Explore Mode ON (Wikipedia)";
 closeMenu();
 }
 
-async function evaluateModeUI(){
+function evaluateModeUI(){
 evaluateMode=true;
 exploreModeOn=false;
+messages.innerHTML="<b>Quadron:</b> 🔎 Evaluate Mode ON<br>Checking Tavily...";
 closeMenu();
-
-messages.innerHTML="<b>Quadron:</b> Checking Tavily...";
-
-let test=await fetchTavily("test");
-
-if(test){
-messages.innerHTML="<b>Quadron:</b> 🔎 Evaluate Mode ON<br>✅ Tavily Working";
-}else{
-messages.innerHTML="<b>Quadron:</b> 🔎 Evaluate Mode ON<br>❌ Tavily Not Working";
-}
 }
 
 msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
