@@ -74,7 +74,7 @@ export async function onRequest(context) {
             },
             {
               role: "user",
-              content: `Create a chart using this data:\n${tavilyContent}`
+              content: `Create a chart using this data , graph should be according to data don't provide fake graph:\n${tavilyContent}`
             }
           ]
         })
