@@ -7,11 +7,9 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/monokai-sublime.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
-
 .blur-bg{filter:blur(6px);}
 
 /* HEADER */
@@ -21,13 +19,6 @@ padding:12px;background:#000;border-bottom:2px solid #ffd900;
 box-shadow:0 0 12px #ffd900;
 }
 #logo{font-weight:bold;font-size:18px;}
-
-/* HAMBURGER */
-#menuBtn{
-cursor:pointer;font-size:24px;color:#ffd900;
-text-shadow:0 0 10px #ffd900;transition:.3s;
-}
-#menuBtn:hover{ text-shadow:0 0 20px #ffd900,0 0 40px #ffd900; }
 
 /* MENU */
 #overlay{
@@ -66,15 +57,15 @@ flex:1;padding:10px;background:black;color:#ffd900;
 border:1px solid #ffd900;border-radius:10px;
 }
 
-/* SEND BUTTON */
+/* BUTTON */
 button{
-padding:10px 16px;background:#ffd900;color:#000;
-border:none;border-radius:25px;
-cursor:pointer;box-shadow:0 0 10px #ffd900;
-transition:.3s;
-}
-button:hover{
-box-shadow:0 0 20px #ffd900,0 0 40px #ffd900;
+padding:8px 14px;
+background:none;
+border:1px solid #ffd900;
+color:#ffd900;
+border-radius:6px;
+cursor:pointer;
+text-shadow:0 0 8px #ffd900; /* ✅ glow text only */
 }
 
 /* CODE BOX */
@@ -89,15 +80,7 @@ align-items:center;padding:6px 10px;background:#111;
 border-bottom:1px solid #ffd900;font-size:12px;
 }
 .codeLang{transition:0.2s;}
-.codeBtns button{
-margin-left:5px;
-background:none;
-color:#ffd900;
-border:1px solid #ffd900;
-padding:2px 6px;
-border-radius:4px;
-cursor:pointer;
-}
+.codeBtns button{margin-left:5px;}
 .codeContent{padding:10px;white-space:pre;overflow:auto;}
 
 /* SPINNER */
@@ -138,7 +121,7 @@ text-shadow:0 0 10px #ffd900;
 </div>
 
 <div class="menuFooter">
-Created by <span>Rawat Systems</span>
+Developed by <span>Rawat Systems</span>
 </div>
 </div>
 
@@ -160,11 +143,11 @@ Quadron AI can make mistakes, by using it you agree our
 const messages=document.getElementById("messages");
 const chat=document.getElementById("chat");
 
-/* MENU */
+/* MENU FIX */
 function openMenu(){
 sidePanel.classList.add("open");
 overlay.style.display="block";
-chat.classList.add("blur-bg"); // ✅ only chat blurred
+chat.classList.add("blur-bg");
 }
 function closeMenu(){
 sidePanel.classList.remove("open");
@@ -172,12 +155,16 @@ overlay.style.display="none";
 chat.classList.remove("blur-bg");
 }
 
-/* TEXT FORMAT */
+/* MODES */
+let explore=false;
+let evaluate=false;
+
+/* TEXT */
 function formatText(t){
 return t.replace(/\*\*(.*?)\*\*/g,"<b>$1</b>");
 }
 
-/* FAST TYPE */
+/* TYPE */
 function typeText(el,text){
 let span=document.createElement("span");
 el.innerHTML="<b>Quadron:</b> ";
@@ -214,6 +201,7 @@ header.innerHTML=`
 <div class="codeBtns">
 <button onclick="copyCode(this)">Copy</button>
 <button onclick="runCode(this)">Execute</button>
+<button onclick="debugCode(this)">Debug</button>
 </div>`;
 
 let content=document.createElement("pre");
@@ -227,11 +215,10 @@ box.appendChild(spinner);
 box.appendChild(content);
 container.appendChild(box);
 
-/* SHIFT TEXT */
 let langEl=header.querySelector(".codeLang");
 langEl.style.marginLeft="20px";
 
-/* TYPE CODE */
+/* TYPE */
 let i=0;
 function tc(){
 content.textContent+=code[i];
@@ -240,7 +227,7 @@ if(i<code.length){
 requestAnimationFrame(tc);
 }else{
 spinner.remove();
-langEl.style.marginLeft="0px"; // restore
+langEl.style.marginLeft="0px";
 hljs.highlightElement(content);
 }
 }
@@ -266,11 +253,6 @@ renderCode(box.parentElement,"```html\n"+code+"\n```");
 return;
 }
 
-if(code.includes("cdn")||code.includes("script src")){
-alert("External Libraries Used In The Code");
-return;
-}
-
 let iframe=document.createElement("iframe");
 iframe.style.width="100%";
 iframe.style.height="250px";
@@ -278,8 +260,25 @@ iframe.srcdoc=code;
 
 box.innerHTML="";
 box.appendChild(iframe);
-
 btn.innerText="Back";
+}
+
+/* DEBUG */
+async function debugCode(btn){
+let box=btn.closest(".codeBox");
+let code=box.querySelector("pre").textContent;
+
+let res=await fetch("/api/debug",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({code})
+});
+
+let data=await res.json();
+
+/* replace same box */
+box.innerHTML="";
+renderCode(box.parentElement,"```html\n"+data.fixed+"\n```");
 }
 
 /* SEND */
@@ -294,9 +293,15 @@ msg.value="";
 let p=document.createElement("p");
 messages.appendChild(p);
 
-let res=await fetch("/api/chat",{method:"POST",
+let res=await fetch("/api/chat",{
+method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({message:text})});
+body:JSON.stringify({
+message:text,
+explore:explore,
+evaluate:evaluate
+})
+});
 
 let data=await res.json();
 
@@ -307,7 +312,32 @@ typeText(p,data.reply);
 messages.scrollTop=messages.scrollHeight;
 }
 
-/* INIT */
+/* MODES */
+function newChat(){
+messages.innerHTML="";
+explore=false;
+evaluate=false;
+closeMenu(); // ✅ always close
+}
+
+function codeMode(){
+messages.innerHTML="";
+closeMenu();
+}
+
+function exploreMode(){
+messages.innerHTML="";
+explore=true;
+closeMenu(); // ✅ fixed
+}
+
+function evaluateModeUI(){
+messages.innerHTML="";
+evaluate=true;
+closeMenu(); // ✅ fixed
+}
+
+/* ENTER */
 msg.addEventListener("keydown",e=>{
 if(e.key==="Enter") send();
 });
