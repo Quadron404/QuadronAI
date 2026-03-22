@@ -113,9 +113,9 @@ RULES:
 Return ONLY valid JavaScript using Chart.js.
 
 STRICT RULES:
-- Use ONLY real numeric values found in the data
+- Use ONLY real numeric values found in the data given to you 
 - Do NOT invent or guess numbers
-- If insufficient numeric data, use minimal extracted values
+- The graph must be very detailed with lots of values 
 - MUST include:
 const ctx = document.getElementById("canvas").getContext("2d");
 - No explanation, no markdown
@@ -152,7 +152,7 @@ const ctx = document.getElementById("canvas").getContext("2d");
                 content: `
 Return ONLY JavaScript using Chart.js.
 
-Simulate a heatmap-style visualization.
+Simulate a pie chart visualization.
 
 RULES:
 - Use structured numeric data from input
