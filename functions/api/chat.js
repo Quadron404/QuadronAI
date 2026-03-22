@@ -156,7 +156,7 @@ Return ONLY JavaScript using Chart.js.
 Simulate a graph visualization.
 
 RULES:
-- Use structured numeric data from input
+- Use structured data from input
 - Dont give error fallbacks
 - High Detailing
 - Use multiple datasets or color intensity
