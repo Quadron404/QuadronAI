@@ -1,18 +1,35 @@
-let graphs = [];
+export async function onRequest(context) {
+  const { request, env } = context;
 
-if (evaluate) {
+  if (request.method !== "POST") {
+    return new Response("Only POST allowed", { status: 405 });
+  }
 
-  const prompts = [
-    "Create a bar chart",
-    "Create a histogram",
-    "Create a scatter plot",
-    "Create a box plot",
-    "Create a stacked bar chart",
-    "Create a heatmap"
-  ];
+  try {
+    const { message, evaluate } = await request.json();
 
-  for (let p of prompts) {
-    const graphRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    let tavilyContent = "";
+
+    /* 🔎 FETCH REAL-TIME DATA */
+    if (evaluate) {
+      const tavilyRes = await fetch("https://api.tavily.com/search", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + env.TAVILY__API,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          query: message,
+          max_results: 3
+        })
+      });
+
+      const tavilyData = await tavilyRes.json();
+      tavilyContent = tavilyData.results.map(r => r.content).join("\n");
+    }
+
+    /* 🧠 FIRST AI CALL (TEXT) */
+    const textRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": "Bearer " + env.GROQ_API_KEY,
@@ -23,24 +40,60 @@ if (evaluate) {
         messages: [
           {
             role: "system",
-            content: `
-Return ONLY valid JavaScript Chart.js code.
-
-Rules:
-- Must use:
-const ctx = document.getElementById("canvas").getContext("2d");
-- No text, no markdown
-`
+            content: "You are Quadron AI. Be smart and slightly sarcastic."
           },
           {
             role: "user",
-            content: `${p} using this data:\n${tavilyContent}`
+            content: evaluate
+              ? `Use ONLY this real-time data:\n${tavilyContent}\nAnswer clearly.`
+              : message
           }
         ]
       })
     });
 
-    const gData = await graphRes.json();
-    graphs.push(gData.choices?.[0]?.message?.content || null);
+    const textData = await textRes.json();
+    const reply = textData.choices?.[0]?.message?.content || "No reply";
+
+    let graphCode = null;
+
+    /* 📊 SECOND AI CALL (GRAPH CODE ONLY) */
+    if (evaluate) {
+      const graphRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + env.GROQ_API_KEY,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-8b-instant",
+          messages: [
+            {
+              role: "system",
+              content: "Return ONLY JavaScript Chart.js code. No text."
+            },
+            {
+              role: "user",
+              content: `Create a chart using this data:\n${tavilyContent}`
+            }
+          ]
+        })
+      });
+
+      const graphData = await graphRes.json();
+      graphCode = graphData.choices?.[0]?.message?.content || null;
+    }
+
+    return new Response(JSON.stringify({
+      reply,
+      graph: graphCode
+    }), {
+      headers: { "Content-Type": "application/json" }
+    });
+
+  } catch (err) {
+    return new Response(JSON.stringify({
+      error: err.message
+    }), { status: 500 });
   }
 }
