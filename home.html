@@ -10,35 +10,57 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-/* (UNCHANGED — YOUR ORIGINAL CSS) */
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
-.blur-bg{filter:blur(5px);}
 header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 12px #ffd900;}
 #logo{font-weight:bold;font-size:18px;}
 #menuBtn{cursor:pointer;font-size:24px;}
+
 #overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;z-index:900;}
-#sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;overflow-y:auto;display:flex;flex-direction:column;}
+
+#sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;overflow-y:auto;}
 #sidePanel.open{transform:translateX(0);}
-#menuProfile{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid #333;}
-#menuProfile img{width:40px;height:40px;border-radius:50%;border:1px solid #ffd900;object-fit:cover;}
-.menuItem{padding:10px;cursor:pointer;margin-top:8px;color:#ffd900;font-weight:bold;transition:0.2s;position:relative;}
-.menuItem:hover{color:#ffd900;text-shadow:0 0 10px #ffd900;}
+
+.menuItem{padding:10px;cursor:pointer;margin-top:8px;font-weight:bold;}
+.menuItem:hover{text-shadow:0 0 10px #ffd900;}
+
 #chat{max-width:800px;margin:auto;padding:10px;}
-#messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;box-shadow:0 0 15px #ffd900;border-radius:12px;}
+#messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;border-radius:12px;}
+
 #inputArea{display:flex;gap:8px;margin-top:10px;}
 input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
-button{padding:10px;background:#ffd900;color:#000;border:none;box-shadow:0 0 12px #ffd900;cursor:pointer;}
-.codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:hidden;font-family:monospace;line-height:1.3em;position:relative;}
-.codeHeader{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#111;font-size:12px;font-weight:bold;border-bottom:1px solid #ffd900;}
-.codeLang{font-style:italic;}
-.copyBtn{cursor:pointer;color:#ffd900;padding:2px 6px;border:1px solid #ffd900;border-radius:4px;font-size:12px;}
-.codeContent{padding:10px;overflow:auto;white-space:pre;min-height:20px;}
-.spinner{position:absolute;width:16px;height:16px;border:3px solid #ffd900;border-top:3px solid transparent;border-radius:50%;animation:spin 1s linear infinite;top:8px;left:8px;}
-@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
-.footer{text-align:center;font-size:12px;margin:10px;}
-.footer a{color:#ffd900;text-decoration:none;}
-.menuFooter{margin-top:15px;text-align:center;font-size:12px;padding-bottom:10px;}
-.menuFooter span{font-weight:bold;color:#ffd900;text-shadow:0 0 10px #ffd900;}
+button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;}
+
+.codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:hidden;position:relative;}
+.codeHeader{display:flex;justify-content:space-between;padding:6px;background:#111;border-bottom:1px solid #ffd900;font-size:12px;}
+.copyBtn,.runBtn{cursor:pointer;border:1px solid #ffd900;padding:2px 6px;border-radius:4px;margin-left:5px;}
+.codeContent{padding:10px;white-space:pre;overflow:auto;}
+
+.editBtn{
+position:absolute;
+top:30px;
+right:10px;
+cursor:pointer;
+font-size:14px;
+}
+
+.spinner{
+position:absolute;
+width:16px;height:16px;
+border:3px solid #ffd900;
+border-top:3px solid transparent;
+border-radius:50%;
+animation:spin 1s linear infinite;
+top:35px;
+left:10px;
+}
+@keyframes spin{100%{transform:rotate(360deg);}}
+
+iframe{
+width:100%;
+height:250px;
+border:none;
+background:white;
+}
 </style>
 </head>
 
@@ -52,22 +74,10 @@ button{padding:10px;background:#ffd900;color:#000;border:none;box-shadow:0 0 12p
 <div id="overlay" onclick="closeMenu()"></div>
 
 <div id="sidePanel">
-<div id="menuProfile">
-<img id="profilePic" src="">
-<div>
-<div id="profileName"></div>
-<div style="font-size:12px;" id="profileEmail"></div>
-</div>
-</div>
-
 <div class="menuItem" onclick="newChat()">New Chat</div>
-<div class="menuItem" onclick="location.href='voice.html'">Voice Mode</div>
-<div class="menuItem" onclick="location.href='quadron7.html'">Quadron 7</div>
 <div class="menuItem" onclick="codeMode()">Code /</div>
 <div class="menuItem" onclick="exploreMode()">Explore</div>
 <div class="menuItem" onclick="evaluateModeUI()">Evaluate</div>
-
-<div class="menuFooter">Developed by <span>Rawat Systems</span></div>
 </div>
 
 <div id="chat">
@@ -77,10 +87,6 @@ button{padding:10px;background:#ffd900;color:#000;border:none;box-shadow:0 0 12p
 <input id="msg" placeholder="Type here...">
 <button onclick="send()">Send</button>
 </div>
-</div>
-
-<div class="footer">
-Quadron AI can make mistakes, By using it you agree our <a href="terms.html">Terms & Conditions</a>
 </div>
 
 <script>
@@ -97,95 +103,126 @@ let exploreActive=false;
 let codeModeActive=false;
 let evaluateMode=false;
 
-/* PROMPT (FIXED STRINGS) */
-function buildPrompt(userText){
-let base="You are Quadron AI developed by Rawat Systems. Sarcastic, witty.";
-
-if(codeModeActive) return "Return ONLY one code block.";
-
-if(exploreActive){
-return base+" Give deep exploration with ideas and insights. Include image links. User: "+userText;
-}
-
-if(evaluateMode){
-return userText;
-}
-
-return base+" User: "+userText;
-}
-
-/* TYPE */
+/* FAST TYPE */
 function typeText(el,text){
 let span=document.createElement("span");
 el.innerHTML="<b>Quadron:</b> ";
 el.appendChild(span);
+
 let i=0;
 function t(){
 span.textContent=text.slice(0,i);
-i++;
+i+=2; // ⚡ speed increased
 if(i<=text.length) requestAnimationFrame(t);
 }
 t();
 }
 
-/* IMAGES */
-function renderImages(container,text){
-let urls=text.match(/https?:\/\/[^\s]+/g);
-if(!urls)return;
-urls.forEach(u=>{
-if(/\.(jpg|png|jpeg|webp|gif)/i.test(u)){
-let img=document.createElement("img");
-img.src=u;
-img.style.maxWidth="100%";
-img.style.marginTop="10px";
-container.appendChild(img);
-}
-});
+/* PROMPT */
+function buildPrompt(text){
+if(codeModeActive) return "Return ONLY one code block.";
+if(exploreActive) return "Deep explore: "+text;
+return text;
 }
 
-/* ✅ NEW WORKING GRAPH SYSTEM */
-function createChart(data){
-if(!data || data.length===0) return;
+/* CODE BOX */
+function renderCode(container,reply){
 
-let canvas=document.createElement("canvas");
-messages.appendChild(canvas);
+let m=reply.match(/```(\w+)?\n([\s\S]*?)```/);
+if(!m) return false;
 
-let labels=data.map(d=>d.datetime||"");
-let prices=data.map(d=>parseFloat(d.close)).filter(n=>!isNaN(n));
+let code=m[2];
+let lang=m[1]||"html";
 
-if(prices.length===0) return;
+container.innerHTML="<b>Quadron:</b>";
 
-new Chart(canvas,{
-type:"line",
-data:{
-labels:labels,
-datasets:[{data:prices,borderWidth:2}]
-},
-options:{responsive:true,maintainAspectRatio:false}
-});
+let box=document.createElement("div");
+box.className="codeBox";
+
+let header=document.createElement("div");
+header.className="codeHeader";
+header.innerHTML=`
+<span>&lt;/&gt; ${lang}</span>
+<span>
+<button class="copyBtn">Copy</button>
+<button class="runBtn">Execute</button>
+</span>`;
+
+let content=document.createElement("pre");
+content.className="codeContent";
+
+let edit=document.createElement("div");
+edit.className="editBtn";
+edit.innerHTML="✏️";
+
+let spin=document.createElement("div");
+spin.className="spinner";
+
+box.appendChild(header);
+box.appendChild(edit);
+box.appendChild(spin);
+box.appendChild(content);
+container.appendChild(box);
+
+/* TYPE CODE */
+let i=0;
+function tc(){
+content.textContent+=code[i];
+i++;
+if(i<code.length){
+requestAnimationFrame(tc);
+}else{
+spin.remove();
+hljs.highlightElement(content);
+}
+}
+tc();
+
+/* COPY */
+header.querySelector(".copyBtn").onclick=()=>{
+navigator.clipboard.writeText(content.textContent);
+};
+
+/* EDIT */
+edit.onclick=()=>{
+content.contentEditable=true;
+content.focus();
+};
+
+/* EXECUTE */
+let executed=false;
+header.querySelector(".runBtn").onclick=function(){
+
+if(!executed){
+
+if(code.includes("cdn") || code.includes("script src")){
+alert("External Libraries Used In The Code");
+return;
 }
 
-/* EVALUATE RENDER */
-function renderEvaluate(reply, prices, showGraph){
+let iframe=document.createElement("iframe");
+iframe.srcdoc=content.textContent;
 
-let parts=reply.split(/\n\s*\n/);
+box.innerHTML="";
+box.appendChild(iframe);
 
-parts.forEach((para,i)=>{
-let p=document.createElement("p");
-p.innerHTML="<b>Quadron:</b> "+para;
-messages.appendChild(p);
+this.innerText="Back";
+executed=true;
 
-if(i===0 && showGraph){
-createChart(prices);
+}else{
+box.innerHTML="";
+renderCode(container,reply);
 }
-});
+};
+
+return true;
 }
 
 /* SEND */
 async function send(){
 
 let text=msg.value.trim();
-if(!text)return;
+if(!text) return;
 
 messages.innerHTML+=`<p><b>You:</b> ${text}</p>`;
 msg.value="";
@@ -203,108 +240,74 @@ evaluate:evaluateMode
 });
 
 let data=await res.json();
-let reply=data.reply;
 
-/* CODE */
-let m=reply.match(/```(\w+)?\n([\s\S]*?)```/);
-
-if(evaluateMode){
-renderEvaluate(reply, data.prices, data.showGraph);
-}
-else if(m){
-let lang=m[1]||"text";
-let code=m[2];
-
-p.innerHTML="<b>Quadron:</b>";
-
-let box=document.createElement("div");
-box.className="codeBox";
-
-let header=document.createElement("div");
-header.className="codeHeader";
-header.innerHTML=`<span class="codeLang">&lt;/&gt; ${lang}</span><span class="copyBtn" onclick="copyCode(this)">Copy</span>`;
-
-let spin=document.createElement("div");
-spin.className="spinner";
-
-let content=document.createElement("pre");
-content.className="codeContent";
-
-box.appendChild(header);
-box.appendChild(spin);
-box.appendChild(content);
-p.appendChild(box);
-
-let i=0;
-function tc(){
-content.textContent+=code[i];
-i++;
-if(i<code.length){
-requestAnimationFrame(tc);
-}else{
-spin.remove();
-hljs.highlightElement(content);
-}
-}
-tc();
-}
-else{
-typeText(p,reply);
-renderImages(p,reply);
+if(!renderCode(p,data.reply)){
+typeText(p,data.reply);
 }
 
 messages.scrollTop=messages.scrollHeight;
 }
 
-/* COPY */
-function copyCode(btn){
-navigator.clipboard.writeText(btn.parentElement.nextElementSibling.textContent);
-btn.innerText="Copied!";
-setTimeout(()=>btn.innerText="Copy",1500);
-}
-
-/* MODES */
+/* MODES WITH TYPING */
 function newChat(){
 messages.innerHTML="";
 exploreActive=false;
 codeModeActive=false;
 evaluateMode=false;
 closeMenu();
+fetchGreeting();
 }
 
 function codeMode(){
-messages.innerHTML="";
+newChat();
 codeModeActive=true;
-exploreActive=false;
-evaluateMode=false;
-closeMenu();
-messages.innerHTML="<b>Quadron:</b> Describe what you want to code";
+let p=document.createElement("p");
+messages.appendChild(p);
+typeText(p,"Describe what you want to code");
 }
 
 function exploreMode(){
-messages.innerHTML="";
+newChat();
 exploreActive=true;
-codeModeActive=false;
-evaluateMode=false;
-closeMenu();
-messages.innerHTML="<b>Quadron:</b> Explore the Universe";
+let p=document.createElement("p");
+messages.appendChild(p);
+typeText(p,"Explore the universe...");
 }
 
 function evaluateModeUI(){
-messages.innerHTML="";
+newChat();
 evaluateMode=true;
-exploreActive=false;
-codeModeActive=false;
-closeMenu();
-messages.innerHTML="<b>Quadron:</b> Describe what you want to evaluate";
+let p=document.createElement("p");
+messages.appendChild(p);
+typeText(p,"What should I evaluate?");
 }
 
-/* INIT */
-window.onload=()=>{newChat();}
+/* GREETING */
+async function fetchGreeting(){
+let p=document.createElement("p");
+messages.appendChild(p);
 
+let res=await fetch("/api/chat",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+message:"Give a short sarcastic greeting"
+})
+});
+
+let data=await res.json();
+typeText(p,data.reply);
+}
+
+/* ENTER */
 msg.addEventListener("keydown",e=>{
 if(e.key==="Enter") send();
 });
+
+/* INIT */
+window.onload=()=>{
+newChat();
+};
 </script>
 
 </body>
