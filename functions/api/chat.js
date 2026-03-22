@@ -10,10 +10,85 @@ export async function onRequest(context) {
   }
 
   try {
-    const { message } = await request.json();
+    const { message, evaluate, explore } = await request.json();
 
     if (!env.GROQ_API_KEY) {
       return new Response("Missing GROQ_API_KEY", { status: 500 });
+    }
+
+    let finalMessage = message;
+
+    /* 🔴 EVALUATE MODE (TAVILY) */
+    if (evaluate) {
+      try {
+        const tavilyRes = await fetch("https://api.tavily.com/search", {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer " + env.TAVILY__API,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            query: message,
+            max_results: 3
+          })
+        });
+
+        const tavilyData = await tavilyRes.json();
+
+        const content = tavilyData?.results?.map(r => r.content).join("\n");
+
+        if (!content || content.length < 20) {
+          return new Response(JSON.stringify({
+            error: "Real-time fetch failed (Tavily)"
+          }), { status: 200 });
+        }
+
+        finalMessage = `
+REAL-TIME MODE
+
+Use ONLY this data:
+${content}
+
+Give precise answer.
+`;
+
+      } catch {
+        return new Response(JSON.stringify({
+          error: "Tavily fetch crashed"
+        }), { status: 200 });
+      }
+    }
+
+    /* 🟢 EXPLORE MODE (WIKIPEDIA) */
+    if (explore) {
+      try {
+        const wikiRes = await fetch(
+          "https://en.wikipedia.org/api/rest_v1/page/summary/" +
+          encodeURIComponent(message)
+        );
+
+        const wikiData = await wikiRes.json();
+
+        if (!wikiData.extract) {
+          return new Response(JSON.stringify({
+            error: "No Wikipedia data found"
+          }), { status: 200 });
+        }
+
+        finalMessage = `
+KNOWLEDGE MODE
+
+Wikipedia Data:
+${wikiData.extract}
+
+Explain clearly.
+`;
+
+      } catch {
+        return new Response(JSON.stringify({
+          error: "Wikipedia fetch failed"
+        }), { status: 200 });
+      }
     }
 
     /* 🧠 SYSTEM PROMPT */
@@ -22,11 +97,13 @@ You are Quadron AI.
 You are sarcastic, witty, and smart.
 
 RULES:
-- If REAL-TIME MODE → use ONLY provided data
-- If KNOWLEDGE MODE → explain clearly using data
+- REAL-TIME MODE → ONLY use given data
+- KNOWLEDGE MODE → explain clearly
 - Never say data is outdated
+- Be confident and useful
 `;
 
+    /* 🔥 GROQ CALL */
     const apiRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -37,7 +114,7 @@ RULES:
         model: "llama-3.1-8b-instant",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: message }
+          { role: "user", content: finalMessage }
         ]
       })
     });
