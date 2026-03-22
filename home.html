@@ -5,60 +5,67 @@
 <title>Quadron AI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/monokai-sublime.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-body{
-  background:#0a0a0a;
-  color:#ffd900;
-  font-family:Arial;
-  margin:0;
+body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 12px #ffd900;}
+#logo{font-weight:bold;font-size:18px;}
+#menuBtn{cursor:pointer;font-size:24px;}
+
+#overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;z-index:900;}
+
+#sidePanel{
+  position:fixed;right:0;top:0;width:260px;height:100%;
+  background:#111;transform:translateX(100%);
+  transition:.3s;padding:15px;z-index:1000;
+  display:flex;flex-direction:column;
 }
-header{
-  display:flex;
-  justify-content:space-between;
-  padding:12px;
-  background:#000;
-  border-bottom:2px solid #ffd900;
-}
-#chat{
-  max-width:800px;
-  margin:auto;
-  padding:10px;
-}
+#sidePanel.open{transform:translateX(0);}
+
+.menuItem{padding:10px;cursor:pointer;margin-top:8px;color:#ffd900;font-weight:bold;}
+.menuItem:hover{text-shadow:0 0 10px #ffd900;}
+
+#chat{max-width:800px;margin:auto;padding:10px;}
 #messages{
-  height:65vh;
-  overflow:auto;
-  background:#111;
-  padding:10px;
-  border:1px solid #ffd900;
-  border-radius:12px;
+  height:65vh;overflow:auto;background:#111;
+  padding:10px;border:1px solid #ffd900;
+  border-radius:12px;box-shadow:0 0 15px #ffd900;
 }
-#inputArea{
-  display:flex;
-  gap:8px;
-  margin-top:10px;
-}
+
+#inputArea{display:flex;gap:8px;margin-top:10px;}
 input{
-  flex:1;
-  padding:10px;
-  background:black;
-  color:#ffd900;
-  border:1px solid #ffd900;
-  border-radius:10px;
+  flex:1;padding:10px;background:black;
+  color:#ffd900;border:1px solid #ffd900;border-radius:10px;
 }
 button{
-  padding:10px;
-  background:#ffd900;
-  color:#000;
-  border:none;
-  cursor:pointer;
+  padding:10px;background:#ffd900;color:#000;
+  border:none;cursor:pointer;box-shadow:0 0 12px #ffd900;
 }
+
 canvas{
-  background:white;
-  border-radius:10px;
-  margin:15px 0;
-  max-height:300px;
+  background:white;border-radius:10px;
+  margin:15px 0;max-height:300px;
+}
+
+/* CODE BOX */
+.codeBox{
+  background:#000;border:1px solid #ffd900;
+  margin-top:8px;border-radius:8px;overflow:hidden;
+}
+.codeHeader{
+  display:flex;justify-content:space-between;
+  padding:6px 10px;background:#111;
+  border-bottom:1px solid #ffd900;font-size:12px;
+}
+.copyBtn{
+  cursor:pointer;border:1px solid #ffd900;
+  padding:2px 6px;border-radius:4px;
+}
+.codeContent{
+  padding:10px;white-space:pre;overflow:auto;
 }
 </style>
 </head>
@@ -66,9 +73,16 @@ canvas{
 <body>
 
 <header>
-<div>Quadron AI</div>
+<div id="logo">Quadron AI</div>
 <div id="menuBtn">☰</div>
 </header>
+
+<div id="overlay" onclick="closeMenu()"></div>
+
+<div id="sidePanel">
+<div class="menuItem" onclick="newChat()">New Chat</div>
+<div class="menuItem" onclick="toggleEvaluate()">Evaluate Mode</div>
+</div>
 
 <div id="chat">
 <div id="messages"></div>
@@ -81,41 +95,44 @@ canvas{
 
 <script>
 const messages = document.getElementById("messages");
+const sidePanel = document.getElementById("sidePanel");
+const overlay = document.getElementById("overlay");
+
 let evaluateMode = false;
 
-/* FORMAT TEXT */
+/* MENU */
+function openMenu(){
+  sidePanel.classList.add("open");
+  overlay.style.display="block";
+}
+function closeMenu(){
+  sidePanel.classList.remove("open");
+  overlay.style.display="none";
+}
+document.getElementById("menuBtn").onclick=openMenu;
+
+/* TEXT FORMAT */
 function formatText(text){
   return text.replace(/\*\*(.*?)\*\*/g,"<b>$1</b>");
 }
-
-/* SPLIT PARAGRAPHS */
 function splitParas(text){
   return text.split(/\n\s*\n/);
 }
 
-/* SAFE GRAPH RENDER */
+/* GRAPH (UNCHANGED LOGIC) */
 function createChart(data){
-
-  if(!data || data.length === 0){
-    console.log("No data for chart");
-    return;
-  }
+  if(!data || data.length === 0) return;
 
   const canvas = document.createElement("canvas");
   messages.appendChild(canvas);
 
   const ctx = canvas.getContext("2d");
 
-  // Clean + limit data (important fix)
   const cleanData = data.slice(-20);
-
   const labels = cleanData.map(d => d.datetime || "");
   const prices = cleanData.map(d => parseFloat(d.close)).filter(n => !isNaN(n));
 
-  if(prices.length === 0){
-    console.log("Invalid price data");
-    return;
-  }
+  if(prices.length === 0) return;
 
   new Chart(ctx,{
     type:"line",
@@ -139,37 +156,64 @@ function createChart(data){
   });
 }
 
-/* RENDER RESPONSE */
+/* RENDER EVALUATE */
 function renderEvaluate(reply, prices, showGraph){
-
   const parts = splitParas(reply);
 
-  parts.forEach((para, i) => {
-
+  parts.forEach((para,i)=>{
     const p = document.createElement("p");
     p.innerHTML = "<b>Quadron:</b> " + formatText(para);
     messages.appendChild(p);
 
-    /* INSERT GRAPH AFTER 1ST PARAGRAPH ONLY IF VALID */
-    if(i === 0 && showGraph){
+    if(i===0 && showGraph){
       createChart(prices);
     }
-
   });
 }
 
-/* SEND MESSAGE */
-async function send(){
+/* CODE DETECTOR */
+function renderCode(reply){
+  let match = reply.match(/```(\w+)?\n([\s\S]*?)```/);
 
+  if(!match) return false;
+
+  const lang = match[1] || "text";
+  const code = match[2];
+
+  const p = document.createElement("p");
+  p.innerHTML = "<b>Quadron:</b>";
+  messages.appendChild(p);
+
+  const box = document.createElement("div");
+  box.className="codeBox";
+
+  const header = document.createElement("div");
+  header.className="codeHeader";
+  header.innerHTML = `<span>${lang}</span><span class="copyBtn" onclick="copyCode(this)">Copy</span>`;
+
+  const content = document.createElement("pre");
+  content.className="codeContent";
+  content.textContent = code;
+
+  box.appendChild(header);
+  box.appendChild(content);
+  p.appendChild(box);
+
+  hljs.highlightElement(content);
+
+  return true;
+}
+
+/* SEND */
+async function send(){
   const input = document.getElementById("msg");
   let text = input.value.trim();
   if(!text) return;
 
   messages.innerHTML += `<p><b>You:</b> ${text}</p>`;
-  input.value = "";
+  input.value="";
 
   try{
-
     const res = await fetch("/api/chat",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
@@ -184,28 +228,47 @@ async function send(){
     if(evaluateMode){
       renderEvaluate(data.reply, data.prices, data.showGraph);
     } else {
-      const p = document.createElement("p");
-      p.innerHTML = "<b>Quadron:</b> " + formatText(data.reply);
-      messages.appendChild(p);
+
+      if(!renderCode(data.reply)){
+        const p = document.createElement("p");
+        p.innerHTML = "<b>Quadron:</b> " + formatText(data.reply);
+        messages.appendChild(p);
+      }
+
     }
 
-  } catch(err){
+  }catch(err){
     messages.innerHTML += "<p>⚠️ Error</p>";
   }
 
   messages.scrollTop = messages.scrollHeight;
 }
 
-/* TOGGLE MODE */
-document.getElementById("menuBtn").onclick = () => {
+/* COPY */
+function copyCode(btn){
+  const text = btn.parentElement.nextElementSibling.textContent;
+  navigator.clipboard.writeText(text);
+  btn.innerText="Copied!";
+  setTimeout(()=>btn.innerText="Copy",1500);
+}
+
+/* MODES */
+function newChat(){
+  messages.innerHTML="";
+  evaluateMode=false;
+  closeMenu();
+}
+
+function toggleEvaluate(){
   evaluateMode = !evaluateMode;
+  closeMenu();
 
   messages.innerHTML += `<p><b>Quadron:</b> 🔎 Evaluate Mode ${evaluateMode ? "ON" : "OFF"}</p>`;
-};
+}
 
-/* ENTER KEY */
+/* ENTER */
 document.getElementById("msg").addEventListener("keydown", e=>{
-  if(e.key === "Enter") send();
+  if(e.key==="Enter") send();
 });
 </script>
 
