@@ -8,14 +8,58 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
-header{display:flex;justify-content:space-between;padding:12px;background:#000;border-bottom:2px solid #ffd900;}
-#chat{max-width:800px;margin:auto;padding:10px;}
-#messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;border-radius:12px;}
-#inputArea{display:flex;gap:8px;margin-top:10px;}
-input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
-button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;}
-canvas{background:white;border-radius:10px;margin:15px 0;}
+body{
+  background:#0a0a0a;
+  color:#ffd900;
+  font-family:Arial;
+  margin:0;
+}
+header{
+  display:flex;
+  justify-content:space-between;
+  padding:12px;
+  background:#000;
+  border-bottom:2px solid #ffd900;
+}
+#chat{
+  max-width:800px;
+  margin:auto;
+  padding:10px;
+}
+#messages{
+  height:65vh;
+  overflow:auto;
+  background:#111;
+  padding:10px;
+  border:1px solid #ffd900;
+  border-radius:12px;
+}
+#inputArea{
+  display:flex;
+  gap:8px;
+  margin-top:10px;
+}
+input{
+  flex:1;
+  padding:10px;
+  background:black;
+  color:#ffd900;
+  border:1px solid #ffd900;
+  border-radius:10px;
+}
+button{
+  padding:10px;
+  background:#ffd900;
+  color:#000;
+  border:none;
+  cursor:pointer;
+}
+canvas{
+  background:white;
+  border-radius:10px;
+  margin:15px 0;
+  max-height:300px;
+}
 </style>
 </head>
 
@@ -36,11 +80,10 @@ canvas{background:white;border-radius:10px;margin:15px 0;}
 </div>
 
 <script>
-const messages=document.getElementById("messages");
-let evaluateMode=false;
-let chartCount=0;
+const messages = document.getElementById("messages");
+let evaluateMode = false;
 
-/* FORMAT */
+/* FORMAT TEXT */
 function formatText(text){
   return text.replace(/\*\*(.*?)\*\*/g,"<b>$1</b>");
 }
@@ -50,17 +93,29 @@ function splitParas(text){
   return text.split(/\n\s*\n/);
 }
 
-/* CREATE REAL CHART */
-function createRealChart(data){
+/* SAFE GRAPH RENDER */
+function createChart(data){
 
-  chartCount++;
-  let canvas=document.createElement("canvas");
+  if(!data || data.length === 0){
+    console.log("No data for chart");
+    return;
+  }
+
+  const canvas = document.createElement("canvas");
   messages.appendChild(canvas);
 
-  const labels = data.map(d => d.datetime);
-  const prices = data.map(d => parseFloat(d.close));
-
   const ctx = canvas.getContext("2d");
+
+  // Clean + limit data (important fix)
+  const cleanData = data.slice(-20);
+
+  const labels = cleanData.map(d => d.datetime || "");
+  const prices = cleanData.map(d => parseFloat(d.close)).filter(n => !isNaN(n));
+
+  if(prices.length === 0){
+    console.log("Invalid price data");
+    return;
+  }
 
   new Chart(ctx,{
     type:"line",
@@ -69,89 +124,89 @@ function createRealChart(data){
       datasets:[{
         label:"Price",
         data:prices,
+        borderWidth:2,
         tension:0.3
       }]
     },
     options:{
       responsive:true,
-      plugins:{
-        legend:{display:true}
-      },
+      maintainAspectRatio:false,
       scales:{
-        x:{display:false}
+        x:{display:false},
+        y:{beginAtZero:false}
       }
     }
   });
 }
 
-/* RENDER */
-function renderEvaluate(reply, prices){
+/* RENDER RESPONSE */
+function renderEvaluate(reply, prices, showGraph){
 
   const parts = splitParas(reply);
 
-  for(let i=0;i<parts.length;i++){
+  parts.forEach((para, i) => {
 
-    let p=document.createElement("p");
-    p.innerHTML="<b>Quadron:</b> "+formatText(parts[i]);
+    const p = document.createElement("p");
+    p.innerHTML = "<b>Quadron:</b> " + formatText(para);
     messages.appendChild(p);
 
-    /* AFTER PARA 1 → GRAPH */
-    if(i===0 && prices && data.showGraph){
-  createRealChart(prices);
-}
-
-    /* AFTER PARA 2 → SECOND GRAPH */
-    if(i===1 && prices){
-      createRealChart(prices);
+    /* INSERT GRAPH AFTER 1ST PARAGRAPH ONLY IF VALID */
+    if(i === 0 && showGraph){
+      createChart(prices);
     }
-  }
+
+  });
 }
 
-/* SEND */
+/* SEND MESSAGE */
 async function send(){
-let text=msg.value.trim();
-if(!text)return;
 
-messages.innerHTML+=`<p><b>You:</b> ${text}</p>`;
-msg.value="";
+  const input = document.getElementById("msg");
+  let text = input.value.trim();
+  if(!text) return;
 
-if(evaluateMode){
+  messages.innerHTML += `<p><b>You:</b> ${text}</p>`;
+  input.value = "";
 
-let res=await fetch("/api/chat",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({message:text,evaluate:true})
-});
+  try{
 
-let data=await res.json();
+    const res = await fetch("/api/chat",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        message:text,
+        evaluate:evaluateMode
+      })
+    });
 
-renderEvaluate(data.reply, data.prices,data );
+    const data = await res.json();
 
-}else{
+    if(evaluateMode){
+      renderEvaluate(data.reply, data.prices, data.showGraph);
+    } else {
+      const p = document.createElement("p");
+      p.innerHTML = "<b>Quadron:</b> " + formatText(data.reply);
+      messages.appendChild(p);
+    }
 
-let res=await fetch("/api/chat",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({message:text})
-});
+  } catch(err){
+    messages.innerHTML += "<p>⚠️ Error</p>";
+  }
 
-let data=await res.json();
-
-let p=document.createElement("p");
-p.innerHTML="<b>Quadron:</b> "+formatText(data.reply);
-messages.appendChild(p);
+  messages.scrollTop = messages.scrollHeight;
 }
 
-messages.scrollTop=messages.scrollHeight;
-}
+/* TOGGLE MODE */
+document.getElementById("menuBtn").onclick = () => {
+  evaluateMode = !evaluateMode;
 
-/* TOGGLE */
-document.getElementById("menuBtn").onclick=()=>{
-evaluateMode=!evaluateMode;
-messages.innerHTML="<b>Quadron:</b> 🔎 Evaluate Mode "+(evaluateMode?"ON":"OFF");
+  messages.innerHTML += `<p><b>Quadron:</b> 🔎 Evaluate Mode ${evaluateMode ? "ON" : "OFF"}</p>`;
 };
 
-msg.addEventListener("keydown",e=>{if(e.key==="Enter")send();});
+/* ENTER KEY */
+document.getElementById("msg").addEventListener("keydown", e=>{
+  if(e.key === "Enter") send();
+});
 </script>
 
 </body>
