@@ -15,7 +15,7 @@ header{display:flex;justify-content:space-between;padding:12px;background:#000;b
 #inputArea{display:flex;gap:8px;margin-top:10px;}
 input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
 button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;}
-canvas{background:white;border-radius:10px;margin-top:10px;}
+canvas{background:white;border-radius:10px;margin:15px 0;}
 </style>
 </head>
 
@@ -45,18 +45,15 @@ function formatText(text){
   return text.replace(/\*\*(.*?)\*\*/g,"<b>$1</b>");
 }
 
-/* CLEAN AI GRAPH CODE */
+/* CLEAN GRAPH CODE */
 function cleanGraphCode(code, canvasId){
   if(!code) return null;
 
-  // remove ``` blocks if any
   code = code.replace(/```javascript|```/g,"");
 
-  // replace any ctx with our canvas
   code = code.replace(/document\.getElementById\(["'].*?["']\)/g,
     `document.getElementById("${canvasId}")`);
 
-  // ensure ctx exists
   if(!code.includes("getContext")){
     code = `
       const ctx = document.getElementById("${canvasId}").getContext("2d");
@@ -65,6 +62,62 @@ function cleanGraphCode(code, canvasId){
   }
 
   return code;
+}
+
+/* SPLIT INTO PARAGRAPHS */
+function splitParagraphs(text){
+  return text.split(/\n\s*\n/);
+}
+
+/* RENDER WITH 2 GRAPHS BETWEEN PARAS */
+function renderEvaluate(reply, graphs){
+
+  const parts = splitParagraphs(reply);
+
+  for(let i=0;i<parts.length;i++){
+
+    let p=document.createElement("p");
+    p.innerHTML="<b>Quadron:</b> "+formatText(parts[i]);
+    messages.appendChild(p);
+
+    /* AFTER PARA 1 → GRAPH 1 */
+    if(i===0 && graphs[0]){
+      createGraph(graphs[0]);
+    }
+
+    /* AFTER PARA 2 → GRAPH 2 */
+    if(i===1 && graphs[1]){
+      createGraph(graphs[1]);
+    }
+  }
+}
+
+/* CREATE GRAPH */
+function createGraph(code){
+
+  chartCount++;
+  let canvasId="chart_"+chartCount;
+
+  let canvas=document.createElement("canvas");
+  canvas.id=canvasId;
+  messages.appendChild(canvas);
+
+  let fixedCode = cleanGraphCode(code, canvasId);
+
+  try{
+    new Function(fixedCode)();
+  }catch(e){
+    console.log("Graph error:", e);
+
+    const ctx = canvas.getContext("2d");
+    new Chart(ctx,{
+      type:"bar",
+      data:{
+        labels:["Fallback"],
+        datasets:[{label:"Error Data",data:[1]}]
+      }
+    });
+  }
 }
 
 /* SEND */
@@ -86,40 +139,7 @@ body:JSON.stringify({message:text,evaluate:true})
 
 let data=await res.json();
 
-/* TEXT */
-let p=document.createElement("p");
-p.innerHTML="<b>Quadron:</b> "+formatText(data.reply);
-messages.appendChild(p);
-
-/* GRAPH FIX */
-if(data.graph){
-
-chartCount++;
-let canvasId="chart_"+chartCount;
-
-let canvas=document.createElement("canvas");
-canvas.id=canvasId;
-messages.appendChild(canvas);
-
-let fixedCode = cleanGraphCode(data.graph, canvasId);
-
-try{
-new Function(fixedCode)();
-}catch(e){
-console.log("Graph error:", e);
-
-/* fallback simple chart */
-const ctx = canvas.getContext("2d");
-new Chart(ctx,{
-type:"bar",
-data:{
-labels:["Data"],
-datasets:[{label:"Fallback",data:[1]}]
-}
-});
-}
-
-}
+renderEvaluate(data.reply, data.graphs);
 
 }else{
 
