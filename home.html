@@ -45,34 +45,49 @@ function formatText(text){
   return text.replace(/\*\*(.*?)\*\*/g,"<b>$1</b>");
 }
 
-/* CLEAN GRAPH CODE */
-function cleanGraphCode(code, canvasId){
-  if(!code) return null;
-
-  code = code.replace(/```javascript|```/g,"");
-
-  code = code.replace(/document\.getElementById\(["'].*?["']\)/g,
-    `document.getElementById("${canvasId}")`);
-
-  if(!code.includes("getContext")){
-    code = `
-      const ctx = document.getElementById("${canvasId}").getContext("2d");
-      ${code}
-    `;
-  }
-
-  return code;
-}
-
-/* SPLIT INTO PARAGRAPHS */
-function splitParagraphs(text){
+/* SPLIT PARAGRAPHS */
+function splitParas(text){
   return text.split(/\n\s*\n/);
 }
 
-/* RENDER WITH 2 GRAPHS BETWEEN PARAS */
-function renderEvaluate(reply, graphs){
+/* CREATE REAL CHART */
+function createRealChart(data){
 
-  const parts = splitParagraphs(reply);
+  chartCount++;
+  let canvas=document.createElement("canvas");
+  messages.appendChild(canvas);
+
+  const labels = data.map(d => d.datetime);
+  const prices = data.map(d => parseFloat(d.close));
+
+  const ctx = canvas.getContext("2d");
+
+  new Chart(ctx,{
+    type:"line",
+    data:{
+      labels:labels,
+      datasets:[{
+        label:"Price",
+        data:prices,
+        tension:0.3
+      }]
+    },
+    options:{
+      responsive:true,
+      plugins:{
+        legend:{display:true}
+      },
+      scales:{
+        x:{display:false}
+      }
+    }
+  });
+}
+
+/* RENDER */
+function renderEvaluate(reply, prices){
+
+  const parts = splitParas(reply);
 
   for(let i=0;i<parts.length;i++){
 
@@ -80,43 +95,15 @@ function renderEvaluate(reply, graphs){
     p.innerHTML="<b>Quadron:</b> "+formatText(parts[i]);
     messages.appendChild(p);
 
-    /* AFTER PARA 1 → GRAPH 1 */
-    if(i===0 && graphs[0]){
-      createGraph(graphs[0]);
+    /* AFTER PARA 1 → GRAPH */
+    if(i===0 && prices){
+      createRealChart(prices);
     }
 
-    /* AFTER PARA 2 → GRAPH 2 */
-    if(i===1 && graphs[1]){
-      createGraph(graphs[1]);
+    /* AFTER PARA 2 → SECOND GRAPH */
+    if(i===1 && prices){
+      createRealChart(prices);
     }
-  }
-}
-
-/* CREATE GRAPH */
-function createGraph(code){
-
-  chartCount++;
-  let canvasId="chart_"+chartCount;
-
-  let canvas=document.createElement("canvas");
-  canvas.id=canvasId;
-  messages.appendChild(canvas);
-
-  let fixedCode = cleanGraphCode(code, canvasId);
-
-  try{
-    new Function(fixedCode)();
-  }catch(e){
-    console.log("Graph error:", e);
-
-    const ctx = canvas.getContext("2d");
-    new Chart(ctx,{
-      type:"bar",
-      data:{
-        labels:["Fallback"],
-        datasets:[{label:"Error Data",data:[1]}]
-      }
-    });
   }
 }
 
@@ -128,7 +115,6 @@ if(!text)return;
 messages.innerHTML+=`<p><b>You:</b> ${text}</p>`;
 msg.value="";
 
-/* EVALUATE MODE */
 if(evaluateMode){
 
 let res=await fetch("/api/chat",{
@@ -139,7 +125,7 @@ body:JSON.stringify({message:text,evaluate:true})
 
 let data=await res.json();
 
-renderEvaluate(data.reply, data.graphs);
+renderEvaluate(data.reply, data.prices);
 
 }else{
 
