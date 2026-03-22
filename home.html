@@ -10,56 +10,124 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
-header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 12px #ffd900;}
+body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;transition:.3s;}
+.blur-bg{filter:blur(6px);}
+
+/* HEADER */
+header{
+display:flex;justify-content:space-between;align-items:center;
+padding:12px;background:#000;border-bottom:2px solid #ffd900;
+box-shadow:0 0 12px #ffd900;
+}
 #logo{font-weight:bold;font-size:18px;}
-#menuBtn{cursor:pointer;font-size:24px;}
 
-#overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;z-index:900;}
+/* HAMBURGER */
+#menuBtn{
+cursor:pointer;font-size:24px;
+color:#ffd900;
+text-shadow:0 0 10px #ffd900;
+transition:.3s;
+}
+#menuBtn:hover{
+text-shadow:0 0 20px #ffd900,0 0 30px #ffd900;
+}
 
-#sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;overflow-y:auto;}
+/* MENU */
+#overlay{
+position:fixed;width:100%;height:100%;
+background:rgba(0,0,0,0.4);display:none;z-index:900;
+}
+#sidePanel{
+position:fixed;right:0;top:0;width:260px;height:100%;
+background:#111;transform:translateX(100%);
+transition:.3s;padding:15px;z-index:1000;
+display:flex;flex-direction:column;justify-content:space-between;
+}
 #sidePanel.open{transform:translateX(0);}
 
-.menuItem{padding:10px;cursor:pointer;margin-top:8px;font-weight:bold;}
+.menuItem{
+padding:10px;cursor:pointer;margin-top:8px;
+font-weight:bold;color:#ffd900;
+transition:.2s;
+}
 .menuItem:hover{text-shadow:0 0 10px #ffd900;}
 
+/* MENU FOOTER */
+.menuFooter{
+margin-top:auto;
+font-size:12px;
+color:white;
+}
+.menuFooter span{
+color:#ffd900;
+text-shadow:0 0 10px #ffd900;
+}
+
+/* CHAT */
 #chat{max-width:800px;margin:auto;padding:10px;}
-#messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;border-radius:12px;}
+#messages{
+height:65vh;overflow:auto;background:#111;padding:10px;
+border:1px solid #ffd900;border-radius:12px;
+box-shadow:0 0 10px #ffd900,0 0 20px #ffd900 inset;
+}
 
+/* INPUT */
 #inputArea{display:flex;gap:8px;margin-top:10px;}
-input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
-button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;}
+input{
+flex:1;padding:10px;background:black;color:#ffd900;
+border:1px solid #ffd900;border-radius:10px;
+}
 
-.codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:hidden;position:relative;}
-.codeHeader{display:flex;justify-content:space-between;padding:6px;background:#111;border-bottom:1px solid #ffd900;font-size:12px;}
-.copyBtn,.runBtn{cursor:pointer;border:1px solid #ffd900;padding:2px 6px;border-radius:4px;margin-left:5px;}
-.codeContent{padding:10px;white-space:pre;overflow:auto;}
-
-.editBtn{
-position:absolute;
-top:30px;
-right:10px;
+/* SEND BUTTON */
+button{
+padding:10px 16px;
+background:#ffd900;color:#000;border:none;
+border-radius:25px;
 cursor:pointer;
-font-size:14px;
+box-shadow:0 0 10px #ffd900;
+transition:.3s;
+}
+button:hover{
+box-shadow:0 0 20px #ffd900,0 0 40px #ffd900;
 }
 
-.spinner{
-position:absolute;
-width:16px;height:16px;
-border:3px solid #ffd900;
-border-top:3px solid transparent;
-border-radius:50%;
-animation:spin 1s linear infinite;
-top:35px;
-left:10px;
+/* CODE BOX (CHATGPT STYLE) */
+.codeBox{
+background:#0d0d0d;
+border:1px solid #333;
+border-radius:12px;
+margin-top:10px;
+overflow:hidden;
 }
-@keyframes spin{100%{transform:rotate(360deg);}}
+.codeHeader{
+display:flex;
+justify-content:space-between;
+padding:8px;
+background:#1a1a1a;
+font-size:12px;
+}
+.codeBtns button{
+margin-left:5px;
+border-radius:6px;
+padding:4px 8px;
+}
+.codeContent{
+padding:10px;
+white-space:pre;
+overflow:auto;
+}
 
-iframe{
-width:100%;
-height:250px;
-border:none;
-background:white;
+/* FOOTER */
+.footer{
+text-align:center;
+font-size:13px;
+margin:10px;
+color:white;
+}
+.footer a{
+color:#ffd900;
+text-shadow:0 0 10px #ffd900;
+text-decoration:none;
 }
 </style>
 </head>
@@ -74,10 +142,16 @@ background:white;
 <div id="overlay" onclick="closeMenu()"></div>
 
 <div id="sidePanel">
+<div>
 <div class="menuItem" onclick="newChat()">New Chat</div>
 <div class="menuItem" onclick="codeMode()">Code /</div>
 <div class="menuItem" onclick="exploreMode()">Explore</div>
 <div class="menuItem" onclick="evaluateModeUI()">Evaluate</div>
+</div>
+
+<div class="menuFooter">
+Created by <span>Rawat Systems</span>
+</div>
 </div>
 
 <div id="chat">
@@ -89,21 +163,37 @@ background:white;
 </div>
 </div>
 
+<div class="footer">
+Quadron AI can make mistakes, by using it you agree our 
+<a href="terms.html">Terms & Conditions</a>
+</div>
+
 <script>
 const messages=document.getElementById("messages");
-const sidePanel=document.getElementById("sidePanel");
-const overlay=document.getElementById("overlay");
 
 /* MENU */
-function openMenu(){sidePanel.classList.add("open");overlay.style.display="block";}
-function closeMenu(){sidePanel.classList.remove("open");overlay.style.display="none";}
+function openMenu(){
+sidePanel.classList.add("open");
+overlay.style.display="block";
+document.body.classList.add("blur-bg");
+}
+function closeMenu(){
+sidePanel.classList.remove("open");
+overlay.style.display="none";
+document.body.classList.remove("blur-bg");
+}
 
 /* MODES */
 let exploreActive=false;
 let codeModeActive=false;
 let evaluateMode=false;
 
-/* FAST TYPE */
+/* TEXT FORMAT (BOLD SUPPORT) */
+function formatText(text){
+return text.replace(/\*\*(.*?)\*\*/g,"<b>$1</b>");
+}
+
+/* FAST TYPING */
 function typeText(el,text){
 let span=document.createElement("span");
 el.innerHTML="<b>Quadron:</b> ";
@@ -111,18 +201,11 @@ el.appendChild(span);
 
 let i=0;
 function t(){
-span.textContent=text.slice(0,i);
-i+=2; // ⚡ speed increased
+span.innerHTML=formatText(text.slice(0,i));
+i+=2;
 if(i<=text.length) requestAnimationFrame(t);
 }
 t();
-}
-
-/* PROMPT */
-function buildPrompt(text){
-if(codeModeActive) return "Return ONLY one code block.";
-if(exploreActive) return "Deep explore: "+text;
-return text;
 }
 
 /* CODE BOX */
@@ -141,59 +224,44 @@ box.className="codeBox";
 
 let header=document.createElement("div");
 header.className="codeHeader";
+
 header.innerHTML=`
-<span>&lt;/&gt; ${lang}</span>
-<span>
-<button class="copyBtn">Copy</button>
-<button class="runBtn">Execute</button>
-</span>`;
+<span>${lang}</span>
+<div class="codeBtns">
+<button onclick="copyCode(this)">Copy</button>
+<button onclick="runCode(this)">Execute</button>
+</div>
+`;
 
 let content=document.createElement("pre");
 content.className="codeContent";
-
-let edit=document.createElement("div");
-edit.className="editBtn";
-edit.innerHTML="✏️";
-
-let spin=document.createElement("div");
-spin.className="spinner";
+content.textContent=code;
 
 box.appendChild(header);
-box.appendChild(edit);
-box.appendChild(spin);
 box.appendChild(content);
 container.appendChild(box);
 
-/* TYPE CODE */
-let i=0;
-function tc(){
-content.textContent+=code[i];
-i++;
-if(i<code.length){
-requestAnimationFrame(tc);
-}else{
-spin.remove();
 hljs.highlightElement(content);
+
+return true;
 }
-}
-tc();
 
 /* COPY */
-header.querySelector(".copyBtn").onclick=()=>{
-navigator.clipboard.writeText(content.textContent);
-};
+function copyCode(btn){
+let code=btn.closest(".codeBox").querySelector("pre").textContent;
+navigator.clipboard.writeText(code);
+}
 
-/* EDIT */
-edit.onclick=()=>{
-content.contentEditable=true;
-content.focus();
-};
+/* RUN */
+function runCode(btn){
+let box=btn.closest(".codeBox");
+let code=box.querySelector("pre").textContent;
 
-/* EXECUTE */
-let executed=false;
-header.querySelector(".runBtn").onclick=function(){
-
-if(!executed){
+if(btn.innerText==="Back"){
+box.innerHTML="";
+renderCode(box.parentElement, "```html\n"+code+"\n```");
+return;
+}
 
 if(code.includes("cdn") || code.includes("script src")){
 alert("External Libraries Used In The Code");
@@ -201,21 +269,12 @@ return;
 }
 
 let iframe=document.createElement("iframe");
-iframe.srcdoc=content.textContent;
+iframe.srcdoc=code;
 
 box.innerHTML="";
 box.appendChild(iframe);
 
-this.innerText="Back";
-executed=true;
-
-}else{
-box.innerHTML="";
-renderCode(container,reply);
-}
-};
-
-return true;
+btn.innerText="Back";
 }
 
 /* SEND */
@@ -233,10 +292,7 @@ messages.appendChild(p);
 let res=await fetch("/api/chat",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({
-message:buildPrompt(text),
-evaluate:evaluateMode
-})
+body:JSON.stringify({message:text,evaluate:evaluateMode})
 });
 
 let data=await res.json();
@@ -248,7 +304,7 @@ typeText(p,data.reply);
 messages.scrollTop=messages.scrollHeight;
 }
 
-/* MODES WITH TYPING */
+/* MODES */
 function newChat(){
 messages.innerHTML="";
 exploreActive=false;
@@ -259,40 +315,43 @@ fetchGreeting();
 }
 
 function codeMode(){
-newChat();
+messages.innerHTML="";
 codeModeActive=true;
+closeMenu();
 let p=document.createElement("p");
 messages.appendChild(p);
 typeText(p,"Describe what you want to code");
 }
 
 function exploreMode(){
-newChat();
+messages.innerHTML="";
 exploreActive=true;
+closeMenu();
 let p=document.createElement("p");
 messages.appendChild(p);
-typeText(p,"Explore the universe...");
+typeText(p,"Explore anything...");
 }
 
 function evaluateModeUI(){
-newChat();
+messages.innerHTML="";
 evaluateMode=true;
+closeMenu();
 let p=document.createElement("p");
 messages.appendChild(p);
 typeText(p,"What should I evaluate?");
 }
 
-/* GREETING */
+/* GREETING (NOT IN MODES) */
 async function fetchGreeting(){
+if(codeModeActive || exploreActive || evaluateMode) return;
+
 let p=document.createElement("p");
 messages.appendChild(p);
 
 let res=await fetch("/api/chat",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({
-message:"Give a short sarcastic greeting"
-})
+body:JSON.stringify({message:"Give a short sarcastic greeting"})
 });
 
 let data=await res.json();
@@ -305,9 +364,7 @@ if(e.key==="Enter") send();
 });
 
 /* INIT */
-window.onload=()=>{
-newChat();
-};
+window.onload=()=>{newChat();}
 </script>
 
 </body>
