@@ -11,61 +11,56 @@
 
 <style>
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
-header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 12px #ffd900;}
-#logo{font-weight:bold;font-size:18px;}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#000;border-bottom:2px solid #ffd900;}
 #menuBtn{cursor:pointer;font-size:24px;}
 
 #overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;z-index:900;}
 
 #sidePanel{
   position:fixed;right:0;top:0;width:260px;height:100%;
-  background:#111;transform:translateX(100%);
-  transition:.3s;padding:15px;z-index:1000;
-  display:flex;flex-direction:column;
+  background:#111;transform:translateX(100%);transition:.3s;
+  padding:15px;z-index:1000;overflow-y:auto;
 }
 #sidePanel.open{transform:translateX(0);}
 
-.menuItem{padding:10px;cursor:pointer;margin-top:8px;color:#ffd900;font-weight:bold;}
+.menuItem{padding:10px;cursor:pointer;margin-top:8px;font-weight:bold;}
 .menuItem:hover{text-shadow:0 0 10px #ffd900;}
 
 #chat{max-width:800px;margin:auto;padding:10px;}
 #messages{
   height:65vh;overflow:auto;background:#111;
-  padding:10px;border:1px solid #ffd900;
-  border-radius:12px;box-shadow:0 0 15px #ffd900;
+  padding:10px;border:1px solid #ffd900;border-radius:12px;
 }
 
 #inputArea{display:flex;gap:8px;margin-top:10px;}
-input{
-  flex:1;padding:10px;background:black;
-  color:#ffd900;border:1px solid #ffd900;border-radius:10px;
-}
-button{
-  padding:10px;background:#ffd900;color:#000;
-  border:none;cursor:pointer;box-shadow:0 0 12px #ffd900;
-}
+input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
+button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;}
 
-canvas{
-  background:white;border-radius:10px;
-  margin:15px 0;max-height:300px;
-}
-
-/* CODE BOX */
 .codeBox{
-  background:#000;border:1px solid #ffd900;
-  margin-top:8px;border-radius:8px;overflow:hidden;
+  background:#000;border:1px solid #ffd900;margin-top:8px;
+  border-radius:8px;overflow:hidden;font-family:monospace;
+  position:relative;
 }
 .codeHeader{
   display:flex;justify-content:space-between;
-  padding:6px 10px;background:#111;
-  border-bottom:1px solid #ffd900;font-size:12px;
+  padding:6px;background:#111;border-bottom:1px solid #ffd900;
 }
-.copyBtn{
-  cursor:pointer;border:1px solid #ffd900;
-  padding:2px 6px;border-radius:4px;
+.copyBtn{cursor:pointer;border:1px solid #ffd900;padding:2px 6px;border-radius:4px;}
+.codeContent{padding:10px;white-space:pre;overflow:auto;}
+
+.spinner{
+  position:absolute;width:16px;height:16px;
+  border:3px solid #ffd900;border-top:3px solid transparent;
+  border-radius:50%;animation:spin 1s linear infinite;
+  top:8px;left:8px;
 }
-.codeContent{
-  padding:10px;white-space:pre;overflow:auto;
+@keyframes spin{100%{transform:rotate(360deg);}}
+
+canvas{
+  background:white;
+  border-radius:10px;
+  margin:15px 0;
+  max-height:300px;
 }
 </style>
 </head>
@@ -73,15 +68,17 @@ canvas{
 <body>
 
 <header>
-<div id="logo">Quadron AI</div>
-<div id="menuBtn">☰</div>
+<div>Quadron AI</div>
+<div id="menuBtn" onclick="openMenu()">☰</div>
 </header>
 
 <div id="overlay" onclick="closeMenu()"></div>
 
 <div id="sidePanel">
 <div class="menuItem" onclick="newChat()">New Chat</div>
-<div class="menuItem" onclick="toggleEvaluate()">Evaluate Mode</div>
+<div class="menuItem" onclick="codeMode()">Code /</div>
+<div class="menuItem" onclick="exploreMode()">Explore</div>
+<div class="menuItem" onclick="evaluateModeUI()">Evaluate</div>
 </div>
 
 <div id="chat">
@@ -98,71 +95,109 @@ const messages = document.getElementById("messages");
 const sidePanel = document.getElementById("sidePanel");
 const overlay = document.getElementById("overlay");
 
-let evaluateMode = false;
-
 /* MENU */
-function openMenu(){
-  sidePanel.classList.add("open");
-  overlay.style.display="block";
+function openMenu(){sidePanel.classList.add("open");overlay.style.display="block";}
+function closeMenu(){sidePanel.classList.remove("open");overlay.style.display="none";}
+
+/* MODES */
+let exploreActive=false;
+let codeModeActive=false;
+let evaluateMode=false;
+
+/* PROMPT */
+function buildPrompt(text){
+  if(codeModeActive) return "Return ONLY one code block.";
+
+  if(exploreActive){
+    return "Give deep exploration with insights + image links. User: "+text;
+  }
+
+  return text;
 }
-function closeMenu(){
-  sidePanel.classList.remove("open");
-  overlay.style.display="none";
-}
-document.getElementById("menuBtn").onclick=openMenu;
 
 /* TEXT FORMAT */
 function formatText(text){
   return text.replace(/\*\*(.*?)\*\*/g,"<b>$1</b>");
 }
-function splitParas(text){
-  return text.split(/\n\s*\n/);
+
+/* CODE BOX */
+function renderCode(container, reply){
+  let m = reply.match(/```(\w+)?\n([\s\S]*?)```/);
+  if(!m) return false;
+
+  let lang = m[1] || "text";
+  let code = m[2];
+
+  container.innerHTML = "<b>Quadron:</b>";
+
+  let box = document.createElement("div");
+  box.className="codeBox";
+
+  let header = document.createElement("div");
+  header.className="codeHeader";
+  header.innerHTML=`<span>${lang}</span><span class="copyBtn" onclick="copyCode(this)">Copy</span>`;
+
+  let spin = document.createElement("div");
+  spin.className="spinner";
+
+  let content = document.createElement("pre");
+  content.className="codeContent";
+
+  box.appendChild(header);
+  box.appendChild(spin);
+  box.appendChild(content);
+  container.appendChild(box);
+
+  let i=0;
+  function type(){
+    content.textContent += code[i];
+    i++;
+    if(i < code.length){
+      requestAnimationFrame(type);
+    } else {
+      spin.remove();
+      hljs.highlightElement(content);
+    }
+  }
+  type();
+
+  return true;
 }
 
-/* GRAPH (UNCHANGED LOGIC) */
+/* GRAPH (FROM 2ND CODE - FIXED) */
 function createChart(data){
+
   if(!data || data.length === 0) return;
 
   const canvas = document.createElement("canvas");
   messages.appendChild(canvas);
 
-  const ctx = canvas.getContext("2d");
-
-  const cleanData = data.slice(-20);
-  const labels = cleanData.map(d => d.datetime || "");
-  const prices = cleanData.map(d => parseFloat(d.close)).filter(n => !isNaN(n));
+  const labels = data.map(d => d.datetime || "");
+  const prices = data.map(d => parseFloat(d.close)).filter(n=>!isNaN(n));
 
   if(prices.length === 0) return;
 
-  new Chart(ctx,{
+  new Chart(canvas,{
     type:"line",
     data:{
       labels:labels,
-      datasets:[{
-        label:"Price",
-        data:prices,
-        borderWidth:2,
-        tension:0.3
-      }]
+      datasets:[{data:prices, borderWidth:2}]
     },
     options:{
       responsive:true,
-      maintainAspectRatio:false,
-      scales:{
-        x:{display:false},
-        y:{beginAtZero:false}
-      }
+      maintainAspectRatio:false
     }
   });
 }
 
-/* RENDER EVALUATE */
+/* EVALUATE RENDER */
 function renderEvaluate(reply, prices, showGraph){
-  const parts = splitParas(reply);
 
-  parts.forEach((para,i)=>{
-    const p = document.createElement("p");
-    p.innerHTML = "<b>Quadron:</b> " + formatText(para);
+  let parts = reply.split(/\n\s*\n/);
+
+  parts.forEach((para, i)=>{
+    let p = document.createElement("p");
+    p.innerHTML = "<b>Quadron:</b> "+formatText(para);
     messages.appendChild(p);
 
     if(i===0 && showGraph){
@@ -171,74 +206,36 @@ function renderEvaluate(reply, prices, showGraph){
   });
 }
 
-/* CODE DETECTOR */
-function renderCode(reply){
-  let match = reply.match(/```(\w+)?\n([\s\S]*?)```/);
-
-  if(!match) return false;
-
-  const lang = match[1] || "text";
-  const code = match[2];
-
-  const p = document.createElement("p");
-  p.innerHTML = "<b>Quadron:</b>";
-  messages.appendChild(p);
-
-  const box = document.createElement("div");
-  box.className="codeBox";
-
-  const header = document.createElement("div");
-  header.className="codeHeader";
-  header.innerHTML = `<span>${lang}</span><span class="copyBtn" onclick="copyCode(this)">Copy</span>`;
-
-  const content = document.createElement("pre");
-  content.className="codeContent";
-  content.textContent = code;
-
-  box.appendChild(header);
-  box.appendChild(content);
-  p.appendChild(box);
-
-  hljs.highlightElement(content);
-
-  return true;
-}
-
 /* SEND */
 async function send(){
-  const input = document.getElementById("msg");
+
+  let input = document.getElementById("msg");
   let text = input.value.trim();
   if(!text) return;
 
   messages.innerHTML += `<p><b>You:</b> ${text}</p>`;
   input.value="";
 
-  try{
-    const res = await fetch("/api/chat",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        message:text,
-        evaluate:evaluateMode
-      })
-    });
+  let p = document.createElement("p");
+  messages.appendChild(p);
 
-    const data = await res.json();
+  let res = await fetch("/api/chat",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      message: buildPrompt(text),
+      evaluate: evaluateMode
+    })
+  });
 
-    if(evaluateMode){
-      renderEvaluate(data.reply, data.prices, data.showGraph);
-    } else {
+  let data = await res.json();
 
-      if(!renderCode(data.reply)){
-        const p = document.createElement("p");
-        p.innerHTML = "<b>Quadron:</b> " + formatText(data.reply);
-        messages.appendChild(p);
-      }
-
+  if(evaluateMode){
+    renderEvaluate(data.reply, data.prices, data.showGraph);
+  } else {
+    if(!renderCode(p, data.reply)){
+      p.innerHTML = "<b>Quadron:</b> "+formatText(data.reply);
     }
-
-  }catch(err){
-    messages.innerHTML += "<p>⚠️ Error</p>";
   }
 
   messages.scrollTop = messages.scrollHeight;
@@ -246,8 +243,7 @@ async function send(){
 
 /* COPY */
 function copyCode(btn){
-  const text = btn.parentElement.nextElementSibling.textContent;
-  navigator.clipboard.writeText(text);
+  navigator.clipboard.writeText(btn.parentElement.nextElementSibling.textContent);
   btn.innerText="Copied!";
   setTimeout(()=>btn.innerText="Copy",1500);
 }
@@ -255,21 +251,37 @@ function copyCode(btn){
 /* MODES */
 function newChat(){
   messages.innerHTML="";
+  exploreActive=false;
+  codeModeActive=false;
   evaluateMode=false;
   closeMenu();
 }
 
-function toggleEvaluate(){
-  evaluateMode = !evaluateMode;
-  closeMenu();
+function codeMode(){
+  newChat();
+  codeModeActive=true;
+  messages.innerHTML="<b>Quadron:</b> Describe what you want to code";
+}
 
-  messages.innerHTML += `<p><b>Quadron:</b> 🔎 Evaluate Mode ${evaluateMode ? "ON" : "OFF"}</p>`;
+function exploreMode(){
+  newChat();
+  exploreActive=true;
+  messages.innerHTML="<b>Quadron:</b> Explore anything";
+}
+
+function evaluateModeUI(){
+  newChat();
+  evaluateMode=true;
+  messages.innerHTML="<b>Quadron:</b> Evaluation mode activated";
 }
 
 /* ENTER */
-document.getElementById("msg").addEventListener("keydown", e=>{
+document.getElementById("msg").addEventListener("keydown",e=>{
   if(e.key==="Enter") send();
 });
+
+/* INIT */
+newChat();
 </script>
 
 </body>
