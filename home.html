@@ -1,46 +1,265 @@
-<!-- ONLY CHANGES SHOWN INSIDE SCRIPT + SMALL CSS ADDITIONS -->
+<!DOCTYPE html> 
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Quadron AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/monokai-sublime.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
+body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
+.blur-bg{filter:blur(5px);}
 
-/* BUTTON CLICK ANIMATION */
-.codeBtns button:active{
-transform:scale(0.9);
+header{
+display:flex;justify-content:space-between;align-items:center;
+padding:12px;background:#000;border-bottom:2px solid #ffd900;
+box-shadow:0 0 12px #ffd900;
 }
 
-/* FOOTER CENTER */
+#logo{font-weight:bold;font-size:18px;}
+#menuBtn{cursor:pointer;font-size:24px;}
+
+#overlay{
+position:fixed;width:100%;height:100%;
+background:rgba(0,0,0,0.4);display:none;z-index:900;
+}
+
+#sidePanel{
+position:fixed;right:0;top:0;width:260px;height:100%;
+background:#111;transform:translateX(100%);
+transition:.3s;padding:15px;z-index:1000;
+overflow-y:auto;display:flex;flex-direction:column;
+}
+#sidePanel.open{transform:translateX(0);}
+
+#menuProfile{
+display:flex;align-items:center;gap:10px;
+padding:10px;border-bottom:1px solid #333;
+}
+#menuProfile img{
+width:40px;height:40px;border-radius:50%;
+border:1px solid #ffd900;object-fit:cover;
+}
+
+.menuItem{
+padding:10px;cursor:pointer;margin-top:8px;
+color:#ffd900;font-weight:bold;
+}
+
+.menuFooter{
+margin-top:15px;text-align:center;font-size:12px;
+padding-bottom:10px;
+}
+.menuFooter span{
+font-weight:bold;color:#ffd900;
+text-shadow:0 0 10px #ffd900;
+}
+
+#chat{max-width:800px;margin:auto;padding:10px;}
+#messages{
+height:65vh;overflow:auto;background:#111;
+padding:10px;border:1px solid #ffd900;
+box-shadow:0 0 15px #ffd900;border-radius:12px;
+}
+
+#inputArea{display:flex;gap:8px;margin-top:10px;}
+input{
+flex:1;padding:10px;background:black;
+color:#ffd900;border:1px solid #ffd900;
+border-radius:10px;
+}
+
+button{
+padding:10px;background:#ffd900;color:#000;
+border:none;box-shadow:0 0 15px #ffd900;
+cursor:pointer;transition:.3s;
+}
+button:hover{
+box-shadow:0 0 35px #ffd900,0 0 70px #ffd900;
+}
+
+/* TEXT GLOW */
+.you{color:#ffd900;text-shadow:0 0 12px #ffd900;}
+.ai{color:#ffd900;text-shadow:0 0 12px #ffd900;}
+.userText{color:#ffd900;text-shadow:0 0 10px #ffd900;}
+.aiText{color:#fff;text-shadow:0 0 10px #fff;}
+
+.codeBox{
+background:#000;border:1px solid #ffd900;
+margin-top:8px;border-radius:8px;
+overflow:hidden;font-family:monospace;
+position:relative;
+}
+
+.codeHeader{
+display:flex;justify-content:space-between;
+align-items:center;padding:6px 10px;
+background:#111;font-size:12px;
+border-bottom:1px solid #ffd900;
+}
+
+.codeLang{transition:0.2s;}
+.copyBtn{
+cursor:pointer;color:#ffd900;padding:2px 6px;
+border:1px solid #ffd900;border-radius:4px;
+}
+
+.codeContent{
+padding:10px;white-space:pre;
+min-height:20px;
+}
+
+.spinner{
+position:absolute;width:16px;height:16px;
+border:3px solid #ffd900;border-top:3px solid transparent;
+border-radius:50%;animation:spin 1s linear infinite;
+top:8px;left:8px;
+}
+@keyframes spin{100%{transform:rotate(360deg);}}
+
+/* FOOTER FIX */
 .footer{
 text-align:center;
-font-size:13px;
+font-size:12px;
 margin:10px;
-color:white;
 }
-
-/* TERMS GLOW */
 .footer a{
 color:#ffd900;
-text-shadow:0 0 12px #ffd900,0 0 25px #ffd900;
+text-shadow:0 0 10px #ffd900;
+text-decoration:none;
 }
-
 </style>
+</head>
+
+<body>
+
+<header>
+<div id="logo">Quadron AI</div>
+<div id="menuBtn" onclick="openMenu()">☰</div>
+</header>
+
+<div id="overlay" onclick="closeMenu()"></div>
+
+<div id="sidePanel">
+
+<div id="menuProfile">
+<img id="profilePic" src="">
+<div>
+<div id="profileName"></div>
+<div style="font-size:12px;" id="profileEmail"></div>
+</div>
+</div>
+
+<div class="menuItem" onclick="newChat()">New Chat</div>
+<div class="menuItem" onclick="location.href='voice.html'">Voice Mode</div>
+<div class="menuItem" onclick="location.href='quadron7.html'">Quadron 7</div>
+<div class="menuItem" onclick="codeMode()">Code /</div>
+<div class="menuItem" onclick="exploreMode()">Explore</div>
+<div class="menuItem" onclick="evaluateModeUI()">Evaluate</div>
+
+<div class="menuFooter">
+Developed by <span>Rawat Systems</span>
+</div>
+
+</div>
+
+<div id="chat">
+<div id="messages"></div>
+
+<div id="inputArea">
+<input id="msg" placeholder="Type here...">
+<button onclick="send()">Send</button>
+</div>
+</div>
+
+<div class="footer">
+Quadron AI can make mistakes, By using it you agree our 
+<a href="terms.html">Terms & Conditions</a>
+</div>
 
 <script>
+const messages=document.getElementById("messages");
 
-/* MODE SYSTEM */
-let mode="normal";
+/* MENU */
+function openMenu(){sidePanel.classList.add("open");overlay.style.display="block";}
+function closeMenu(){sidePanel.classList.remove("open");overlay.style.display="none";}
 
-/* CODE BOX (UPGRADED) */
-function renderCode(container,reply){
+/* MODES */
+let exploreActive=false;
+let codeModeActive=false;
+let evaluateMode=false;
 
-let m=reply.match(/```(\w+)?\n([\s\S]*?)```/);
-let lang="html";
-let code=reply;
+/* PROMPT */
+function buildPrompt(userText){
 
-if(m){
-lang=m[1]||"html";
-code=m[2];
+if(codeModeActive){
+return "Return ONLY code block. No explanation.";
 }
 
-container.innerHTML="<span class='aiLabel'>Quadron:</span>";
+if(exploreActive){
+return "Deep exploration with insights + image links. "+userText;
+}
+
+if(evaluateMode){
+return "Detailed evaluation + JSON chart + image links. "+userText;
+}
+
+return "Sarcastic witty reply. "+userText;
+}
+
+/* TYPE */
+function typeText(el,text){
+let span=document.createElement("span");
+el.innerHTML='<span class="ai">Quadron:</span> ';
+span.className="aiText";
+el.appendChild(span);
+
+let i=0;
+function t(){
+span.textContent=text.slice(0,i);
+i++;
+if(i<=text.length) requestAnimationFrame(t);
+}
+t();
+}
+
+/* SEND */
+async function send(){
+
+let text=msg.value.trim();
+if(!text)return;
+
+messages.innerHTML+=`<p><span class="you">You:</span> <span class="userText">${text}</span></p>`;
+msg.value="";
+
+let p=document.createElement("p");
+messages.appendChild(p);
+
+let res=await fetch("/api/chat",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({message:buildPrompt(text)})
+});
+
+let data=await res.json();
+let reply=data.reply;
+
+/* CODE MODE FORCE */
+if(codeModeActive && !reply.includes("```")){
+reply="```html\n"+reply+"\n```";
+}
+
+/* CODE */
+let m=reply.match(/```(\w+)?\n([\s\S]*?)```/);
+
+if(m){
+let lang=m[1]||"text";
+let code=m[2];
+
+p.innerHTML='<span class="ai">Quadron:</span>';
 
 let box=document.createElement("div");
 box.className="codeBox";
@@ -50,47 +269,54 @@ header.className="codeHeader";
 
 header.innerHTML=`
 <span class="codeLang">&lt;/&gt; ${lang}</span>
-<div class="codeBtns">
-<button onclick="copyCode(this)">Copy</button>
-<button onclick="runCode(this)">Execute</button>
-<button onclick="debugCode(this)">Debug</button>
-</div>`;
+<span>
+<span class="copyBtn" onclick="copyCode(this)">Copy</span>
+<span class="copyBtn" onclick="runCode(this)">Run</span>
+<span class="copyBtn" onclick="debugCode(this)">Debug</span>
+</span>`;
+
+let spin=document.createElement("div");
+spin.className="spinner";
 
 let content=document.createElement("pre");
 content.className="codeContent";
 
-/* SPINNER */
-let spinner=document.createElement("div");
-spinner.className="spinner";
-
 box.appendChild(header);
-box.appendChild(spinner);
+box.appendChild(spin);
 box.appendChild(content);
-container.appendChild(box);
+p.appendChild(box);
 
-/* SHIFT TEXT */
-let langEl=header.querySelector(".codeLang");
-langEl.style.marginLeft="20px";
+/* SHIFT LABEL */
+header.querySelector(".codeLang").style.marginLeft="20px";
 
-/* TYPE EFFECT */
+/* TYPE CODE */
 let i=0;
-function type(){
+function tc(){
 content.textContent+=code[i];
 i++;
 if(i<code.length){
-requestAnimationFrame(type);
+requestAnimationFrame(tc);
 }else{
-spinner.remove();
-langEl.style.marginLeft="0px";
+spin.remove();
+header.querySelector(".codeLang").style.marginLeft="0px";
 hljs.highlightElement(content);
 }
 }
-type();
+tc();
 
-return true;
+}else{
+typeText(p,reply);
 }
 
-/* EXECUTE */
+messages.scrollTop=messages.scrollHeight;
+}
+
+/* COPY */
+function copyCode(btn){
+navigator.clipboard.writeText(btn.parentElement.parentElement.nextElementSibling.textContent);
+}
+
+/* RUN */
 function runCode(btn){
 let box=btn.closest(".codeBox");
 let code=box.querySelector("pre").textContent;
@@ -103,27 +329,21 @@ iframe.srcdoc=code;
 box.innerHTML="";
 box.appendChild(iframe);
 
-/* BACK BUTTON */
 let back=document.createElement("button");
 back.innerText="Back";
-back.onclick=()=>{
-box.innerHTML="";
-renderCode(box.parentElement,"```html\n"+code+"\n```");
-};
+back.onclick=()=>{box.innerHTML="";send();};
 box.appendChild(back);
 }
 
-/* DEBUG WITH SPINNER */
+/* DEBUG */
 async function debugCode(btn){
-
 let box=btn.closest(".codeBox");
 let code=box.querySelector("pre").textContent;
 
-/* CLEAR + SPINNER */
-box.innerHTML="";
-let spinner=document.createElement("div");
-spinner.className="spinner";
-box.appendChild(spinner);
+/* SPINNER AGAIN */
+let spin=document.createElement("div");
+spin.className="spinner";
+box.appendChild(spin);
 
 let res=await fetch("/api/debug",{
 method:"POST",
@@ -131,48 +351,55 @@ headers:{"Content-Type":"application/json"},
 body:JSON.stringify({code})
 });
 
-let data=await res.json();
-
-/* RE-RENDER */
+let d=await res.json();
 box.innerHTML="";
-renderCode(box.parentElement,"```html\n"+data.fixed+"\n```");
-}
-
-/* SEND */
-async function send(){
-
-let text=msg.value.trim();
-if(!text) return;
-
-messages.innerHTML+=`<p><span class="youLabel">You:</span> <span class="userText">${text}</span></p>`;
-msg.value="";
-
-let p=document.createElement("p");
-messages.appendChild(p);
-
-let res=await fetch("/api/chat",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({message:text,mode})
-});
-
-let data=await res.json();
-
-/* STRICT CODE MODE */
-if(mode==="code"){
-renderCode(p,data.reply);
-}else{
-p.innerHTML=`<span class="aiLabel">Quadron:</span> <span class="aiText">${data.reply}</span>`;
-}
-
-messages.scrollTop=messages.scrollHeight;
+send(); // re-render updated
 }
 
 /* MODES */
-function codeMode(){
+function newChat(){
 messages.innerHTML="";
-mode="code";
+exploreActive=false;
+codeModeActive=false;
+evaluateMode=false;
 closeMenu();
 }
 
+function codeMode(){
+messages.innerHTML="";
+codeModeActive=true;
+exploreActive=false;
+evaluateMode=false;
+closeMenu();
+messages.innerHTML='<span class="ai">Quadron:</span> Start coding.';
+}
+
+function exploreMode(){
+messages.innerHTML="";
+exploreActive=true;
+codeModeActive=false;
+evaluateMode=false;
+closeMenu();
+messages.innerHTML='<span class="ai">Quadron:</span> Explore the universe.';
+}
+
+function evaluateModeUI(){
+messages.innerHTML="";
+evaluateMode=true;
+exploreActive=false;
+codeModeActive=false;
+closeMenu();
+messages.innerHTML='<span class="ai">Quadron:</span> Evaluate something.';
+}
+
+/* ENTER */
+msg.addEventListener("keydown",e=>{
+if(e.key==="Enter") send();
+});
+
+/* INIT */
+window.onload=()=>newChat();
 </script>
+
+</body>
+</html>
