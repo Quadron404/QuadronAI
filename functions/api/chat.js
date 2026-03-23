@@ -90,7 +90,7 @@ export async function onRequest(context) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "openai/gpt-oss-120b",
+        model: "DeepSeek-R1-Distill-Llama-70b",
         messages: [
           {
             role: "system",
