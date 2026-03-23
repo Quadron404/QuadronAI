@@ -90,7 +90,7 @@ export async function onRequest(context) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "DeepSeek-R1-Distill-Llama-70b",
+        model: "llama-3.3-70b-versatile",
         messages: [
           {
             role: "system",
