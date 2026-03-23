@@ -9,96 +9,92 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 
 <style>
-body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
+body{background:#0a0a0a;font-family:Arial;margin:0;color:#fff;}
 .blur-bg{filter:blur(6px);}
 
 /* HEADER */
 header{
-display:flex;justify-content:space-between;align-items:center;
-padding:12px;background:#000;border-bottom:2px solid #ffd900;
-box-shadow:0 0 12px #ffd900;
+display:flex;justify-content:space-between;
+padding:12px;background:#000;
+border-bottom:2px solid #ffd900;
 }
-#logo{font-weight:bold;font-size:18px;}
+#menuBtn{cursor:pointer;color:#ffd900;font-size:22px;}
 
 /* MENU */
-#overlay{
-position:fixed;width:100%;height:100%;
-background:rgba(0,0,0,0.4);display:none;z-index:900;
-}
+#overlay{position:fixed;width:100%;height:100%;display:none;background:rgba(0,0,0,0.4);}
 #sidePanel{
 position:fixed;right:0;top:0;width:260px;height:100%;
 background:#111;transform:translateX(100%);
-transition:.3s;padding:15px;z-index:1000;
-display:flex;flex-direction:column;justify-content:space-between;
+transition:.3s;padding:15px;display:flex;flex-direction:column;
 }
 #sidePanel.open{transform:translateX(0);}
 
-.menuItem{
-padding:10px;cursor:pointer;margin-top:8px;
-font-weight:bold;color:#ffd900;
+/* PROFILE */
+.profile{
+text-align:center;margin-bottom:20px;
 }
-.menuItem:hover{text-shadow:0 0 10px #ffd900;}
+.profile img{
+width:60px;height:60px;border-radius:50%;
+border:2px solid #ffd900;
+}
+.profileName{
+color:#ffd900;text-shadow:0 0 10px #ffd900;
+}
+.profileEmail{font-size:12px;color:#ccc;}
 
-.menuFooter{color:white;font-size:12px;}
+/* MENU ITEMS */
+.menuItem{padding:10px;color:#ffd900;cursor:pointer;}
+.menuFooter{margin-top:auto;font-size:12px;color:white;}
 .menuFooter span{color:#ffd900;text-shadow:0 0 10px #ffd900;}
 
 /* CHAT */
 #chat{max-width:800px;margin:auto;padding:10px;}
-#messages{
-height:65vh;overflow:auto;background:#111;padding:10px;
-border:1px solid #ffd900;border-radius:12px;
-box-shadow:0 0 10px #ffd900 inset;
+#messages{height:65vh;overflow:auto;background:#111;padding:10px;border-radius:10px;}
+
+/* TEXT GLOW */
+.userLabel, .aiLabel{
+color:#ffd900;
+text-shadow:0 0 12px #ffd900;
+font-weight:bold;
+}
+.userText{
+color:#ffd900;
+text-shadow:0 0 10px #ffd900;
+}
+.aiText{
+color:#fff;
+text-shadow:0 0 10px #fff;
 }
 
 /* INPUT */
-#inputArea{display:flex;gap:8px;margin-top:10px;}
-input{
-flex:1;padding:10px;background:black;color:#ffd900;
-border:1px solid #ffd900;border-radius:10px;
-}
+#inputArea{display:flex;margin-top:10px;}
+input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;}
 
-/* BUTTON */
-button{
-padding:8px 14px;
-background:none;
-border:1px solid #ffd900;
-color:#ffd900;
-border-radius:6px;
-cursor:pointer;
-text-shadow:0 0 8px #ffd900; /* ✅ glow text only */
+/* SEND BUTTON */
+#sendBtn{
+background:#ffd900;color:black;
+border:none;padding:10px 16px;
+box-shadow:0 0 12px #ffd900;
+transition:.3s;
+}
+#sendBtn:hover{
+box-shadow:0 0 30px #ffd900,0 0 60px #ffd900;
 }
 
 /* CODE BOX */
-.codeBox{
-background:#000;border:1px solid #ffd900;
-margin-top:10px;border-radius:8px;overflow:hidden;
-position:relative;
+.codeBox{background:#000;border:1px solid #ffd900;margin-top:10px;}
+.codeHeader{display:flex;justify-content:space-between;background:#111;padding:5px;}
+.codeBtns button{
+background:none;border:1px solid #ffd900;color:#ffd900;
+text-shadow:0 0 8px #ffd900;
+margin-left:5px;
 }
-.codeHeader{
-display:flex;justify-content:space-between;
-align-items:center;padding:6px 10px;background:#111;
-border-bottom:1px solid #ffd900;font-size:12px;
-}
-.codeLang{transition:0.2s;}
-.codeBtns button{margin-left:5px;}
-.codeContent{padding:10px;white-space:pre;overflow:auto;}
+.codeContent{padding:10px;white-space:pre;}
 
-/* SPINNER */
-.spinner{
-position:absolute;width:16px;height:16px;
-border:3px solid #ffd900;border-top:3px solid transparent;
-border-radius:50%;animation:spin 1s linear infinite;
-top:8px;left:8px;
-}
-@keyframes spin{100%{transform:rotate(360deg);}}
-
-/* FOOTER */
-.footer{
-text-align:center;font-size:13px;margin:10px;color:white;
-}
-.footer a{
-color:#ffd900;text-decoration:none;
-text-shadow:0 0 10px #ffd900;
+/* IMAGE DISPLAY */
+.imgBox img{
+max-width:100%;border-radius:10px;margin-top:8px;
+box-shadow:0 0 10px #ffd900;
 }
 </style>
 </head>
@@ -106,140 +102,90 @@ text-shadow:0 0 10px #ffd900;
 <body>
 
 <header>
-<div id="logo">Quadron AI</div>
+<div>Quadron AI</div>
 <div id="menuBtn" onclick="openMenu()">☰</div>
 </header>
 
 <div id="overlay" onclick="closeMenu()"></div>
 
 <div id="sidePanel">
+
+<div class="profile">
+<img id="avatar" src="https://via.placeholder.com/60">
+<div class="profileName" id="name">Guest</div>
+<div class="profileEmail" id="email">Not signed in</div>
+</div>
+
 <div>
 <div class="menuItem" onclick="newChat()">New Chat</div>
 <div class="menuItem" onclick="codeMode()">Code /</div>
 <div class="menuItem" onclick="exploreMode()">Explore</div>
-<div class="menuItem" onclick="evaluateModeUI()">Evaluate</div>
+<div class="menuItem" onclick="evaluateMode()">Evaluate</div>
 </div>
 
 <div class="menuFooter">
 Developed by <span>Rawat Systems</span>
 </div>
+
 </div>
 
 <div id="chat">
 <div id="messages"></div>
 
 <div id="inputArea">
-<input id="msg" placeholder="Type here...">
-<button onclick="send()">Send</button>
+<input id="msg">
+<button id="sendBtn" onclick="send()">Send</button>
 </div>
-</div>
-
-<div class="footer">
-Quadron AI can make mistakes, by using it you agree our 
-<a href="terms.html">Terms & Conditions</a>
 </div>
 
 <script>
-const messages=document.getElementById("messages");
-const chat=document.getElementById("chat");
+let mode="normal";
 
-/* MENU FIX */
-function openMenu(){
-sidePanel.classList.add("open");
-overlay.style.display="block";
-chat.classList.add("blur-bg");
-}
-function closeMenu(){
-sidePanel.classList.remove("open");
-overlay.style.display="none";
-chat.classList.remove("blur-bg");
-}
+/* MENU */
+function openMenu(){sidePanel.classList.add("open");overlay.style.display="block";}
+function closeMenu(){sidePanel.classList.remove("open");overlay.style.display="none";}
 
 /* MODES */
-let explore=false;
-let evaluate=false;
+function newChat(){messages.innerHTML="";mode="normal";closeMenu();greet();}
+function codeMode(){messages.innerHTML="";mode="code";closeMenu();}
+function exploreMode(){messages.innerHTML="";mode="explore";closeMenu();}
+function evaluateMode(){messages.innerHTML="";mode="evaluate";closeMenu();}
 
-/* TEXT */
-function formatText(t){
-return t.replace(/\*\*(.*?)\*\*/g,"<b>$1</b>");
+/* GREETING */
+async function greet(){
+if(mode!=="normal") return;
+let res=await fetch("/api/chat",{method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({message:"sarcastic greeting",mode:"normal"})});
+let d=await res.json();
+addAI(d.reply);
 }
 
-/* TYPE */
-function typeText(el,text){
-let span=document.createElement("span");
-el.innerHTML="<b>Quadron:</b> ";
-el.appendChild(span);
-
-let i=0;
-function t(){
-span.innerHTML=formatText(text.slice(0,i));
-i+=2;
-if(i<=text.length) requestAnimationFrame(t);
+/* ADD MSG */
+function addUser(t){
+messages.innerHTML+=`<p><span class="userLabel">You:</span> <span class="userText">${t}</span></p>`;
 }
-t();
+function addAI(t){
+let p=document.createElement("p");
+p.innerHTML=`<span class="aiLabel">Quadron:</span> <span class="aiText">${t}</span>`;
+messages.appendChild(p);
 }
 
 /* CODE BOX */
-function renderCode(container,reply){
-
-let m=reply.match(/```(\w+)?\n([\s\S]*?)```/);
-if(!m) return false;
-
-let lang=m[1]||"text";
-let code=m[2];
-
-container.innerHTML="<b>Quadron:</b>";
-
+function renderCode(code){
 let box=document.createElement("div");
 box.className="codeBox";
-
-let header=document.createElement("div");
-header.className="codeHeader";
-
-header.innerHTML=`
-<span class="codeLang">&lt;/&gt; ${lang}</span>
+box.innerHTML=`
+<div class="codeHeader">
+<div>&lt;/&gt;</div>
 <div class="codeBtns">
 <button onclick="copyCode(this)">Copy</button>
 <button onclick="runCode(this)">Execute</button>
 <button onclick="debugCode(this)">Debug</button>
-</div>`;
-
-let content=document.createElement("pre");
-content.className="codeContent";
-
-let spinner=document.createElement("div");
-spinner.className="spinner";
-
-box.appendChild(header);
-box.appendChild(spinner);
-box.appendChild(content);
-container.appendChild(box);
-
-let langEl=header.querySelector(".codeLang");
-langEl.style.marginLeft="20px";
-
-/* TYPE */
-let i=0;
-function tc(){
-content.textContent+=code[i];
-i++;
-if(i<code.length){
-requestAnimationFrame(tc);
-}else{
-spinner.remove();
-langEl.style.marginLeft="0px";
-hljs.highlightElement(content);
-}
-}
-tc();
-
-return true;
-}
-
-/* COPY */
-function copyCode(btn){
-let code=btn.closest(".codeBox").querySelector("pre").textContent;
-navigator.clipboard.writeText(code);
+</div>
+</div>
+<pre class="codeContent">${code}</pre>`;
+messages.appendChild(box);
 }
 
 /* EXECUTE */
@@ -247,100 +193,70 @@ function runCode(btn){
 let box=btn.closest(".codeBox");
 let code=box.querySelector("pre").textContent;
 
-if(btn.innerText==="Back"){
-box.innerHTML="";
-renderCode(box.parentElement,"```html\n"+code+"\n```");
-return;
-}
-
 let iframe=document.createElement("iframe");
-iframe.style.width="100%";
-iframe.style.height="250px";
 iframe.srcdoc=code;
 
 box.innerHTML="";
 box.appendChild(iframe);
-btn.innerText="Back";
+
+let back=document.createElement("button");
+back.innerText="Back";
+back.onclick=()=>{box.innerHTML="";renderCode(code);}
+box.appendChild(back);
 }
 
 /* DEBUG */
 async function debugCode(btn){
-let box=btn.closest(".codeBox");
-let code=box.querySelector("pre").textContent;
-
-let res=await fetch("/api/debug",{
-method:"POST",
+let code=btn.closest(".codeBox").querySelector("pre").textContent;
+let res=await fetch("/api/debug",{method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({code})
-});
+body:JSON.stringify({code})});
+let d=await res.json();
+renderCode(d.fixed);
+}
 
-let data=await res.json();
-
-/* replace same box */
-box.innerHTML="";
-renderCode(box.parentElement,"```html\n"+data.fixed+"\n```");
+/* COPY */
+function copyCode(btn){
+navigator.clipboard.writeText(btn.closest(".codeBox").querySelector("pre").textContent);
 }
 
 /* SEND */
 async function send(){
-
 let text=msg.value.trim();
 if(!text) return;
-
-messages.innerHTML+=`<p><b>You:</b> ${text}</p>`;
+addUser(text);
 msg.value="";
 
-let p=document.createElement("p");
-messages.appendChild(p);
-
-let res=await fetch("/api/chat",{
-method:"POST",
+let res=await fetch("/api/chat",{method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({
-message:text,
-explore:explore,
-evaluate:evaluate
-})
+body:JSON.stringify({message:text,mode})});
+
+let d=await res.json();
+
+/* CODE MODE FORCE */
+if(mode==="code"){
+renderCode(d.reply);
+}else{
+addAI(d.reply);
+}
+
+/* IMAGES (EVALUATE MODE) */
+if(d.images){
+let box=document.createElement("div");
+box.className="imgBox";
+d.images.forEach(i=>{
+let img=document.createElement("img");
+img.src=i;
+box.appendChild(img);
 });
-
-let data=await res.json();
-
-if(!renderCode(p,data.reply)){
-typeText(p,data.reply);
+messages.appendChild(box);
 }
 
 messages.scrollTop=messages.scrollHeight;
 }
 
-/* MODES */
-function newChat(){
-messages.innerHTML="";
-explore=false;
-evaluate=false;
-closeMenu(); // ✅ always close
-}
-
-function codeMode(){
-messages.innerHTML="";
-closeMenu();
-}
-
-function exploreMode(){
-messages.innerHTML="";
-explore=true;
-closeMenu(); // ✅ fixed
-}
-
-function evaluateModeUI(){
-messages.innerHTML="";
-evaluate=true;
-closeMenu(); // ✅ fixed
-}
-
-/* ENTER */
-msg.addEventListener("keydown",e=>{
-if(e.key==="Enter") send();
-});
+/* INIT */
+window.onload=()=>greet();
 </script>
 
 </body>
