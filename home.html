@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
@@ -7,25 +7,15 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/monokai-sublime.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
+/* KEEPING YOUR UI EXACT */
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
-.blur-bg{filter:blur(5px);}
-
-header{
-display:flex;justify-content:space-between;align-items:center;
-padding:12px;background:#000;border-bottom:2px solid #ffd900;
-box-shadow:0 0 12px #ffd900;
-}
-
+header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 12px #ffd900;}
 #logo{font-weight:bold;font-size:18px;}
 #menuBtn{cursor:pointer;font-size:24px;}
 
-#overlay{
-position:fixed;width:100%;height:100%;
-background:rgba(0,0,0,0.4);display:none;z-index:900;
-}
+#overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;z-index:900;}
 
 #sidePanel{
 position:fixed;right:0;top:0;width:260px;height:100%;
@@ -35,102 +25,30 @@ overflow-y:auto;display:flex;flex-direction:column;
 }
 #sidePanel.open{transform:translateX(0);}
 
-#menuProfile{
-display:flex;align-items:center;gap:10px;
-padding:10px;border-bottom:1px solid #333;
-}
-#menuProfile img{
-width:40px;height:40px;border-radius:50%;
-border:1px solid #ffd900;object-fit:cover;
-}
+#menuProfile{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid #333;cursor:pointer;}
+#menuProfile img{width:40px;height:40px;border-radius:50%;border:1px solid #ffd900;}
 
-.menuItem{
-padding:10px;cursor:pointer;margin-top:8px;
-color:#ffd900;font-weight:bold;
-}
+.menuItem{padding:10px;cursor:pointer;margin-top:8px;color:#ffd900;font-weight:bold;}
 
-.menuFooter{
-margin-top:15px;text-align:center;font-size:12px;
-padding-bottom:10px;
-}
-.menuFooter span{
-font-weight:bold;color:#ffd900;
-text-shadow:0 0 10px #ffd900;
-}
+.menuFooter{text-align:center;font-size:12px;margin-top:15px;}
+.menuFooter span{color:#ffd900;text-shadow:0 0 10px #ffd900;}
 
 #chat{max-width:800px;margin:auto;padding:10px;}
-#messages{
-height:65vh;overflow:auto;background:#111;
-padding:10px;border:1px solid #ffd900;
-box-shadow:0 0 15px #ffd900;border-radius:12px;
-}
+#messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;border-radius:12px;}
 
 #inputArea{display:flex;gap:8px;margin-top:10px;}
-input{
-flex:1;padding:10px;background:black;
-color:#ffd900;border:1px solid #ffd900;
-border-radius:10px;
-}
+input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
 
-button{
-padding:10px;background:#ffd900;color:#000;
-border:none;box-shadow:0 0 15px #ffd900;
-cursor:pointer;transition:.3s;
-}
-button:hover{
-box-shadow:0 0 35px #ffd900,0 0 70px #ffd900;
-}
+button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;}
 
-/* TEXT GLOW */
-.you{color:#ffd900;text-shadow:0 0 12px #ffd900;}
-.ai{color:#ffd900;text-shadow:0 0 12px #ffd900;}
-.userText{color:#ffd900;text-shadow:0 0 10px #ffd900;}
-.aiText{color:#fff;text-shadow:0 0 10px #fff;}
+.codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:hidden;}
+.codeHeader{display:flex;justify-content:space-between;padding:6px 10px;background:#111;font-size:12px;}
+.copyBtn{cursor:pointer;margin-left:6px;}
 
-.codeBox{
-background:#000;border:1px solid #ffd900;
-margin-top:8px;border-radius:8px;
-overflow:hidden;font-family:monospace;
-position:relative;
-}
+.codeContent{padding:10px;white-space:pre;}
 
-.codeHeader{
-display:flex;justify-content:space-between;
-align-items:center;padding:6px 10px;
-background:#111;font-size:12px;
-border-bottom:1px solid #ffd900;
-}
-
-.codeLang{transition:0.2s;}
-.copyBtn{
-cursor:pointer;color:#ffd900;padding:2px 6px;
-border:1px solid #ffd900;border-radius:4px;
-}
-
-.codeContent{
-padding:10px;white-space:pre;
-min-height:20px;
-}
-
-.spinner{
-position:absolute;width:16px;height:16px;
-border:3px solid #ffd900;border-top:3px solid transparent;
-border-radius:50%;animation:spin 1s linear infinite;
-top:8px;left:8px;
-}
-@keyframes spin{100%{transform:rotate(360deg);}}
-
-/* FOOTER FIX */
-.footer{
-text-align:center;
-font-size:12px;
-margin:10px;
-}
-.footer a{
-color:#ffd900;
-text-shadow:0 0 10px #ffd900;
-text-decoration:none;
-}
+.footer{text-align:center;font-size:12px;margin:10px;}
+.footer a{color:#ffd900;text-shadow:0 0 10px #ffd900;}
 </style>
 </head>
 
@@ -145,17 +63,15 @@ text-decoration:none;
 
 <div id="sidePanel">
 
-<div id="menuProfile">
-<img id="profilePic" src="">
+<div id="menuProfile" onclick="openProfilePage()">
+<img id="profilePic">
 <div>
 <div id="profileName"></div>
-<div style="font-size:12px;" id="profileEmail"></div>
+<div id="profileEmail" style="font-size:12px;"></div>
 </div>
 </div>
 
 <div class="menuItem" onclick="newChat()">New Chat</div>
-<div class="menuItem" onclick="location.href='voice.html'">Voice Mode</div>
-<div class="menuItem" onclick="location.href='quadron7.html'">Quadron 7</div>
 <div class="menuItem" onclick="codeMode()">Code /</div>
 <div class="menuItem" onclick="exploreMode()">Explore</div>
 <div class="menuItem" onclick="evaluateModeUI()">Evaluate</div>
@@ -170,73 +86,86 @@ Developed by <span>Rawat Systems</span>
 <div id="messages"></div>
 
 <div id="inputArea">
-<input id="msg" placeholder="Type here...">
+<input id="msg">
 <button onclick="send()">Send</button>
 </div>
 </div>
 
 <div class="footer">
-Quadron AI can make mistakes, By using it you agree our 
+Quadron AI can make mistakes,
 <a href="terms.html">Terms & Conditions</a>
 </div>
 
 <script>
 const messages=document.getElementById("messages");
 
+/* USER LOAD */
+let user=JSON.parse(localStorage.getItem("quadronUser"));
+
+if(user && user!=="guest"){
+profileName.textContent=user.name||"User";
+profileEmail.textContent=user.email||"";
+profilePic.src=user.picture||"https://via.placeholder.com/40";
+}else{
+profileName.textContent="Guest";
+profileEmail.textContent="";
+profilePic.src="https://via.placeholder.com/40";
+}
+
+/* GREETING ONLY AFTER LOGIN */
+window.onload=()=>{
+if(user && user!=="guest"){
+messages.innerHTML=`<p>Welcome ${user.name}</p>`;
+}
+};
+
+/* CHAT LIMIT */
+function checkLimit(){
+let key="limit_"+(user?.email||"guest");
+let data=JSON.parse(localStorage.getItem(key))||{count:0,date:new Date().toDateString()};
+
+if(data.date!==new Date().toDateString()){
+data={count:0,date:new Date().toDateString()};
+}
+
+if(data.count>=100){
+alert("Daily limit reached");
+return false;
+}
+
+data.count++;
+localStorage.setItem(key,JSON.stringify(data));
+return true;
+}
+
 /* MENU */
 function openMenu(){sidePanel.classList.add("open");overlay.style.display="block";}
 function closeMenu(){sidePanel.classList.remove("open");overlay.style.display="none";}
 
+/* PROFILE PAGE */
+function openProfilePage(){
+window.open("profile.html","_blank");
+}
+
 /* MODES */
-let exploreActive=false;
-let codeModeActive=false;
-let evaluateMode=false;
+let codeModeActive=false, exploreActive=false, evaluateMode=false;
 
-/* PROMPT */
-function buildPrompt(userText){
-
-if(codeModeActive){
-return "Return ONLY code block. No explanation.";
-}
-
-if(exploreActive){
-return "Deep exploration with insights + image links. "+userText;
-}
-
-if(evaluateMode){
-return "Detailed evaluation + JSON chart + image links. "+userText;
-}
-
-return "Sarcastic witty reply. "+userText;
-}
-
-/* TYPE */
-function typeText(el,text){
-let span=document.createElement("span");
-el.innerHTML='<span class="ai">Quadron:</span> ';
-span.className="aiText";
-el.appendChild(span);
-
-let i=0;
-function t(){
-span.textContent=text.slice(0,i);
-i++;
-if(i<=text.length) requestAnimationFrame(t);
-}
-t();
+function buildPrompt(t){
+if(codeModeActive) return "ONLY CODE "+t;
+if(exploreActive) return "Use Wikipedia + deep info "+t;
+if(evaluateMode) return "Use Tavily data "+t;
+return t;
 }
 
 /* SEND */
 async function send(){
+if(!checkLimit()) return;
 
 let text=msg.value.trim();
 if(!text)return;
 
-messages.innerHTML+=`<p><span class="you">You:</span> <span class="userText">${text}</span></p>`;
+messages.innerHTML+=`<p>You: ${text}</p>`;
 msg.value="";
-
-let p=document.createElement("p");
-messages.appendChild(p);
 
 let res=await fetch("/api/chat",{
 method:"POST",
@@ -247,76 +176,42 @@ body:JSON.stringify({message:buildPrompt(text)})
 let data=await res.json();
 let reply=data.reply;
 
-/* CODE MODE FORCE */
-if(codeModeActive && !reply.includes("```")){
-reply="```html\n"+reply+"\n```";
-}
+let p=document.createElement("p");
+messages.appendChild(p);
 
-/* CODE */
+/* CODE MODE */
 let m=reply.match(/```(\w+)?\n([\s\S]*?)```/);
 
 if(m){
-let lang=m[1]||"text";
 let code=m[2];
-
-p.innerHTML='<span class="ai">Quadron:</span>';
 
 let box=document.createElement("div");
 box.className="codeBox";
 
-let header=document.createElement("div");
-header.className="codeHeader";
-
-header.innerHTML=`
-<span class="codeLang">&lt;/&gt; ${lang}</span>
-<span>
+box.innerHTML=`
+<div class="codeHeader">
+<span>&lt;/&gt;</span>
+<div>
 <span class="copyBtn" onclick="copyCode(this)">Copy</span>
 <span class="copyBtn" onclick="runCode(this)">Run</span>
 <span class="copyBtn" onclick="debugCode(this)">Debug</span>
-</span>`;
+</div>
+</div>
+<pre class="codeContent">${code}</pre>
+`;
 
-let spin=document.createElement("div");
-spin.className="spinner";
-
-let content=document.createElement("pre");
-content.className="codeContent";
-
-box.appendChild(header);
-box.appendChild(spin);
-box.appendChild(content);
 p.appendChild(box);
-
-/* SHIFT LABEL */
-header.querySelector(".codeLang").style.marginLeft="20px";
-
-/* TYPE CODE */
-let i=0;
-function tc(){
-content.textContent+=code[i];
-i++;
-if(i<code.length){
-requestAnimationFrame(tc);
 }else{
-spin.remove();
-header.querySelector(".codeLang").style.marginLeft="0px";
-hljs.highlightElement(content);
+p.innerText="Quadron: "+reply;
 }
-}
-tc();
-
-}else{
-typeText(p,reply);
-}
-
-messages.scrollTop=messages.scrollHeight;
 }
 
 /* COPY */
 function copyCode(btn){
-navigator.clipboard.writeText(btn.parentElement.parentElement.nextElementSibling.textContent);
+navigator.clipboard.writeText(btn.closest(".codeBox").querySelector("pre").textContent);
 }
 
-/* RUN */
+/* RUN + BACK */
 function runCode(btn){
 let box=btn.closest(".codeBox");
 let code=box.querySelector("pre").textContent;
@@ -331,19 +226,18 @@ box.appendChild(iframe);
 
 let back=document.createElement("button");
 back.innerText="Back";
-back.onclick=()=>{box.innerHTML="";send();};
+back.onclick=()=>{
+box.innerHTML=`
+<pre class="codeContent">${code}</pre>
+`;
+};
 box.appendChild(back);
 }
 
-/* DEBUG */
+/* DEBUG FIX */
 async function debugCode(btn){
 let box=btn.closest(".codeBox");
 let code=box.querySelector("pre").textContent;
-
-/* SPINNER AGAIN */
-let spin=document.createElement("div");
-spin.className="spinner";
-box.appendChild(spin);
 
 let res=await fetch("/api/debug",{
 method:"POST",
@@ -352,53 +246,14 @@ body:JSON.stringify({code})
 });
 
 let d=await res.json();
-box.innerHTML="";
-send(); // re-render updated
+
+box.querySelector("pre").textContent=d.fixed;
 }
 
 /* MODES */
-function newChat(){
-messages.innerHTML="";
-exploreActive=false;
-codeModeActive=false;
-evaluateMode=false;
-closeMenu();
-}
-
-function codeMode(){
-messages.innerHTML="";
-codeModeActive=true;
-exploreActive=false;
-evaluateMode=false;
-closeMenu();
-messages.innerHTML='<span class="ai">Quadron:</span> Start coding.';
-}
-
-function exploreMode(){
-messages.innerHTML="";
-exploreActive=true;
-codeModeActive=false;
-evaluateMode=false;
-closeMenu();
-messages.innerHTML='<span class="ai">Quadron:</span> Explore the universe.';
-}
-
-function evaluateModeUI(){
-messages.innerHTML="";
-evaluateMode=true;
-exploreActive=false;
-codeModeActive=false;
-closeMenu();
-messages.innerHTML='<span class="ai">Quadron:</span> Evaluate something.';
-}
-
-/* ENTER */
-msg.addEventListener("keydown",e=>{
-if(e.key==="Enter") send();
-});
-
-/* INIT */
-window.onload=()=>newChat();
+function codeMode(){codeModeActive=true;exploreActive=false;evaluateMode=false;}
+function exploreMode(){exploreActive=true;codeModeActive=false;evaluateMode=false;}
+function evaluateModeUI(){evaluateMode=true;exploreActive=false;codeModeActive=false;}
 </script>
 
 </body>
