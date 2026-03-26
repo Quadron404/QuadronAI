@@ -10,6 +10,9 @@
 
 <style>
 
+/* HIDE UNTIL LOGIN CHECK */
+body{display:none;}
+
 /* ================= BASE (DESKTOP) ================= */
 
 body{
@@ -279,6 +282,29 @@ style="margin:20px 0;">
 </div>
 
 <script>
+
+/* ✅ AUTO LOGIN CHECK (MAIN FIX) */
+window.onload = () => {
+    const userRaw = localStorage.getItem("quadronUser");
+
+    if(userRaw && userRaw !== "null"){
+        try{
+            const user = JSON.parse(userRaw);
+
+            if(user && (user.email || user === "guest")){
+                window.location.href = "home.html";
+                return;
+            }
+        }catch(e){
+            // if parsing fails but exists → still redirect
+            window.location.href = "home.html";
+            return;
+        }
+    }
+
+    /* show page only if NOT logged in */
+    document.body.style.display = "flex";
+};
 
 /* GOOGLE LOGIN */
 
