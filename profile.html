@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Profile</title>
+<style>
+body{
+background:#0a0a0a;
+color:#ffd900;
+font-family:Arial;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+.card{
+background:#111;
+padding:30px;
+border:1px solid #ffd900;
+border-radius:12px;
+text-align:center;
+box-shadow:0 0 20px #ffd900;
+}
+img{
+width:80px;
+border-radius:50%;
+border:2px solid #ffd900;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+<img id="pic">
+<h2 id="name"></h2>
+<p id="email"></p>
+<h3>Daily Limit: 100</h3>
+<p id="usage"></p>
+</div>
+
+<script>
+let user=JSON.parse(localStorage.getItem("quadronUser"));
+
+document.getElementById("name").innerText=user?.name||"Guest";
+document.getElementById("email").innerText=user?.email||"";
+document.getElementById("pic").src=user?.picture||"https://via.placeholder.com/80";
+
+let key="limit_"+(user?.email||"guest");
+let data=JSON.parse(localStorage.getItem(key))||{count:0};
+
+document.getElementById("usage").innerText="Used: "+data.count+" / 100";
+</script>
+
+</body>
+</html>
