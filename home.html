@@ -13,16 +13,16 @@ body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
 
 /* HEADER */
 header{
-display:flex;justify-content:space-between;
-padding:12px;background:#000;
-border-bottom:2px solid #ffd900;
-box-shadow:0 0 15px #ffd900;
+display:flex;justify-content:space-between;align-items:center;
+padding:12px;background:#000;border-bottom:2px solid #ffd900;
+box-shadow:0 0 12px #ffd900;
 }
-
+#logo{font-weight:bold;}
 #menuBtn{cursor:pointer;font-size:24px;}
 
-/* SIDE MENU */
-#overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;}
+/* MENU */
+#overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,.5);display:none;z-index:900;}
+
 #sidePanel{
 position:fixed;right:0;top:0;width:260px;height:100%;
 background:#111;transform:translateX(100%);
@@ -32,36 +32,58 @@ display:flex;flex-direction:column;
 #sidePanel.open{transform:translateX(0);}
 
 #menuProfile{
-display:flex;gap:10px;padding:10px;
-border-bottom:1px solid #333;cursor:pointer;
+display:flex;gap:10px;align-items:center;
+padding:10px;border-bottom:1px solid #333;
+cursor:pointer;
 }
-#menuProfile img{width:40px;height:40px;border-radius:50%;border:1px solid #ffd900;}
+#menuProfile img{
+width:40px;height:40px;border-radius:50%;
+border:1px solid #ffd900;
+}
 
-.menuItem{padding:10px;cursor:pointer;margin-top:8px;font-weight:bold;}
+.menuItem{
+padding:10px;margin-top:8px;
+cursor:pointer;font-weight:bold;
+color:#ffd900;
+transition:.2s;
+}
+.menuItem:hover{
+background:#222;
+box-shadow:0 0 10px #ffd900;
+}
 
+/* FOOTER HEAD FIX */
 .menuFooter{
 margin-top:auto;
 text-align:center;
 font-size:12px;
+padding-top:10px;
+border-top:1px solid #333;
 }
 .menuFooter span{
-text-shadow:0 0 10px #ffd900;
+color:#ffd900;
+text-shadow:0 0 12px #ffd900;
 }
 
 /* CHAT */
 #chat{max-width:800px;margin:auto;padding:10px;}
 
 #messages{
-height:65vh;overflow:auto;
-background:#111;padding:10px;
+height:65vh;
+overflow:auto;
+background:#111;
+padding:10px;
 border:1px solid #ffd900;
 border-radius:12px;
 box-shadow:0 0 20px #ffd900;
 }
 
+/* TEXT COLORS */
+.you{color:#ffd900;text-shadow:0 0 10px #ffd900;}
+.ai{color:#fff;text-shadow:0 0 10px #fff;}
+
 /* INPUT */
 #inputArea{display:flex;gap:8px;margin-top:10px;}
-
 input{
 flex:1;padding:10px;
 background:black;color:#ffd900;
@@ -70,61 +92,49 @@ border-radius:10px;
 }
 
 button{
-padding:10px;
-background:#ffd900;color:#000;
-border:none;
-cursor:pointer;
-box-shadow:0 0 20px #ffd900;
+padding:10px;background:#ffd900;color:#000;
+border:none;cursor:pointer;
+box-shadow:0 0 15px #ffd900;
 transition:.2s;
 }
 button:hover{
-box-shadow:0 0 50px #ffd900,0 0 80px #ffd900;
+box-shadow:0 0 40px #ffd900,0 0 80px #ffd900;
 }
-
-/* TEXT GLOW */
-.userText{color:#ffd900;text-shadow:0 0 10px #ffd900;}
-.aiText{color:#fff;text-shadow:0 0 10px #fff;}
 
 /* CODE BOX */
 .codeBox{
-background:#000;border:1px solid #ffd900;
+background:#000;
+border:1px solid #ffd900;
 margin-top:8px;border-radius:8px;
-overflow:hidden;position:relative;
+position:relative;
+overflow:hidden;
 }
-
 .codeHeader{
 display:flex;justify-content:space-between;
-padding:6px;background:#111;font-size:12px;
+padding:6px 10px;background:#111;
 border-bottom:1px solid #ffd900;
+font-size:12px;
 }
-
-.copyBtn{
-cursor:pointer;padding:2px 6px;
-border:1px solid #ffd900;border-radius:4px;
-transition:.2s;
-}
-.copyBtn:active{
-box-shadow:0 0 20px #ffd900;
-}
+.codeContent{padding:10px;white-space:pre;}
 
 /* SPIRAL */
 .spinner{
-position:absolute;width:20px;height:20px;
-border:3px solid #ffd900;border-top:3px solid transparent;
+position:absolute;width:18px;height:18px;
+border:3px solid #ffd900;
+border-top:3px solid transparent;
 border-radius:50%;
 animation:spin 1s linear infinite;
-top:10px;left:10px;
+top:8px;left:8px;
 }
 @keyframes spin{100%{transform:rotate(360deg);}}
 
-/* FOOTER */
+/* FOOTER CENTER */
 .footer{
 text-align:center;font-size:12px;margin:10px;
 }
 .footer a{
 color:#ffd900;
-text-shadow:0 0 15px #ffd900;
-text-decoration:none;
+text-shadow:0 0 12px #ffd900;
 }
 </style>
 </head>
@@ -132,7 +142,7 @@ text-decoration:none;
 <body>
 
 <header>
-<div>Quadron AI</div>
+<div id="logo">Quadron AI</div>
 <div id="menuBtn" onclick="openMenu()">☰</div>
 </header>
 
@@ -154,7 +164,7 @@ text-decoration:none;
 <div class="menuItem" onclick="evaluateModeUI()">Evaluate</div>
 
 <div class="menuFooter">
-<span>Developed by Rawat Systems</span>
+Developed by <span>Rawat Systems</span>
 </div>
 
 </div>
@@ -163,19 +173,20 @@ text-decoration:none;
 <div id="messages"></div>
 
 <div id="inputArea">
-<input id="msg" placeholder="Type here...">
+<input id="msg">
 <button onclick="send()">Send</button>
 </div>
 </div>
 
 <div class="footer">
-Quadron AI can make mistakes,
+Quadron AI can make mistakes —
 <a href="terms.html">Terms & Conditions</a>
 </div>
 
 <script>
+const messages=document.getElementById("messages");
 
-/* USER LOAD (PERSISTENT LOGIN) */
+/* LOAD USER */
 let user=JSON.parse(localStorage.getItem("quadronUser"));
 if(user && user!=="guest"){
 profileName.textContent=user.name;
@@ -186,75 +197,93 @@ profileName.textContent="Guest";
 profilePic.src="https://via.placeholder.com/40";
 }
 
-/* GREETING */
+/* GREETING ONLY NORMAL MODE */
 window.onload=()=>{
-if(user && user!=="guest"){
-messages.innerHTML=`<p class="aiText">Welcome ${user.name}</p>`;
+if(!localStorage.getItem("visited")){
+messages.innerHTML=`<p class="ai">Welcome to Quadron</p>`;
+localStorage.setItem("visited",true);
 }
 };
 
-/* MENU */
-function openMenu(){sidePanel.classList.add("open");overlay.style.display="block";}
-function closeMenu(){sidePanel.classList.remove("open");overlay.style.display="none";}
-function openProfilePage(){window.open("profile.html","_blank");}
-
-/* MODES */
-let codeModeActive=false,exploreActive=false,evaluateMode=false;
-
-function buildPrompt(t){
-if(codeModeActive) return "ONLY CODE NO TEXT "+t;
-if(exploreActive) return "Wikipedia data "+t;
-if(evaluateMode) return "Tavily evaluate "+t;
-return t;
+/* MENU FIX */
+function openMenu(){
+document.getElementById("sidePanel").classList.add("open");
+document.getElementById("overlay").style.display="block";
+}
+function closeMenu(){
+document.getElementById("sidePanel").classList.remove("open");
+document.getElementById("overlay").style.display="none";
 }
 
-/* FAST TYPE */
-function fastType(el,text){
-let span=document.createElement("span");
-span.className="aiText";
-el.appendChild(span);
+/* MODES */
+let codeModeActive=false, exploreActive=false, evaluateMode=false;
 
-let len=text.length;
-let speed=Math.max(1,Math.floor(2000/len));
-
+function typeFast(el,text){
 let i=0;
-let interval=setInterval(()=>{
-span.textContent=text.slice(0,i);
+let speed=text.length/120;
+let int=setInterval(()=>{
+el.textContent=text.slice(0,i);
 i++;
-if(i>len) clearInterval(interval);
+if(i>=text.length) clearInterval(int);
 },speed);
+}
+
+function newChat(){
+messages.innerHTML="";
+codeModeActive=false;exploreActive=false;evaluateMode=false;
+}
+
+function codeMode(){
+newChat();
+codeModeActive=true;
+let p=document.createElement("p");
+messages.appendChild(p);
+typeFast(p,"Start coding...");
+}
+
+function exploreMode(){
+newChat();
+exploreActive=true;
+let p=document.createElement("p");
+messages.appendChild(p);
+typeFast(p,"Exploring knowledge...");
+}
+
+function evaluateModeUI(){
+newChat();
+evaluateMode=true;
+let p=document.createElement("p");
+messages.appendChild(p);
+typeFast(p,"Evaluating...");
 }
 
 /* SEND */
 async function send(){
-
 let text=msg.value.trim();
-if(!text)return;
+if(!text) return;
 
-messages.innerHTML+=`<p class="userText">You: ${text}</p>`;
+messages.innerHTML+=`<p class="you">You: ${text}</p>`;
 msg.value="";
-
-let p=document.createElement("p");
-messages.appendChild(p);
 
 let res=await fetch("/api/chat",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({message:buildPrompt(text)})
+body:JSON.stringify({
+message: codeModeActive ? "ONLY CODE "+text : text
+})
 });
 
 let data=await res.json();
 let reply=data.reply;
 
-/* FORCE CODE */
-if(codeModeActive && !reply.includes("```")){
-reply="```html\n"+reply+"\n```";
-}
+let p=document.createElement("p");
+messages.appendChild(p);
 
+/* CODE */
 let m=reply.match(/```(\w+)?\n([\s\S]*?)```/);
 
 if(m){
-let lang=m[1]||"html";
+let lang=m[1]||"text";
 let code=m[2];
 
 let box=document.createElement("div");
@@ -264,9 +293,9 @@ box.innerHTML=`
 <div class="codeHeader">
 <span>&lt;/&gt; ${lang}</span>
 <div>
-<span class="copyBtn" onclick="copyCode(this)">Copy</span>
-<span class="copyBtn" onclick="runCode(this)">Run</span>
-<span class="copyBtn" onclick="debugCode(this)">Debug</span>
+<span onclick="copyCode(this)">Copy</span>
+<span onclick="runCode(this)">Run</span>
+<span onclick="debugCode(this)">Debug</span>
 </div>
 </div>
 <div class="spinner"></div>
@@ -278,40 +307,31 @@ p.appendChild(box);
 let content=box.querySelector("pre");
 let spin=box.querySelector(".spinner");
 
+/* FAST TYPE */
 let i=0;
-function type(){
-content.textContent+=code[i];
+let speed=code.length/120;
+let int=setInterval(()=>{
+content.textContent=code.slice(0,i);
 i++;
-if(i<code.length){
-requestAnimationFrame(type);
-}else{
+if(i>=code.length){
+clearInterval(int);
 spin.remove();
 hljs.highlightElement(content);
 }
-}
-type();
+},speed);
 
 }else{
-fastType(p,reply);
+p.className="ai";
+typeFast(p,"Quadron: "+reply);
 }
-
-messages.scrollTop=messages.scrollHeight;
-}
-
-/* COPY */
-function copyCode(btn){
-btn.style.transform="scale(0.9)";
-setTimeout(()=>btn.style.transform="scale(1)",100);
-navigator.clipboard.writeText(btn.closest(".codeBox").querySelector("pre").textContent);
 }
 
 /* RUN */
 function runCode(btn){
+btn.style.transform="scale(1.2)";
 let box=btn.closest(".codeBox");
 let code=box.querySelector("pre").textContent;
 
-box.innerHTML=`<div class="spinner"></div>`;
-setTimeout(()=>{
 let iframe=document.createElement("iframe");
 iframe.style.width="100%";
 iframe.style.height="250px";
@@ -322,40 +342,37 @@ box.appendChild(iframe);
 
 let back=document.createElement("button");
 back.innerText="Back";
-back.onclick=()=>send();
+back.onclick=()=>location.reload();
 box.appendChild(back);
-},800);
 }
 
 /* DEBUG */
 async function debugCode(btn){
+btn.style.transform="scale(1.2)";
 let box=btn.closest(".codeBox");
-let code=box.querySelector("pre").textContent;
+let pre=box.querySelector("pre");
 
-box.innerHTML=`<div class="spinner"></div>`;
+let spin=document.createElement("div");
+spin.className="spinner";
+box.appendChild(spin);
 
 let res=await fetch("/api/debug",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({code})
+body:JSON.stringify({code:pre.textContent})
 });
 
 let d=await res.json();
 
-box.innerHTML=`
-<pre class="codeContent">${d.fixed}</pre>
-`;
+pre.textContent=d.fixed;
+spin.remove();
+hljs.highlightElement(pre);
 }
 
-/* MODES */
-function newChat(){messages.innerHTML="";}
-function codeMode(){codeModeActive=true;exploreActive=false;evaluateMode=false;}
-function exploreMode(){exploreActive=true;codeModeActive=false;}
-function evaluateModeUI(){evaluateMode=true;codeModeActive=false;}
-
-msg.addEventListener("keydown",e=>{
-if(e.key==="Enter") send();
-});
+/* COPY */
+function copyCode(btn){
+navigator.clipboard.writeText(btn.closest(".codeBox").querySelector("pre").textContent);
+}
 </script>
 
 </body>
