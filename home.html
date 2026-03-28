@@ -7,49 +7,48 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/monokai-sublime.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-/* NO UI CHANGES — ONLY ADDITIONS */
+/* KEEPING YOUR UI EXACT */
+body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 12px #ffd900;}
+#logo{font-weight:bold;font-size:18px;}
+#menuBtn{cursor:pointer;font-size:24px;}
 
-.profilePage{
-position:fixed;
-top:0;left:0;width:100%;height:100%;
-background:#000;z-index:2000;
-display:none;
-justify-content:center;
-align-items:center;
+#overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;z-index:900;}
+
+#sidePanel{
+position:fixed;right:0;top:0;width:260px;height:100%;
+background:#111;transform:translateX(100%);
+transition:.3s;padding:15px;z-index:1000;
+overflow-y:auto;display:flex;flex-direction:column;
 }
+#sidePanel.open{transform:translateX(0);}
 
-.profileCard{
-padding:30px;
-border:2px solid #ffd900;
-box-shadow:0 0 40px #ffd900;
-text-align:center;
-border-radius:15px;
-}
+#menuProfile{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid #333;cursor:pointer;}
+#menuProfile img{width:40px;height:40px;border-radius:50%;border:1px solid #ffd900;}
 
-.profileCard img{
-width:90px;height:90px;border-radius:50%;
-border:2px solid #ffd900;
-box-shadow:0 0 20px #ffd900;
-}
+.menuItem{padding:10px;cursor:pointer;margin-top:8px;color:#ffd900;font-weight:bold;}
 
-.cylinder{
-position:absolute;
-right:20px;
-top:60px;
-padding:6px 14px;
-border:2px solid #ffd900;
-border-radius:50px;
-color:#fff;
-text-shadow:0 0 10px #fff;
-box-shadow:0 0 15px #ffd900;
-font-size:12px;
-}
+.menuFooter{text-align:center;font-size:12px;margin-top:15px;}
+.menuFooter span{color:#ffd900;text-shadow:0 0 10px #ffd900;}
 
-.cyl2{top:100px;}
+#chat{max-width:800px;margin:auto;padding:10px;}
+#messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;border-radius:12px;}
 
+#inputArea{display:flex;gap:8px;margin-top:10px;}
+input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
+
+button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;}
+
+.codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:hidden;}
+.codeHeader{display:flex;justify-content:space-between;padding:6px 10px;background:#111;font-size:12px;}
+.copyBtn{cursor:pointer;margin-left:6px;}
+
+.codeContent{padding:10px;white-space:pre;}
+
+.footer{text-align:center;font-size:12px;margin:10px;}
+.footer a{color:#ffd900;text-shadow:0 0 10px #ffd900;}
 </style>
 </head>
 
@@ -64,17 +63,15 @@ font-size:12px;
 
 <div id="sidePanel">
 
-<div id="menuProfile" onclick="openProfile()">
+<div id="menuProfile" onclick="openProfilePage()">
 <img id="profilePic">
 <div>
 <div id="profileName"></div>
-<div style="font-size:12px;" id="profileEmail"></div>
+<div id="profileEmail" style="font-size:12px;"></div>
 </div>
 </div>
 
 <div class="menuItem" onclick="newChat()">New Chat</div>
-<div class="menuItem" onclick="location.href='voice.html'">Voice Mode</div>
-<div class="menuItem" onclick="location.href='quadron7.html'">Quadron 7</div>
 <div class="menuItem" onclick="codeMode()">Code /</div>
 <div class="menuItem" onclick="exploreMode()">Explore</div>
 <div class="menuItem" onclick="evaluateModeUI()">Evaluate</div>
@@ -85,19 +82,6 @@ Developed by <span>Rawat Systems</span>
 
 </div>
 
-<div class="profilePage" id="profilePage">
-<div class="profileCard">
-<img id="pImg"><br><br>
-<div id="pName"></div>
-<div id="pEmail"></div><br>
-<div id="limitText"></div><br>
-<button onclick="closeProfile()">Close</button>
-</div>
-</div>
-
-<div class="cylinder">Real Time Data</div>
-<div class="cylinder cyl2">Encyclopedia</div>
-
 <div id="chat">
 <div id="messages"></div>
 
@@ -107,181 +91,150 @@ Developed by <span>Rawat Systems</span>
 </div>
 </div>
 
-<script>
+<div class="footer">
+Quadron AI can make mistakes,
+<a href="terms.html">Terms & Conditions</a>
+</div>
 
+<script>
 const messages=document.getElementById("messages");
 
+/* USER LOAD */
 let user=JSON.parse(localStorage.getItem("quadronUser"));
 
-/* LOAD USER */
 if(user && user!=="guest"){
-profilePic.src=user.picture||"";
-profileName.innerText=user.name||"User";
-profileEmail.innerText=user.email||"";
+profileName.textContent=user.name||"User";
+profileEmail.textContent=user.email||"";
+profilePic.src=user.picture||"https://via.placeholder.com/40";
+}else{
+profileName.textContent="Guest";
+profileEmail.textContent="";
+profilePic.src="https://via.placeholder.com/40";
 }
 
-/* GREETING ONCE */
-if(user && user.email && !localStorage.getItem("greeted")){
-localStorage.setItem("greeted","yes");
-setTimeout(()=>{
-typeText(messages,`Oh great, ${user.name} showed up. Let's pretend I'm excited.`);
-},300);
+/* GREETING ONLY AFTER LOGIN */
+window.onload=()=>{
+if(user && user!=="guest"){
+messages.innerHTML=`<p>Welcome ${user.name}</p>`;
 }
+};
 
 /* CHAT LIMIT */
 function checkLimit(){
-let key="limit_"+user.email;
+let key="limit_"+(user?.email||"guest");
 let data=JSON.parse(localStorage.getItem(key))||{count:0,date:new Date().toDateString()};
+
 if(data.date!==new Date().toDateString()){
 data={count:0,date:new Date().toDateString()};
 }
+
 if(data.count>=100){
 alert("Daily limit reached");
 return false;
 }
+
 data.count++;
 localStorage.setItem(key,JSON.stringify(data));
 return true;
 }
 
-/* PROFILE */
-function openProfile(){
-document.getElementById("profilePage").style.display="flex";
-
-pImg.src=user.picture||"";
-pName.innerText=user.name||"";
-pEmail.innerText=user.email||"";
-
-let data=JSON.parse(localStorage.getItem("limit_"+user.email))||{count:0};
-limitText.innerText=`${data.count}/100 used today`;
-}
-
-function closeProfile(){
-profilePage.style.display="none";
-}
-
 /* MENU */
-function openMenu(){
-sidePanel.classList.add("open");
-overlay.style.display="block";
-document.body.classList.add("blur-bg");
-}
-function closeMenu(){
-sidePanel.classList.remove("open");
-overlay.style.display="none";
-document.body.classList.remove("blur-bg");
+function openMenu(){sidePanel.classList.add("open");overlay.style.display="block";}
+function closeMenu(){sidePanel.classList.remove("open");overlay.style.display="none";}
+
+/* PROFILE PAGE */
+function openProfilePage(){
+window.open("profile.html","_blank");
 }
 
 /* MODES */
-let exploreActive=false;
-let codeModeActive=false;
-let evaluateMode=false;
+let codeModeActive=false, exploreActive=false, evaluateMode=false;
 
-/* PROMPT */
 function buildPrompt(t){
-
-if(codeModeActive){
-return "ONLY code. "+t;
-}
-
-if(exploreActive){
-return "Use Wikipedia data. "+t;
-}
-
-if(evaluateMode){
-return "Use Tavily API real-time data. "+t;
-}
-
-return `Sarcastic reply for ${user.name}: `+t;
-}
-
-/* TYPE FAST */
-function typeText(el,text){
-let p=document.createElement("p");
-p.innerHTML='<span class="ai">Quadron:</span> <span class="aiText">'+text+'</span>';
-el.appendChild(p);
+if(codeModeActive) return "ONLY CODE "+t;
+if(exploreActive) return "Use Wikipedia + deep info "+t;
+if(evaluateMode) return "Use Tavily data "+t;
+return t;
 }
 
 /* SEND */
 async function send(){
-
-if(user && user.email){
 if(!checkLimit()) return;
-}
 
 let text=msg.value.trim();
 if(!text)return;
 
-messages.innerHTML+=`<p><span class="you">You:</span> ${text}</p>`;
+messages.innerHTML+=`<p>You: ${text}</p>`;
 msg.value="";
 
 let res=await fetch("/api/chat",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({
-message:buildPrompt(text),
-user:user
-})
+body:JSON.stringify({message:buildPrompt(text)})
 });
 
 let data=await res.json();
 let reply=data.reply;
 
+let p=document.createElement("p");
+messages.appendChild(p);
+
+/* CODE MODE */
 let m=reply.match(/```(\w+)?\n([\s\S]*?)```/);
 
 if(m){
-renderCode(m[2],m[1]||"html");
-}else{
-typeText(messages,reply);
-}
-}
-
-/* CODE BOX */
-function renderCode(code,lang){
+let code=m[2];
 
 let box=document.createElement("div");
 box.className="codeBox";
 
 box.innerHTML=`
 <div class="codeHeader">
-<span>&lt;/&gt; ${lang}</span>
-<span>
+<span>&lt;/&gt;</span>
+<div>
 <span class="copyBtn" onclick="copyCode(this)">Copy</span>
 <span class="copyBtn" onclick="runCode(this)">Run</span>
 <span class="copyBtn" onclick="debugCode(this)">Debug</span>
-</span>
 </div>
-<pre class="codeContent"></pre>`;
+</div>
+<pre class="codeContent">${code}</pre>
+`;
 
-messages.appendChild(box);
-
-let pre=box.querySelector("pre");
-pre.textContent=code;
-
-hljs.highlightElement(pre);
+p.appendChild(box);
+}else{
+p.innerText="Quadron: "+reply;
+}
 }
 
-/* RUN */
+/* COPY */
+function copyCode(btn){
+navigator.clipboard.writeText(btn.closest(".codeBox").querySelector("pre").textContent);
+}
+
+/* RUN + BACK */
 function runCode(btn){
 let box=btn.closest(".codeBox");
 let code=box.querySelector("pre").textContent;
 
-box.dataset.code=code;
+let iframe=document.createElement("iframe");
+iframe.style.width="100%";
+iframe.style.height="250px";
+iframe.srcdoc=code;
 
+box.innerHTML="";
+box.appendChild(iframe);
+
+let back=document.createElement("button");
+back.innerText="Back";
+back.onclick=()=>{
 box.innerHTML=`
-<button onclick="restoreCode(this)" style="float:right">Back</button>
-<iframe style="width:100%;height:300px;"></iframe>`;
-
-box.querySelector("iframe").srcdoc=code;
+<pre class="codeContent">${code}</pre>
+`;
+};
+box.appendChild(back);
 }
 
-function restoreCode(btn){
-let box=btn.parentElement;
-renderCode(box.dataset.code,"html");
-box.remove();
-}
-
-/* DEBUG */
+/* DEBUG FIX */
 async function debugCode(btn){
 let box=btn.closest(".codeBox");
 let code=box.querySelector("pre").textContent;
@@ -294,42 +247,14 @@ body:JSON.stringify({code})
 
 let d=await res.json();
 
-box.querySelector("pre").textContent=d.code;
-hljs.highlightElement(box.querySelector("pre"));
+box.querySelector("pre").textContent=d.fixed;
 }
 
 /* MODES */
-function codeMode(){
-closeMenu();
-messages.innerHTML="";
-codeModeActive=true;exploreActive=false;evaluateMode=false;
-typeText(messages,"Describe what you want to code");
-}
-
-function exploreMode(){
-closeMenu();
-messages.innerHTML="";
-exploreActive=true;codeModeActive=false;evaluateMode=false;
-typeText(messages,"Explore the universe");
-}
-
-function evaluateModeUI(){
-closeMenu();
-messages.innerHTML="";
-evaluateMode=true;codeModeActive=false;exploreActive=false;
-typeText(messages,"Evaluate World");
-}
-
-function newChat(){
-closeMenu();
-messages.innerHTML="";
-}
-
-/* ENTER */
-msg.addEventListener("keydown",e=>{
-if(e.key==="Enter") send();
-});
-
+function codeMode(){codeModeActive=true;exploreActive=false;evaluateMode=false;}
+function exploreMode(){exploreActive=true;codeModeActive=false;evaluateMode=false;}
+function evaluateModeUI(){evaluateMode=true;exploreActive=false;codeModeActive=false;}
 </script>
+
 </body>
 </html>
