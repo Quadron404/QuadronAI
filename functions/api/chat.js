@@ -14,89 +14,66 @@ export async function onRequest(context) {
 
     let externalData = "";
 
-  /* =========================
-   🔵 EVALUATE MODE → SERPER CLEANED
-========================= */
-if (mode === "evaluate" && env.SERPER) {
-  try {
-    let q = message.toLowerCase();
-    let smartQuery = message;
-
-    if (q.includes("tsla") || q.includes("tesla")) {
-      smartQuery = "Tesla TSLA stock price today USD";
-    }
-    else if (q.includes("btc") || q.includes("bitcoin")) {
-      smartQuery = "Bitcoin price today USD";
-    }
-    else if (q.includes("eth")) {
-      smartQuery = "Ethereum price today USD";
-    }
-    else if (q.includes("india pm")) {
-      smartQuery = "current prime minister of India";
-    }
-    else if (q.includes("us president")) {
-      smartQuery = "current US president 2026";
-    }
-
-    const res = await fetch("https://google.serper.dev/search", {
-      method: "POST",
-      headers: {
-        "X-API-KEY": env.SERPER,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ q: smartQuery })
-    });
-
-    const data = await res.json();
-
-    let extracted = [];
-
-    /* 🔥 ANSWER BOX FIRST */
-    if (data.answerBox?.answer) {
-      extracted.push(data.answerBox.answer);
-    }
-    if (data.answerBox?.snippet) {
-      extracted.push(data.answerBox.snippet);
-    }
-
-    /* 🔥 ORGANIC CLEAN FILTER */
-    if (data.organic) {
-      for (let r of data.organic.slice(0, 5)) {
-        let text = r.snippet;
-
-        // ❌ remove junk numbers (long IDs etc)
-        text = text.replace(/\b\d{6,}\b/g, "");
-
-        extracted.push(text);
-      }
-    }
-
-    externalData = extracted.join("\n");
-
-    if (!externalData) {
-      externalData = "No clear data found. Give best logical answer.";
-    }
-
-  } catch {
-    externalData = "Search failed. Answer logically.";
-  }
-}
-
     /* =========================
-       🟡 EXPLORE MODE → WIKIPEDIA ONLY
+       🔵 EVALUATE MODE (SERPER CLEAN + ANALYSIS)
     ========================== */
-    if (mode === "explore") {
+    if (mode === "evaluate" && env.SERPER) {
       try {
-        const wikiRes = await fetch(
-          `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(message)}`
-        );
+        let q = message.toLowerCase();
+        let smartQuery = message;
 
-        const wikiData = await wikiRes.json();
+        // 🔥 SMART QUERY ROUTING
+        if (q.includes("btc") || q.includes("bitcoin")) {
+          smartQuery = "Bitcoin price today USD live";
+        }
+        else if (q.includes("tsla")) {
+          smartQuery = "Tesla stock price today USD";
+        }
+        else if (q.includes("eth")) {
+          smartQuery = "Ethereum price today USD";
+        }
+        else if (q.includes("india pm")) {
+          smartQuery = "current prime minister of India";
+        }
+        else if (q.includes("us president")) {
+          smartQuery = "current US president";
+        }
 
-        externalData = wikiData?.extract || "No Wikipedia data found.";
+        const res = await fetch("https://google.serper.dev/search", {
+          method: "POST",
+          headers: {
+            "X-API-KEY": env.SERPER,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ q: smartQuery })
+        });
+
+        const data = await res.json();
+
+        let texts = [];
+
+        if (data.answerBox?.answer) texts.push(data.answerBox.answer);
+        if (data.answerBox?.snippet) texts.push(data.answerBox.snippet);
+
+        if (data.organic) {
+          for (let r of data.organic.slice(0, 5)) {
+            let t = r.snippet || "";
+
+            // ❌ remove junk numbers (IDs etc)
+            t = t.replace(/\b\d{6,}\b/g, "");
+
+            texts.push(t);
+          }
+        }
+
+        externalData = texts.join("\n");
+
+        if (!externalData) {
+          externalData = "No clear data found.";
+        }
 
       } catch {
-        externalData = "Wikipedia fetch failed.";
+        externalData = "Search failed.";
       }
     }
 
@@ -105,47 +82,41 @@ if (mode === "evaluate" && env.SERPER) {
     ========================== */
     let systemPrompt = "";
 
-    if (mode === "code") {
-      systemPrompt = `
-You are Quadron AI (Code Mode).
-
-RULES:
-- ONLY output code
-- NO explanations
-- ALWAYS wrap in triple backticks
-`;
-    }
-
-    else if (mode === "evaluate") {
+    if (mode === "evaluate") {
       systemPrompt = `
 You are Quadron AI (Evaluate Mode).
 
-ABSOLUTE RULES:
-- You ALWAYS have real-time data
-- Use ONLY provided DATA
-- NEVER say "I don't have data"
-- NEVER use prior knowledge
-- Extract exact values if present
-- Be direct and factual
+STRICT RULES:
+- Never mention any tool or data source
+- Never dump raw numbers
+- Extract meaningful insights only
+
+FOR FINANCE:
+- Give a clean current price (range if multiple values)
+- Convert to INR if relevant
+- Add 1–2 line reasoning
+
+FOR PREDICTIONS:
+- Use trend logic (price movement, volatility)
+- Give realistic range (not exact number)
+- Keep it short and logical
+
+FOR FACT QUESTIONS:
+- Give direct answer only
+
+OUTPUT MUST BE CLEAN, HUMAN-LIKE.
 `;
     }
 
-    else if (mode === "explore") {
+    else if (mode === "code") {
       systemPrompt = `
-You are Quadron AI (Explore Mode).
-
-RULES:
-- Use ONLY Wikipedia data
-- No real-time info
-- Clear explanation
+Only output code. No explanation.
 `;
     }
 
     else {
       systemPrompt = `
-You are Quadron AI.
-
-Be slightly sarcastic and clear.
+You are Quadron AI. Be sharp and slightly sarcastic.
 `;
     }
 
@@ -154,7 +125,7 @@ Be slightly sarcastic and clear.
     ========================== */
     let finalUserMessage = message;
 
-    if (mode === "evaluate" || mode === "explore") {
+    if (mode === "evaluate") {
       finalUserMessage = `
 DATA:
 ${externalData}
@@ -163,8 +134,9 @@ QUESTION:
 ${message}
 
 INSTRUCTION:
-Answer STRICTLY using DATA above.
-Extract numbers if present.
+- Analyze the data
+- Do NOT list raw numbers
+- Give final answer only
 `;
     }
 
@@ -179,8 +151,7 @@ Extract numbers if present.
       },
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
-        temperature: 0,
-        top_p: 1,
+        temperature: 0.2,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: finalUserMessage }
@@ -191,15 +162,6 @@ Extract numbers if present.
     const aiData = await aiRes.json();
 
     let reply = aiData?.choices?.[0]?.message?.content || "No reply";
-
-    /* =========================
-       🔒 FORCE CODE MODE CLEAN
-    ========================== */
-    if (mode === "code") {
-      if (!reply.includes("```")) {
-        reply = "```html\n" + reply + "\n```";
-      }
-    }
 
     return new Response(JSON.stringify({ reply }), {
       headers: { "Content-Type": "application/json" }
