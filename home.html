@@ -13,63 +13,124 @@ body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;transition:.3s;
 .blur{filter:blur(6px);}
 
 /* HEADER */
-header{display:flex;justify-content:space-between;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 15px #ffd900;}
+header{
+display:flex;justify-content:space-between;
+padding:12px;background:#000;
+border-bottom:2px solid #ffd900;
+box-shadow:0 0 15px #ffd900;
+}
 #menuBtn{cursor:pointer;font-size:24px;}
 
 /* SIDE MENU */
 #overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;}
-#sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;display:flex;flex-direction:column;}
+#sidePanel{
+position:fixed;right:0;top:0;width:260px;height:100%;
+background:#111;transform:translateX(100%);
+transition:.3s;padding:15px;z-index:1000;
+display:flex;flex-direction:column;
+}
 #sidePanel.open{transform:translateX(0);}
 
-#menuProfile{display:flex;gap:10px;padding:10px;border-bottom:1px solid #333;cursor:pointer;}
+#menuProfile{
+display:flex;gap:10px;padding:10px;
+border-bottom:1px solid #333;cursor:pointer;
+}
 #menuProfile img{width:40px;height:40px;border-radius:50%;border:1px solid #ffd900;}
 
-.menuItem{padding:10px;cursor:pointer;margin-top:8px;font-weight:bold;color:#fff;text-shadow:0 0 10px #fff;}
+.menuItem{padding:10px;cursor:pointer;margin-top:8px;font-weight:bold;text-shadow:0 0 10px #fff;}
 
-.menuFooter{text-align:center;font-size:12px;margin-top:auto;}
-.menuFooter span{color:#fff;text-shadow:0 0 10px #fff;}
-.menuFooter b{color:#ffd900;text-shadow:0 0 15px #ffd900;}
+.menuFooter{
+margin-top:auto;
+text-align:center;
+font-size:12px;
+}
+.menuFooter span{
+text-shadow:0 0 10px #ffd900;
+}
 
 /* CHAT */
 #chat{max-width:800px;margin:auto;padding:10px;}
-#messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;border-radius:12px;box-shadow:0 0 20px #ffd900;}
+#messages{
+height:65vh;overflow:auto;
+background:#111;padding:10px;
+border:1px solid #ffd900;
+border-radius:12px;
+box-shadow:0 0 20px #ffd900;
+}
 
 /* INPUT */
 #inputArea{display:flex;gap:8px;margin-top:10px;}
-input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
-
-button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;box-shadow:0 0 20px #ffd900;}
+input{
+flex:1;padding:10px;
+background:black;color:#ffd900;
+border:1px solid #ffd900;
+border-radius:10px;
+}
+button{
+padding:10px;
+background:#ffd900;color:#000;
+border:none;
+cursor:pointer;
+box-shadow:0 0 20px #ffd900;
+transition:.2s;
+}
+button:hover{
+box-shadow:0 0 50px #ffd900,0 0 80px #ffd900;
+}
 
 /* TEXT */
 .userText{color:#ffd900;text-shadow:0 0 10px #ffd900;}
 .aiText{color:#fff;text-shadow:0 0 10px #fff;}
 
-/* CODE */
-.codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:hidden;position:relative;}
-.codeHeader{display:flex;justify-content:space-between;padding:6px;background:#111;font-size:12px;border-bottom:1px solid #ffd900;}
-.copyBtn{cursor:pointer;padding:2px 6px;border:1px solid #ffd900;border-radius:4px;margin-left:5px;}
+/* CODE BOX */
+.codeBox{
+background:#000;border:1px solid #ffd900;
+margin-top:8px;border-radius:8px;
+overflow:hidden;position:relative;
+}
+.codeHeader{
+display:flex;justify-content:space-between;
+padding:6px;background:#111;font-size:12px;
+border-bottom:1px solid #ffd900;
+}
+.copyBtn{
+cursor:pointer;padding:4px 8px;
+border:1px solid #ffd900;border-radius:4px;
+margin-left:5px;
+}
 
-.spinner{position:absolute;width:20px;height:20px;border:3px solid #fff;border-top:3px solid transparent;border-radius:50%;animation:spin 1s linear infinite;top:8px;right:10px;}
+/* SPINNER */
+.spinner{
+position:absolute;width:20px;height:20px;
+border:3px solid #ffd900;border-top:3px solid transparent;
+border-radius:50%;
+animation:spin 1s linear infinite;
+top:10px;left:10px;
+}
 @keyframes spin{100%{transform:rotate(360deg);}}
 
 /* CYLINDER LABEL */
 .cylinder{
-position:absolute;right:10px;top:60px;
-padding:6px 12px;border-radius:20px;
 border:2px solid #ffd900;
-color:#fff;text-shadow:0 0 10px #fff;
-box-shadow:0 0 15px #ffd900;
+border-radius:50px;
+padding:3px 10px;
+display:inline-block;
+margin-left:10px;
+color:#fff;
+text-shadow:0 0 10px #fff;
+box-shadow:0 0 10px #ffd900;
+font-size:12px;
 }
 
 /* FOOTER */
-.footer{text-align:center;font-size:12px;margin:10px;color:#fff;text-shadow:0 0 10px #fff;}
+.footer{text-align:center;font-size:12px;margin:10px;}
 .footer a{color:#ffd900;text-shadow:0 0 15px #ffd900;text-decoration:none;}
 </style>
 </head>
 
 <body>
 
-<header>
+<header id="mainUI">
 <div>Quadron AI</div>
 <div id="menuBtn" onclick="openMenu()">☰</div>
 </header>
@@ -86,13 +147,13 @@ box-shadow:0 0 15px #ffd900;
 </div>
 </div>
 
-<div class="menuItem" onclick="newChat()">New Chat</div>
-<div class="menuItem" onclick="codeMode()">Code /</div>
-<div class="menuItem" onclick="exploreMode()">Explore</div>
-<div class="menuItem" onclick="evaluateModeUI()">Evaluate</div>
+<div class="menuItem" onclick="newChat();closeMenu()">New Chat</div>
+<div class="menuItem" onclick="codeMode();closeMenu()">Code /</div>
+<div class="menuItem" onclick="exploreMode();closeMenu()">Explore <span class="cylinder">Encyclopedia</span></div>
+<div class="menuItem" onclick="evaluateModeUI();closeMenu()">Evaluate <span class="cylinder">Real Time Data</span></div>
 
 <div class="menuFooter">
-<span>Developed by <b>Rawat Systems</b></span>
+<span>Developed By Rawat Systems</span>
 </div>
 
 </div>
@@ -101,17 +162,15 @@ box-shadow:0 0 15px #ffd900;
 <div id="messages"></div>
 
 <div id="inputArea">
-<input id="msg" placeholder="Type here...">
+<input id="msg">
 <button onclick="send()">Send</button>
 </div>
 </div>
 
 <div class="footer">
-Quadron AI can make mistakes , by using it you agree our 
+Quadron AI can make mistakes,
 <a href="terms.html">Terms & Conditions</a>
 </div>
-
-<div id="modeLabel" class="cylinder"></div>
 
 <script>
 
@@ -127,88 +186,80 @@ profilePic.src="https://via.placeholder.com/40";
 }
 
 /* CHAT LIMIT */
-let usage=JSON.parse(localStorage.getItem("usage")||"{}");
 let today=new Date().toDateString();
-if(!usage[today]) usage[today]=0;
-
-function checkLimit(){
-if(usage[today]>=100){
-alert("Daily limit reached");
-return false;
-}
-usage[today]++;
-localStorage.setItem("usage",JSON.stringify(usage));
-return true;
-}
+let usage=JSON.parse(localStorage.getItem("usage_"+user?.email))||{date:today,count:0};
+if(usage.date!==today){usage={date:today,count:0};}
 
 /* GREETING ONCE */
 if(user && !localStorage.getItem("greeted")){
-messages.innerHTML=`<p class="aiText">QUADRON : Oh look, ${user.name} finally showed up. Try not to break anything.</p>`;
-localStorage.setItem("greeted","1");
+fetch("/api/chat",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({message:`sarcastic greeting for ${user.name}`})
+})
+.then(r=>r.json())
+.then(d=>{
+messages.innerHTML=`<p class="aiText">${d.reply}</p>`;
+localStorage.setItem("greeted",true);
+});
 }
 
 /* MENU */
 function openMenu(){
-document.body.classList.add("blur");
 sidePanel.classList.add("open");
 overlay.style.display="block";
+document.body.classList.add("blur");
 }
 function closeMenu(){
-document.body.classList.remove("blur");
 sidePanel.classList.remove("open");
 overlay.style.display="none";
+document.body.classList.remove("blur");
+}
+
+function openProfilePage(){
+window.open("profile.html","_blank");
 }
 
 /* MODES */
 let codeModeActive=false,exploreActive=false,evaluateMode=false;
 
-function resetModes(){
-messages.innerHTML="";
-closeMenu();
+function buildPrompt(t){
+if(codeModeActive) return "ONLY CODE "+t;
+if(exploreActive) return "Use Wikipedia "+t;
+if(evaluateMode) return "Use Tavily API "+t;
+return t;
 }
 
-function codeMode(){
-resetModes();
-codeModeActive=true;exploreActive=false;evaluateMode=false;
-typeSystem("Describe what you want to code");
-modeLabel.innerText="</> Code";
-}
-function exploreMode(){
-resetModes();
-exploreActive=true;codeModeActive=false;
-typeSystem("Explore the universe");
-modeLabel.innerText="Encyclopedia";
-}
-function evaluateModeUI(){
-resetModes();
-evaluateMode=true;codeModeActive=false;
-typeSystem("Evaluate World");
-modeLabel.innerText="Real Time Data";
-}
-
-function newChat(){resetModes();}
-
-/* TYPE */
-function typeSystem(text){
-let p=document.createElement("p");
-messages.appendChild(p);
-fastType(p,"QUADRON : "+text);
-}
-
-/* FAST TYPE */
+/* ULTRA FAST TYPE */
 function fastType(el,text){
 let span=document.createElement("span");
 span.className="aiText";
 el.appendChild(span);
-span.textContent=text;
+
+let len=text.length;
+let speed=1; // ultra fast
+
+let i=0;
+let interval=setInterval(()=>{
+span.textContent=text.slice(0,i);
+i++;
+if(i>len) clearInterval(interval);
+},speed);
 }
 
 /* SEND */
 async function send(){
-if(!checkLimit())return;
+
+if(usage.count>=100){
+alert("Daily limit reached");
+return;
+}
 
 let text=msg.value.trim();
 if(!text)return;
+
+usage.count++;
+localStorage.setItem("usage_"+user.email,JSON.stringify(usage));
 
 messages.innerHTML+=`<p class="userText">You: ${text}</p>`;
 msg.value="";
@@ -216,15 +267,16 @@ msg.value="";
 let p=document.createElement("p");
 messages.appendChild(p);
 
-let prompt=text;
-if(codeModeActive) prompt="ONLY CODE "+text;
-if(exploreActive) prompt="WIKIPEDIA "+text;
-if(evaluateMode) prompt="TAVILY "+text;
+let res=await fetch("/api/chat",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({message:buildPrompt(text),user:user?.name})
+});
 
-let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:prompt,user:user?.name})});
 let data=await res.json();
 let reply=data.reply;
 
+/* FORCE CODE */
 if(codeModeActive && !reply.includes("```")){
 reply="```html\n"+reply+"\n```";
 }
@@ -232,14 +284,9 @@ reply="```html\n"+reply+"\n```";
 let m=reply.match(/```(\w+)?\n([\s\S]*?)```/);
 
 if(m){
-createCodeBox(p,m[1]||"html",m[2]);
-}else{
-fastType(p,"QUADRON : "+reply);
-}
-}
+let lang=m[1]||"html";
+let code=m[2];
 
-/* CODE BOX */
-function createCodeBox(parent,lang,code){
 let box=document.createElement("div");
 box.className="codeBox";
 
@@ -256,16 +303,30 @@ box.innerHTML=`
 <pre class="codeContent"></pre>
 `;
 
-parent.appendChild(box);
+p.appendChild(box);
 
-let pre=box.querySelector("pre");
-pre.textContent=code;
-hljs.highlightElement(pre);
+let content=box.querySelector("pre");
+let spin=box.querySelector(".spinner");
+
+content.textContent="";
+let i=0;
+let speed=1;
+
+let interval=setInterval(()=>{
+content.textContent+=code[i];
+i++;
+if(i>=code.length){
+clearInterval(interval);
+spin.remove();
+hljs.highlightElement(content);
+}
+},speed);
+
+}else{
+fastType(p,reply);
 }
 
-/* COPY */
-function copyCode(btn){
-navigator.clipboard.writeText(btn.closest(".codeBox").querySelector("pre").textContent);
+messages.scrollTop=messages.scrollHeight;
 }
 
 /* RUN */
@@ -273,19 +334,29 @@ function runCode(btn){
 let box=btn.closest(".codeBox");
 let code=box.querySelector("pre").textContent;
 
-box.innerHTML=`
-<button style="position:absolute;top:5px;right:5px;background:#fff;color:#000;" onclick="restoreCode(this)">Back</button>
-<iframe style="width:100%;height:250px;"></iframe>
-`;
+let original=box.innerHTML;
 
-box.dataset.code=code;
-box.querySelector("iframe").srcdoc=code;
-}
+box.innerHTML=`<div class="spinner"></div>`;
 
-function restoreCode(btn){
-let box=btn.parentElement;
-createCodeBox(box.parentElement,"html",box.dataset.code);
-box.remove();
+setTimeout(()=>{
+let iframe=document.createElement("iframe");
+iframe.style.width="100%";
+iframe.style.height="250px";
+iframe.srcdoc=code;
+
+box.innerHTML="";
+box.appendChild(iframe);
+
+let back=document.createElement("button");
+back.innerText="Back";
+back.style.float="right";
+
+back.onclick=()=>{
+box.innerHTML=original;
+};
+
+box.appendChild(back);
+},500);
 }
 
 /* DEBUG */
@@ -293,14 +364,60 @@ async function debugCode(btn){
 let box=btn.closest(".codeBox");
 let code=box.querySelector("pre").textContent;
 
-let res=await fetch("/api/debug",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code})});
+box.innerHTML=`<div class="spinner"></div>`;
+
+let res=await fetch("/api/chat",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({message:"Fix this code:\n"+code})
+});
+
 let d=await res.json();
 
-box.innerHTML="";
-createCodeBox(box.parentElement,"html",d.fixed);
-box.remove();
+let newCode=d.reply.replace(/```[\s\S]*?\n|```/g,"");
+
+box.innerHTML=`
+<div class="codeHeader">
+<span>DEBUGGED</span>
+</div>
+<div class="spinner"></div>
+<pre class="codeContent"></pre>
+`;
+
+let content=box.querySelector("pre");
+let spin=box.querySelector(".spinner");
+
+let i=0;
+let interval=setInterval(()=>{
+content.textContent+=newCode[i];
+i++;
+if(i>=newCode.length){
+clearInterval(interval);
+spin.remove();
+hljs.highlightElement(content);
+}
+},1);
 }
 
+/* MODES */
+function newChat(){messages.innerHTML="";}
+function codeMode(){
+codeModeActive=true;exploreActive=false;evaluateMode=false;
+fastType(messages,"Describe what you want to code");
+}
+function exploreMode(){
+exploreActive=true;codeModeActive=false;
+fastType(messages,"Explore the universe");
+}
+function evaluateModeUI(){
+evaluateMode=true;codeModeActive=false;
+fastType(messages,"Evaluate World");
+}
+
+msg.addEventListener("keydown",e=>{
+if(e.key==="Enter") send();
+});
 </script>
+
 </body>
 </html>
