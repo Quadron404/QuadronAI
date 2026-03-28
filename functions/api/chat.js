@@ -14,82 +14,73 @@ export async function onRequest(context) {
 
     let externalData = "";
 
-    /* =========================
-       🔵 EVALUATE MODE → SERPER ONLY
-    ========================== */
-    if (mode === "evaluate" && env.SERPER) {
-      try {
-        let q = message.toLowerCase();
-        let smartQuery = message;
+  /* =========================
+   🔵 EVALUATE MODE → SERPER CLEANED
+========================= */
+if (mode === "evaluate" && env.SERPER) {
+  try {
+    let q = message.toLowerCase();
+    let smartQuery = message;
 
-        // 🔥 SMART QUERY BOOST
-        if (q.includes("tsla") || q.includes("tesla")) {
-          smartQuery = "Tesla TSLA stock price today USD";
-        }
-        else if (q.includes("btc") || q.includes("bitcoin")) {
-          smartQuery = "Bitcoin price today USD live";
-        }
-        else if (q.includes("eth")) {
-          smartQuery = "Ethereum price today USD live";
-        }
-        else if (q.includes("nifty")) {
-          smartQuery = "Nifty 50 today value India";
-        }
-        else if (q.includes("sensex")) {
-          smartQuery = "Sensex today value India";
-        }
+    if (q.includes("tsla") || q.includes("tesla")) {
+      smartQuery = "Tesla TSLA stock price today USD";
+    }
+    else if (q.includes("btc") || q.includes("bitcoin")) {
+      smartQuery = "Bitcoin price today USD";
+    }
+    else if (q.includes("eth")) {
+      smartQuery = "Ethereum price today USD";
+    }
+    else if (q.includes("india pm")) {
+      smartQuery = "current prime minister of India";
+    }
+    else if (q.includes("us president")) {
+      smartQuery = "current US president 2026";
+    }
 
-        const serperRes = await fetch("https://google.serper.dev/search", {
-          method: "POST",
-          headers: {
-            "X-API-KEY": env.SERPER,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            q: smartQuery,
-            gl: "in"
-          })
-        });
+    const res = await fetch("https://google.serper.dev/search", {
+      method: "POST",
+      headers: {
+        "X-API-KEY": env.SERPER,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ q: smartQuery })
+    });
 
-        const serperData = await serperRes.json();
+    const data = await res.json();
 
-        let parts = [];
+    let extracted = [];
 
-        // 🔥 ANSWER BOX (BEST SOURCE)
-        if (serperData.answerBox) {
-          parts.push(
-            `ANSWER: ${serperData.answerBox.answer || ""} ${serperData.answerBox.snippet || ""}`
-          );
-        }
+    /* 🔥 ANSWER BOX FIRST */
+    if (data.answerBox?.answer) {
+      extracted.push(data.answerBox.answer);
+    }
+    if (data.answerBox?.snippet) {
+      extracted.push(data.answerBox.snippet);
+    }
 
-        // 🔥 KNOWLEDGE GRAPH
-        if (serperData.knowledgeGraph) {
-          parts.push(
-            `KNOWLEDGE: ${serperData.knowledgeGraph.title} - ${serperData.knowledgeGraph.description}`
-          );
-        }
+    /* 🔥 ORGANIC CLEAN FILTER */
+    if (data.organic) {
+      for (let r of data.organic.slice(0, 5)) {
+        let text = r.snippet;
 
-        // 🔥 ORGANIC RESULTS
-        if (serperData.organic?.length) {
-          parts.push(
-            serperData.organic
-              .slice(0, 5)
-              .map(r => `SOURCE: ${r.link}\n${r.snippet}`)
-              .join("\n\n---\n\n")
-          );
-        }
+        // ❌ remove junk numbers (long IDs etc)
+        text = text.replace(/\b\d{6,}\b/g, "");
 
-        externalData = parts.join("\n\n");
-
-        // 🔒 HARD FALLBACK (NO ESCAPE)
-        if (!externalData) {
-          externalData = "Limited data available. Extract best possible answer.";
-        }
-
-      } catch {
-        externalData = "Search failed. Extract best possible answer from context.";
+        extracted.push(text);
       }
     }
+
+    externalData = extracted.join("\n");
+
+    if (!externalData) {
+      externalData = "No clear data found. Give best logical answer.";
+    }
+
+  } catch {
+    externalData = "Search failed. Answer logically.";
+  }
+}
 
     /* =========================
        🟡 EXPLORE MODE → WIKIPEDIA ONLY
