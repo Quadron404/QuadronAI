@@ -15,37 +15,54 @@ export async function onRequest(context) {
     let externalData = "";
 
     /* =========================
-       🔵 EVALUATE MODE → TAVILY ONLY
-    ========================== */
-    if (mode === "evaluate" && env.TAVILY__KEY) {
-      try {
-        const tavilyRes = await fetch("https://api.tavily.com/search", {
-          method: "POST",
-          headers: {
-            "Authorization": "Bearer " + env.TAVILY__KEY,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            query: message,
-            max_results: 5
-          })
-        });
+   🔵 EVALUATE MODE → TAVILY ONLY (FIXED)
+========================= */
+if (mode === "evaluate" && env.TAVILY__KEY) {
+  try {
 
-        const tavilyData = await tavilyRes.json();
+    // 🔥 SMART QUERY FIX
+    let smartQuery = message;
 
-        if (tavilyData?.results?.length) {
-          externalData = tavilyData.results
-            .map(r => r.content)
-            .join("\n\n");
-        } else {
-          externalData = "No real-time data found.";
-        }
-
-      } catch {
-        externalData = "Failed to fetch real-time data.";
-      }
+    if (message.toLowerCase().includes("tsla")) {
+      smartQuery = "Tesla TSLA stock price today current value";
     }
 
+    if (message.toLowerCase().includes("bitcoin") || message.toLowerCase().includes("btc")) {
+      smartQuery = "Bitcoin price today live";
+    }
+
+    if (message.toLowerCase().includes("india pm")) {
+      smartQuery = "current prime minister of India";
+    }
+
+    const tavilyRes = await fetch("https://api.tavily.com/search", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + env.TAVILY__KEY,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        query: smartQuery,
+        max_results: 5,
+        search_depth: "advanced"   // 🔥 IMPORTANT
+      })
+    });
+
+    const tavilyData = await tavilyRes.json();
+
+    if (tavilyData?.results?.length) {
+      externalData = tavilyData.results
+        .map(r => r.content)
+        .join("\n\n");
+    } else {
+      // 🔥 FALLBACK FIX
+      externalData = "No strong data found. Use general knowledge to answer accurately.";
+    }
+
+  } catch {
+    externalData = "Data fetch failed. Use best possible reasoning.";
+  }
+}
     /* =========================
        🟡 EXPLORE MODE → WIKIPEDIA ONLY
     ========================== */
