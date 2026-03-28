@@ -10,95 +10,51 @@
 
 <style>
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
-
-/* BLUR ONLY BG */
-.blur-bg{filter:blur(6px);}
+.blurBg > *:not(#sidePanel){filter:blur(6px);}
 
 /* HEADER */
-header{
-display:flex;justify-content:space-between;
-padding:12px;background:#000;
-border-bottom:2px solid #ffd900;
-box-shadow:0 0 15px #ffd900;
-}
+header{display:flex;justify-content:space-between;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 15px #ffd900;}
 #menuBtn{cursor:pointer;font-size:24px;}
 
-/* SIDE MENU */
+/* MENU */
 #overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;}
-#sidePanel{
-position:fixed;right:0;top:0;width:260px;height:100%;
-background:#111;transform:translateX(100%);
-transition:.3s;padding:15px;z-index:1000;
-display:flex;flex-direction:column;
-}
+#sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;display:flex;flex-direction:column;}
 #sidePanel.open{transform:translateX(0);}
-
-#menuProfile{
-display:flex;gap:10px;padding:10px;
-border-bottom:1px solid #333;cursor:pointer;
-}
-#menuProfile img{width:40px;height:40px;border-radius:50%;border:1px solid #ffd900;}
 
 .menuItem{padding:10px;cursor:pointer;margin-top:8px;font-weight:bold;text-shadow:0 0 10px #fff;}
 
-.menuFooter{margin-top:auto;text-align:center;font-size:12px;}
+.menuFooter{text-align:center;font-size:12px;margin-top:auto;}
 .menuFooter span{color:#fff;text-shadow:0 0 10px #fff;}
 .menuFooter b{color:#ffd900;text-shadow:0 0 15px #ffd900;}
 
+#menuProfile{display:flex;gap:10px;padding:10px;border-bottom:1px solid #333;cursor:pointer;}
+#menuProfile img{width:40px;height:40px;border-radius:50%;border:1px solid #ffd900;}
+
 /* CHAT */
 #chat{max-width:800px;margin:auto;padding:10px;}
-#messages{
-height:65vh;overflow:auto;
-background:#111;padding:10px;
-border:1px solid #ffd900;
-border-radius:12px;
-box-shadow:0 0 20px #ffd900;
-}
+#messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;border-radius:12px;box-shadow:0 0 20px #ffd900;}
 
 /* INPUT */
 #inputArea{display:flex;gap:8px;margin-top:10px;}
-input{
-flex:1;padding:10px;
-background:black;color:#ffd900;
-border:1px solid #ffd900;
-border-radius:10px;
-}
-button{
-padding:10px;
-background:#ffd900;color:#000;
-border:none;
-cursor:pointer;
-box-shadow:0 0 20px #ffd900;
-}
+input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
+button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;box-shadow:0 0 20px #ffd900;}
 
 /* TEXT */
 .userText{color:#ffd900;text-shadow:0 0 10px #ffd900;}
 .aiText{color:#fff;text-shadow:0 0 10px #fff;}
 
 /* CODE */
-.codeBox{
-background:#000;border:1px solid #ffd900;
-margin-top:8px;border-radius:8px;
-overflow:hidden;position:relative;
-}
-.codeHeader{
-display:flex;justify-content:space-between;
-padding:6px;background:#111;font-size:12px;
-border-bottom:1px solid #ffd900;
-}
-.copyBtn{
-cursor:pointer;padding:4px 8px;
-border:1px solid #ffd900;border-radius:4px;
-margin-left:5px;
-}
+.codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:hidden;position:relative;}
+.codeHeader{display:flex;justify-content:space-between;padding:6px;background:#111;font-size:12px;border-bottom:1px solid #ffd900;}
+.copyBtn{cursor:pointer;padding:4px 8px;border:1px solid #ffd900;border-radius:4px;margin-left:5px;}
 
-/* FIXED SPINNER */
+/* SPINNER FIXED */
 .spinner{
-position:absolute;width:20px;height:20px;
+position:absolute;width:18px;height:18px;
 border:3px solid #fff;border-top:3px solid transparent;
 border-radius:50%;
 animation:spin 1s linear infinite;
-top:8px;right:10px;
+top:8px;right:8px;
 }
 @keyframes spin{100%{transform:rotate(360deg);}}
 
@@ -108,9 +64,9 @@ top:8px;right:10px;
 </style>
 </head>
 
-<body>
+<body id="body">
 
-<header id="mainUI">
+<header>
 <div>Quadron AI</div>
 <div id="menuBtn" onclick="openMenu()">☰</div>
 </header>
@@ -127,10 +83,10 @@ top:8px;right:10px;
 </div>
 </div>
 
-<div class="menuItem" onclick="newChat();closeMenu()">New Chat</div>
-<div class="menuItem" onclick="codeMode();closeMenu()">Code /</div>
-<div class="menuItem" onclick="exploreMode();closeMenu()">Explore</div>
-<div class="menuItem" onclick="evaluateModeUI();closeMenu()">Evaluate</div>
+<div class="menuItem" onclick="menuAction(newChat)">New Chat</div>
+<div class="menuItem" onclick="menuAction(codeMode)">Code /</div>
+<div class="menuItem" onclick="menuAction(exploreMode)">Explore</div>
+<div class="menuItem" onclick="menuAction(evaluateModeUI)">Evaluate</div>
 
 <div class="menuFooter">
 <span>Developed By <b>Rawat Systems</b></span>
@@ -140,7 +96,6 @@ top:8px;right:10px;
 
 <div id="chat">
 <div id="messages"></div>
-
 <div id="inputArea">
 <input id="msg">
 <button onclick="send()">Send</button>
@@ -165,28 +120,58 @@ profileName.textContent="Guest";
 profilePic.src="https://via.placeholder.com/40";
 }
 
-/* MENU BLUR FIX */
+/* GREETING ONCE */
+if(user && !localStorage.getItem("greeted")){
+fetch("/api/chat",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({message:`sarcastic greeting`,user:user.name})
+})
+.then(r=>r.json())
+.then(d=>{
+messages.innerHTML=`<p class="aiText">QUADRON : ${d.reply}</p>`;
+localStorage.setItem("greeted",true);
+});
+}
+
+/* MENU */
 function openMenu(){
 sidePanel.classList.add("open");
 overlay.style.display="block";
-mainUI.classList.add("blur-bg");
-chat.classList.add("blur-bg");
+body.classList.add("blurBg");
 }
 function closeMenu(){
 sidePanel.classList.remove("open");
 overlay.style.display="none";
-mainUI.classList.remove("blur-bg");
-chat.classList.remove("blur-bg");
+body.classList.remove("blurBg");
+}
+function menuAction(fn){
+messages.innerHTML="";
+fn();
+closeMenu();
 }
 
 /* MODES */
 let codeModeActive=false,exploreActive=false,evaluateMode=false;
 
-function buildPrompt(t){
-if(codeModeActive) return "ONLY CODE "+t;
-if(exploreActive) return "WIKIPEDIA "+t;
-if(evaluateMode) return "TAVILY ONLY "+t;
-return t;
+function codeMode(){
+codeModeActive=true;exploreActive=false;evaluateMode=false;
+typeMsg("Describe What You Want To Code");
+}
+function exploreMode(){
+exploreActive=true;codeModeActive=false;evaluateMode=false;
+typeMsg("Explore The Universe");
+}
+function evaluateModeUI(){
+evaluateMode=true;codeModeActive=false;exploreActive=false;
+typeMsg("Evaluate Stars");
+}
+
+/* TYPE */
+function typeMsg(text){
+let p=document.createElement("p");
+messages.appendChild(p);
+fastType(p,"QUADRON : "+text);
 }
 
 /* ULTRA FAST */
@@ -200,12 +185,19 @@ let interval=setInterval(()=>{
 span.textContent=text.slice(0,i);
 i++;
 if(i>text.length) clearInterval(interval);
-},0);
+},1);
+}
+
+/* PROMPT */
+function buildPrompt(t){
+if(codeModeActive) return "ONLY CODE "+t;
+if(exploreActive) return "WIKIPEDIA "+t;
+if(evaluateMode) return "TAVILY "+t;
+return t;
 }
 
 /* SEND */
 async function send(){
-
 let text=msg.value.trim();
 if(!text)return;
 
@@ -218,16 +210,13 @@ messages.appendChild(p);
 let res=await fetch("/api/chat",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({message:buildPrompt(text)})
+body:JSON.stringify({message:buildPrompt(text),user:user?.name})
 });
 
 let data=await res.json();
 let reply=data.reply;
 
-if(codeModeActive && !reply.includes("```")){
-reply="```html\n"+reply+"\n```";
-}
-
+/* CODE */
 let m=reply.match(/```(\w+)?\n([\s\S]*?)```/);
 
 if(m){
@@ -237,7 +226,7 @@ fastType(p,"QUADRON : "+reply);
 }
 }
 
-/* CODE BOX */
+/* CREATE CODE BOX */
 function createCodeBox(parent,lang,code){
 let box=document.createElement("div");
 box.className="codeBox";
@@ -258,6 +247,7 @@ box.innerHTML=`
 parent.appendChild(box);
 
 let pre=box.querySelector("pre");
+let spin=box.querySelector(".spinner");
 
 let i=0;
 let interval=setInterval(()=>{
@@ -265,17 +255,16 @@ pre.textContent+=code[i];
 i++;
 if(i>=code.length){
 clearInterval(interval);
-box.querySelector(".spinner").remove();
+spin.remove();
 hljs.highlightElement(pre);
 }
-},0);
+},1);
 }
 
 /* RUN */
 function runCode(btn){
 let box=btn.closest(".codeBox");
 let code=box.querySelector("pre").textContent;
-
 let original=box.innerHTML;
 
 box.innerHTML=`
@@ -283,11 +272,10 @@ box.innerHTML=`
 <iframe style="width:100%;height:250px;"></iframe>
 `;
 
-box.querySelector("iframe").srcdoc=code;
+let back=box.querySelector("button");
+back.onclick=()=>{box.innerHTML=original;};
 
-box.querySelector("button").onclick=()=>{
-box.innerHTML=original;
-};
+box.querySelector("iframe").srcdoc=code;
 }
 
 /* DEBUG */
@@ -295,19 +283,27 @@ async function debugCode(btn){
 let box=btn.closest(".codeBox");
 let code=box.querySelector("pre").textContent;
 
-let res=await fetch("/api/chat",{
+let res=await fetch("/api/debug",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({message:"ONLY FIX CODE\n"+code})
+body:JSON.stringify({code})
 });
 
 let d=await res.json();
-let clean=d.reply.replace(/```[\s\S]*?\n|```/g,"");
 
+box.innerHTML="";
+createCodeBox(box.parentElement,"html",d.fixed);
 box.remove();
-createCodeBox(messages,"html",clean);
 }
 
+/* COPY */
+function copyCode(btn){
+navigator.clipboard.writeText(btn.closest(".codeBox").querySelector("pre").textContent);
+}
+
+msg.addEventListener("keydown",e=>{
+if(e.key==="Enter") send();
+});
 </script>
 
 </body>
