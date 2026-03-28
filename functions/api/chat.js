@@ -6,7 +6,7 @@ export async function onRequest(context) {
   }
 
   try {
-    const { message, mode, user } = await request.json();
+    const { message, mode } = await request.json();
 
     if (!env.GROQ_API_KEY) {
       return new Response("Missing GROQ_API_KEY", { status: 500 });
@@ -15,54 +15,82 @@ export async function onRequest(context) {
     let externalData = "";
 
     /* =========================
-   🔵 EVALUATE MODE → TAVILY ONLY (FIXED)
-========================= */
-if (mode === "evaluate" && env.TAVILY__KEY) {
-  try {
+       🔵 EVALUATE MODE → SERPER ONLY
+    ========================== */
+    if (mode === "evaluate" && env.SERPER) {
+      try {
+        let q = message.toLowerCase();
+        let smartQuery = message;
 
-    // 🔥 SMART QUERY FIX
-    let smartQuery = message;
+        // 🔥 SMART QUERY BOOST
+        if (q.includes("tsla") || q.includes("tesla")) {
+          smartQuery = "Tesla TSLA stock price today USD";
+        }
+        else if (q.includes("btc") || q.includes("bitcoin")) {
+          smartQuery = "Bitcoin price today USD live";
+        }
+        else if (q.includes("eth")) {
+          smartQuery = "Ethereum price today USD live";
+        }
+        else if (q.includes("nifty")) {
+          smartQuery = "Nifty 50 today value India";
+        }
+        else if (q.includes("sensex")) {
+          smartQuery = "Sensex today value India";
+        }
 
-    if (message.toLowerCase().includes("tsla")) {
-      smartQuery = "Tesla TSLA stock price today current value";
+        const serperRes = await fetch("https://google.serper.dev/search", {
+          method: "POST",
+          headers: {
+            "X-API-KEY": env.SERPER,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            q: smartQuery,
+            gl: "in"
+          })
+        });
+
+        const serperData = await serperRes.json();
+
+        let parts = [];
+
+        // 🔥 ANSWER BOX (BEST SOURCE)
+        if (serperData.answerBox) {
+          parts.push(
+            `ANSWER: ${serperData.answerBox.answer || ""} ${serperData.answerBox.snippet || ""}`
+          );
+        }
+
+        // 🔥 KNOWLEDGE GRAPH
+        if (serperData.knowledgeGraph) {
+          parts.push(
+            `KNOWLEDGE: ${serperData.knowledgeGraph.title} - ${serperData.knowledgeGraph.description}`
+          );
+        }
+
+        // 🔥 ORGANIC RESULTS
+        if (serperData.organic?.length) {
+          parts.push(
+            serperData.organic
+              .slice(0, 5)
+              .map(r => `SOURCE: ${r.link}\n${r.snippet}`)
+              .join("\n\n---\n\n")
+          );
+        }
+
+        externalData = parts.join("\n\n");
+
+        // 🔒 HARD FALLBACK (NO ESCAPE)
+        if (!externalData) {
+          externalData = "Limited data available. Extract best possible answer.";
+        }
+
+      } catch {
+        externalData = "Search failed. Extract best possible answer from context.";
+      }
     }
 
-    if (message.toLowerCase().includes("bitcoin") || message.toLowerCase().includes("btc")) {
-      smartQuery = "Bitcoin price today live";
-    }
-
-    if (message.toLowerCase().includes("india pm")) {
-      smartQuery = "current prime minister of India";
-    }
-
-    const tavilyRes = await fetch("https://api.tavily.com/search", {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer " + env.TAVILY__KEY,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        query: smartQuery,
-        max_results: 5,
-        search_depth: "advanced"   // 🔥 IMPORTANT
-      })
-    });
-
-    const tavilyData = await tavilyRes.json();
-
-    if (tavilyData?.results?.length) {
-      externalData = tavilyData.results
-        .map(r => r.content)
-        .join("\n\n");
-    } else {
-      // 🔥 FALLBACK FIX
-      externalData = "No strong data found. Use general knowledge to answer accurately.";
-    }
-
-  } catch {
-    externalData = "Data fetch failed. Use best possible reasoning.";
-  }
-}
     /* =========================
        🟡 EXPLORE MODE → WIKIPEDIA ONLY
     ========================== */
@@ -74,19 +102,15 @@ if (mode === "evaluate" && env.TAVILY__KEY) {
 
         const wikiData = await wikiRes.json();
 
-        if (wikiData?.extract) {
-          externalData = wikiData.extract;
-        } else {
-          externalData = "No Wikipedia data found.";
-        }
+        externalData = wikiData?.extract || "No Wikipedia data found.";
 
       } catch {
-        externalData = "Failed to fetch Wikipedia data.";
+        externalData = "Wikipedia fetch failed.";
       }
     }
 
     /* =========================
-       🧠 SYSTEM PROMPTS (HARD ENFORCED)
+       🧠 SYSTEM PROMPTS
     ========================== */
     let systemPrompt = "";
 
@@ -94,10 +118,9 @@ if (mode === "evaluate" && env.TAVILY__KEY) {
       systemPrompt = `
 You are Quadron AI (Code Mode).
 
-STRICT RULES:
+RULES:
 - ONLY output code
 - NO explanations
-- NO text
 - ALWAYS wrap in triple backticks
 `;
     }
@@ -106,14 +129,13 @@ STRICT RULES:
       systemPrompt = `
 You are Quadron AI (Evaluate Mode).
 
-CRITICAL RULES:
-- You are GIVEN real-time data ALWAYS
-- You MUST use ONLY that data
+ABSOLUTE RULES:
+- You ALWAYS have real-time data
+- Use ONLY provided DATA
 - NEVER say "I don't have data"
 - NEVER use prior knowledge
-- NEVER mention Tavily
-- Answer directly from given data
-- If data is limited, still answer using it
+- Extract exact values if present
+- Be direct and factual
 `;
     }
 
@@ -123,7 +145,7 @@ You are Quadron AI (Explore Mode).
 
 RULES:
 - Use ONLY Wikipedia data
-- No real-time claims
+- No real-time info
 - Clear explanation
 `;
     }
@@ -137,25 +159,26 @@ Be slightly sarcastic and clear.
     }
 
     /* =========================
-       🧾 FINAL USER MESSAGE (FORCED DATA INJECTION)
+       🧾 FINAL USER MESSAGE
     ========================== */
     let finalUserMessage = message;
 
     if (mode === "evaluate" || mode === "explore") {
       finalUserMessage = `
-DATA (MANDATORY TO USE):
+DATA:
 ${externalData}
 
-USER QUESTION:
+QUESTION:
 ${message}
 
 INSTRUCTION:
 Answer STRICTLY using DATA above.
+Extract numbers if present.
 `;
     }
 
     /* =========================
-       🤖 GROQ CALL (DETERMINISTIC)
+       🤖 GROQ CALL
     ========================== */
     const aiRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -165,7 +188,8 @@ Answer STRICTLY using DATA above.
       },
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
-        temperature: 0,   // 🔥 CRITICAL FIX
+        temperature: 0,
+        top_p: 1,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: finalUserMessage }
@@ -178,7 +202,7 @@ Answer STRICTLY using DATA above.
     let reply = aiData?.choices?.[0]?.message?.content || "No reply";
 
     /* =========================
-       🔒 FORCE CLEAN CODE MODE
+       🔒 FORCE CODE MODE CLEAN
     ========================== */
     if (mode === "code") {
       if (!reply.includes("```")) {
