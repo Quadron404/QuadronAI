@@ -9,53 +9,130 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 
 <style>
-/* KEEPING YOUR UI EXACT */
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
-header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 12px #ffd900;}
-#logo{font-weight:bold;font-size:18px;}
+
+/* HEADER */
+header{
+display:flex;justify-content:space-between;
+padding:12px;background:#000;
+border-bottom:2px solid #ffd900;
+box-shadow:0 0 15px #ffd900;
+}
+
 #menuBtn{cursor:pointer;font-size:24px;}
 
-#overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;z-index:900;}
-
+/* SIDE MENU */
+#overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;}
 #sidePanel{
 position:fixed;right:0;top:0;width:260px;height:100%;
 background:#111;transform:translateX(100%);
 transition:.3s;padding:15px;z-index:1000;
-overflow-y:auto;display:flex;flex-direction:column;
+display:flex;flex-direction:column;
 }
 #sidePanel.open{transform:translateX(0);}
 
-#menuProfile{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid #333;cursor:pointer;}
+#menuProfile{
+display:flex;gap:10px;padding:10px;
+border-bottom:1px solid #333;cursor:pointer;
+}
 #menuProfile img{width:40px;height:40px;border-radius:50%;border:1px solid #ffd900;}
 
-.menuItem{padding:10px;cursor:pointer;margin-top:8px;color:#ffd900;font-weight:bold;}
+.menuItem{padding:10px;cursor:pointer;margin-top:8px;font-weight:bold;}
 
-.menuFooter{text-align:center;font-size:12px;margin-top:15px;}
-.menuFooter span{color:#ffd900;text-shadow:0 0 10px #ffd900;}
+.menuFooter{
+margin-top:auto;
+text-align:center;
+font-size:12px;
+}
+.menuFooter span{
+text-shadow:0 0 10px #ffd900;
+}
 
+/* CHAT */
 #chat{max-width:800px;margin:auto;padding:10px;}
-#messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;border-radius:12px;}
 
+#messages{
+height:65vh;overflow:auto;
+background:#111;padding:10px;
+border:1px solid #ffd900;
+border-radius:12px;
+box-shadow:0 0 20px #ffd900;
+}
+
+/* INPUT */
 #inputArea{display:flex;gap:8px;margin-top:10px;}
-input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
 
-button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;}
+input{
+flex:1;padding:10px;
+background:black;color:#ffd900;
+border:1px solid #ffd900;
+border-radius:10px;
+}
 
-.codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:hidden;}
-.codeHeader{display:flex;justify-content:space-between;padding:6px 10px;background:#111;font-size:12px;}
-.copyBtn{cursor:pointer;margin-left:6px;}
+button{
+padding:10px;
+background:#ffd900;color:#000;
+border:none;
+cursor:pointer;
+box-shadow:0 0 20px #ffd900;
+transition:.2s;
+}
+button:hover{
+box-shadow:0 0 50px #ffd900,0 0 80px #ffd900;
+}
 
-.codeContent{padding:10px;white-space:pre;}
+/* TEXT GLOW */
+.userText{color:#ffd900;text-shadow:0 0 10px #ffd900;}
+.aiText{color:#fff;text-shadow:0 0 10px #fff;}
 
-.footer{text-align:center;font-size:12px;margin:10px;}
-.footer a{color:#ffd900;text-shadow:0 0 10px #ffd900;}
+/* CODE BOX */
+.codeBox{
+background:#000;border:1px solid #ffd900;
+margin-top:8px;border-radius:8px;
+overflow:hidden;position:relative;
+}
+
+.codeHeader{
+display:flex;justify-content:space-between;
+padding:6px;background:#111;font-size:12px;
+border-bottom:1px solid #ffd900;
+}
+
+.copyBtn{
+cursor:pointer;padding:2px 6px;
+border:1px solid #ffd900;border-radius:4px;
+transition:.2s;
+}
+.copyBtn:active{
+box-shadow:0 0 20px #ffd900;
+}
+
+/* SPIRAL */
+.spinner{
+position:absolute;width:20px;height:20px;
+border:3px solid #ffd900;border-top:3px solid transparent;
+border-radius:50%;
+animation:spin 1s linear infinite;
+top:10px;left:10px;
+}
+@keyframes spin{100%{transform:rotate(360deg);}}
+
+/* FOOTER */
+.footer{
+text-align:center;font-size:12px;margin:10px;
+}
+.footer a{
+color:#ffd900;
+text-shadow:0 0 15px #ffd900;
+text-decoration:none;
+}
 </style>
 </head>
 
 <body>
 
 <header>
-<div id="logo">Quadron AI</div>
+<div>Quadron AI</div>
 <div id="menuBtn" onclick="openMenu()">☰</div>
 </header>
 
@@ -77,7 +154,7 @@ button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;}
 <div class="menuItem" onclick="evaluateModeUI()">Evaluate</div>
 
 <div class="menuFooter">
-Developed by <span>Rawat Systems</span>
+<span>Developed by Rawat Systems</span>
 </div>
 
 </div>
@@ -86,7 +163,7 @@ Developed by <span>Rawat Systems</span>
 <div id="messages"></div>
 
 <div id="inputArea">
-<input id="msg">
+<input id="msg" placeholder="Type here...">
 <button onclick="send()">Send</button>
 </div>
 </div>
@@ -97,75 +174,68 @@ Quadron AI can make mistakes,
 </div>
 
 <script>
-const messages=document.getElementById("messages");
 
-/* USER LOAD */
+/* USER LOAD (PERSISTENT LOGIN) */
 let user=JSON.parse(localStorage.getItem("quadronUser"));
-
 if(user && user!=="guest"){
-profileName.textContent=user.name||"User";
-profileEmail.textContent=user.email||"";
-profilePic.src=user.picture||"https://via.placeholder.com/40";
+profileName.textContent=user.name;
+profileEmail.textContent=user.email;
+profilePic.src=user.picture;
 }else{
 profileName.textContent="Guest";
-profileEmail.textContent="";
 profilePic.src="https://via.placeholder.com/40";
 }
 
-/* GREETING ONLY AFTER LOGIN */
+/* GREETING */
 window.onload=()=>{
 if(user && user!=="guest"){
-messages.innerHTML=`<p>Welcome ${user.name}</p>`;
+messages.innerHTML=`<p class="aiText">Welcome ${user.name}</p>`;
 }
 };
-
-/* CHAT LIMIT */
-function checkLimit(){
-let key="limit_"+(user?.email||"guest");
-let data=JSON.parse(localStorage.getItem(key))||{count:0,date:new Date().toDateString()};
-
-if(data.date!==new Date().toDateString()){
-data={count:0,date:new Date().toDateString()};
-}
-
-if(data.count>=100){
-alert("Daily limit reached");
-return false;
-}
-
-data.count++;
-localStorage.setItem(key,JSON.stringify(data));
-return true;
-}
 
 /* MENU */
 function openMenu(){sidePanel.classList.add("open");overlay.style.display="block";}
 function closeMenu(){sidePanel.classList.remove("open");overlay.style.display="none";}
-
-/* PROFILE PAGE */
-function openProfilePage(){
-window.open("profile.html","_blank");
-}
+function openProfilePage(){window.open("profile.html","_blank");}
 
 /* MODES */
-let codeModeActive=false, exploreActive=false, evaluateMode=false;
+let codeModeActive=false,exploreActive=false,evaluateMode=false;
 
 function buildPrompt(t){
-if(codeModeActive) return "ONLY CODE "+t;
-if(exploreActive) return "Use Wikipedia + deep info "+t;
-if(evaluateMode) return "Use Tavily data "+t;
+if(codeModeActive) return "ONLY CODE NO TEXT "+t;
+if(exploreActive) return "Wikipedia data "+t;
+if(evaluateMode) return "Tavily evaluate "+t;
 return t;
+}
+
+/* FAST TYPE */
+function fastType(el,text){
+let span=document.createElement("span");
+span.className="aiText";
+el.appendChild(span);
+
+let len=text.length;
+let speed=Math.max(1,Math.floor(2000/len));
+
+let i=0;
+let interval=setInterval(()=>{
+span.textContent=text.slice(0,i);
+i++;
+if(i>len) clearInterval(interval);
+},speed);
 }
 
 /* SEND */
 async function send(){
-if(!checkLimit()) return;
 
 let text=msg.value.trim();
 if(!text)return;
 
-messages.innerHTML+=`<p>You: ${text}</p>`;
+messages.innerHTML+=`<p class="userText">You: ${text}</p>`;
 msg.value="";
+
+let p=document.createElement("p");
+messages.appendChild(p);
 
 let res=await fetch("/api/chat",{
 method:"POST",
@@ -176,13 +246,15 @@ body:JSON.stringify({message:buildPrompt(text)})
 let data=await res.json();
 let reply=data.reply;
 
-let p=document.createElement("p");
-messages.appendChild(p);
+/* FORCE CODE */
+if(codeModeActive && !reply.includes("```")){
+reply="```html\n"+reply+"\n```";
+}
 
-/* CODE MODE */
 let m=reply.match(/```(\w+)?\n([\s\S]*?)```/);
 
 if(m){
+let lang=m[1]||"html";
 let code=m[2];
 
 let box=document.createElement("div");
@@ -190,32 +262,56 @@ box.className="codeBox";
 
 box.innerHTML=`
 <div class="codeHeader">
-<span>&lt;/&gt;</span>
+<span>&lt;/&gt; ${lang}</span>
 <div>
 <span class="copyBtn" onclick="copyCode(this)">Copy</span>
 <span class="copyBtn" onclick="runCode(this)">Run</span>
 <span class="copyBtn" onclick="debugCode(this)">Debug</span>
 </div>
 </div>
-<pre class="codeContent">${code}</pre>
+<div class="spinner"></div>
+<pre class="codeContent"></pre>
 `;
 
 p.appendChild(box);
+
+let content=box.querySelector("pre");
+let spin=box.querySelector(".spinner");
+
+let i=0;
+function type(){
+content.textContent+=code[i];
+i++;
+if(i<code.length){
+requestAnimationFrame(type);
 }else{
-p.innerText="Quadron: "+reply;
+spin.remove();
+hljs.highlightElement(content);
 }
+}
+type();
+
+}else{
+fastType(p,reply);
+}
+
+messages.scrollTop=messages.scrollHeight;
 }
 
 /* COPY */
 function copyCode(btn){
+btn.style.transform="scale(0.9)";
+setTimeout(()=>btn.style.transform="scale(1)",100);
 navigator.clipboard.writeText(btn.closest(".codeBox").querySelector("pre").textContent);
 }
 
-/* RUN + BACK */
+/* RUN */
 function runCode(btn){
 let box=btn.closest(".codeBox");
 let code=box.querySelector("pre").textContent;
 
+box.innerHTML=`<div class="spinner"></div>`;
+setTimeout(()=>{
 let iframe=document.createElement("iframe");
 iframe.style.width="100%";
 iframe.style.height="250px";
@@ -226,18 +322,17 @@ box.appendChild(iframe);
 
 let back=document.createElement("button");
 back.innerText="Back";
-back.onclick=()=>{
-box.innerHTML=`
-<pre class="codeContent">${code}</pre>
-`;
-};
+back.onclick=()=>send();
 box.appendChild(back);
+},800);
 }
 
-/* DEBUG FIX */
+/* DEBUG */
 async function debugCode(btn){
 let box=btn.closest(".codeBox");
 let code=box.querySelector("pre").textContent;
+
+box.innerHTML=`<div class="spinner"></div>`;
 
 let res=await fetch("/api/debug",{
 method:"POST",
@@ -247,13 +342,20 @@ body:JSON.stringify({code})
 
 let d=await res.json();
 
-box.querySelector("pre").textContent=d.fixed;
+box.innerHTML=`
+<pre class="codeContent">${d.fixed}</pre>
+`;
 }
 
 /* MODES */
+function newChat(){messages.innerHTML="";}
 function codeMode(){codeModeActive=true;exploreActive=false;evaluateMode=false;}
-function exploreMode(){exploreActive=true;codeModeActive=false;evaluateMode=false;}
-function evaluateModeUI(){evaluateMode=true;exploreActive=false;codeModeActive=false;}
+function exploreMode(){exploreActive=true;codeModeActive=false;}
+function evaluateModeUI(){evaluateMode=true;codeModeActive=false;}
+
+msg.addEventListener("keydown",e=>{
+if(e.key==="Enter") send();
+});
 </script>
 
 </body>
