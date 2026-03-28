@@ -9,7 +9,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 
 <style>
-body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
+body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;transition:.3s;}
+.blur{filter:blur(6px);}
 
 /* HEADER */
 header{
@@ -18,7 +19,6 @@ padding:12px;background:#000;
 border-bottom:2px solid #ffd900;
 box-shadow:0 0 15px #ffd900;
 }
-
 #menuBtn{cursor:pointer;font-size:24px;}
 
 /* SIDE MENU */
@@ -37,7 +37,7 @@ border-bottom:1px solid #333;cursor:pointer;
 }
 #menuProfile img{width:40px;height:40px;border-radius:50%;border:1px solid #ffd900;}
 
-.menuItem{padding:10px;cursor:pointer;margin-top:8px;font-weight:bold;}
+.menuItem{padding:10px;cursor:pointer;margin-top:8px;font-weight:bold;text-shadow:0 0 10px #fff;}
 
 .menuFooter{
 margin-top:auto;
@@ -50,7 +50,6 @@ text-shadow:0 0 10px #ffd900;
 
 /* CHAT */
 #chat{max-width:800px;margin:auto;padding:10px;}
-
 #messages{
 height:65vh;overflow:auto;
 background:#111;padding:10px;
@@ -61,14 +60,12 @@ box-shadow:0 0 20px #ffd900;
 
 /* INPUT */
 #inputArea{display:flex;gap:8px;margin-top:10px;}
-
 input{
 flex:1;padding:10px;
 background:black;color:#ffd900;
 border:1px solid #ffd900;
 border-radius:10px;
 }
-
 button{
 padding:10px;
 background:#ffd900;color:#000;
@@ -81,7 +78,7 @@ button:hover{
 box-shadow:0 0 50px #ffd900,0 0 80px #ffd900;
 }
 
-/* TEXT GLOW */
+/* TEXT */
 .userText{color:#ffd900;text-shadow:0 0 10px #ffd900;}
 .aiText{color:#fff;text-shadow:0 0 10px #fff;}
 
@@ -91,23 +88,18 @@ background:#000;border:1px solid #ffd900;
 margin-top:8px;border-radius:8px;
 overflow:hidden;position:relative;
 }
-
 .codeHeader{
 display:flex;justify-content:space-between;
 padding:6px;background:#111;font-size:12px;
 border-bottom:1px solid #ffd900;
 }
-
 .copyBtn{
-cursor:pointer;padding:2px 6px;
+cursor:pointer;padding:4px 8px;
 border:1px solid #ffd900;border-radius:4px;
-transition:.2s;
-}
-.copyBtn:active{
-box-shadow:0 0 20px #ffd900;
+margin-left:5px;
 }
 
-/* SPIRAL */
+/* SPINNER */
 .spinner{
 position:absolute;width:20px;height:20px;
 border:3px solid #ffd900;border-top:3px solid transparent;
@@ -117,21 +109,28 @@ top:10px;left:10px;
 }
 @keyframes spin{100%{transform:rotate(360deg);}}
 
+/* CYLINDER LABEL */
+.cylinder{
+border:2px solid #ffd900;
+border-radius:50px;
+padding:3px 10px;
+display:inline-block;
+margin-left:10px;
+color:#fff;
+text-shadow:0 0 10px #fff;
+box-shadow:0 0 10px #ffd900;
+font-size:12px;
+}
+
 /* FOOTER */
-.footer{
-text-align:center;font-size:12px;margin:10px;
-}
-.footer a{
-color:#ffd900;
-text-shadow:0 0 15px #ffd900;
-text-decoration:none;
-}
+.footer{text-align:center;font-size:12px;margin:10px;}
+.footer a{color:#ffd900;text-shadow:0 0 15px #ffd900;text-decoration:none;}
 </style>
 </head>
 
 <body>
 
-<header>
+<header id="mainUI">
 <div>Quadron AI</div>
 <div id="menuBtn" onclick="openMenu()">☰</div>
 </header>
@@ -148,13 +147,13 @@ text-decoration:none;
 </div>
 </div>
 
-<div class="menuItem" onclick="newChat()">New Chat</div>
-<div class="menuItem" onclick="codeMode()">Code /</div>
-<div class="menuItem" onclick="exploreMode()">Explore</div>
-<div class="menuItem" onclick="evaluateModeUI()">Evaluate</div>
+<div class="menuItem" onclick="newChat();closeMenu()">New Chat</div>
+<div class="menuItem" onclick="codeMode();closeMenu()">Code /</div>
+<div class="menuItem" onclick="exploreMode();closeMenu()">Explore <span class="cylinder">Encyclopedia</span></div>
+<div class="menuItem" onclick="evaluateModeUI();closeMenu()">Evaluate <span class="cylinder">Real Time Data</span></div>
 
 <div class="menuFooter">
-<span>Developed by Rawat Systems</span>
+<span>Developed By Rawat Systems</span>
 </div>
 
 </div>
@@ -163,7 +162,7 @@ text-decoration:none;
 <div id="messages"></div>
 
 <div id="inputArea">
-<input id="msg" placeholder="Type here...">
+<input id="msg">
 <button onclick="send()">Send</button>
 </div>
 </div>
@@ -175,9 +174,9 @@ Quadron AI can make mistakes,
 
 <script>
 
-/* USER LOAD (PERSISTENT LOGIN) */
+/* USER */
 let user=JSON.parse(localStorage.getItem("quadronUser"));
-if(user && user!=="guest"){
+if(user){
 profileName.textContent=user.name;
 profileEmail.textContent=user.email;
 profilePic.src=user.picture;
@@ -186,36 +185,59 @@ profileName.textContent="Guest";
 profilePic.src="https://via.placeholder.com/40";
 }
 
-/* GREETING */
-window.onload=()=>{
-if(user && user!=="guest"){
-messages.innerHTML=`<p class="aiText">Welcome ${user.name}</p>`;
+/* CHAT LIMIT */
+let today=new Date().toDateString();
+let usage=JSON.parse(localStorage.getItem("usage_"+user?.email))||{date:today,count:0};
+if(usage.date!==today){usage={date:today,count:0};}
+
+/* GREETING ONCE */
+if(user && !localStorage.getItem("greeted")){
+fetch("/api/chat",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({message:`sarcastic greeting for ${user.name}`})
+})
+.then(r=>r.json())
+.then(d=>{
+messages.innerHTML=`<p class="aiText">${d.reply}</p>`;
+localStorage.setItem("greeted",true);
+});
 }
-};
 
 /* MENU */
-function openMenu(){sidePanel.classList.add("open");overlay.style.display="block";}
-function closeMenu(){sidePanel.classList.remove("open");overlay.style.display="none";}
-function openProfilePage(){window.open("profile.html","_blank");}
+function openMenu(){
+sidePanel.classList.add("open");
+overlay.style.display="block";
+document.body.classList.add("blur");
+}
+function closeMenu(){
+sidePanel.classList.remove("open");
+overlay.style.display="none";
+document.body.classList.remove("blur");
+}
+
+function openProfilePage(){
+window.open("profile.html","_blank");
+}
 
 /* MODES */
 let codeModeActive=false,exploreActive=false,evaluateMode=false;
 
 function buildPrompt(t){
-if(codeModeActive) return "ONLY CODE NO TEXT "+t;
-if(exploreActive) return "Wikipedia data "+t;
-if(evaluateMode) return "Tavily evaluate "+t;
+if(codeModeActive) return "ONLY CODE "+t;
+if(exploreActive) return "Use Wikipedia "+t;
+if(evaluateMode) return "Use Tavily API "+t;
 return t;
 }
 
-/* FAST TYPE */
+/* ULTRA FAST TYPE */
 function fastType(el,text){
 let span=document.createElement("span");
 span.className="aiText";
 el.appendChild(span);
 
 let len=text.length;
-let speed=Math.max(1,Math.floor(2000/len));
+let speed=1; // ultra fast
 
 let i=0;
 let interval=setInterval(()=>{
@@ -228,8 +250,16 @@ if(i>len) clearInterval(interval);
 /* SEND */
 async function send(){
 
+if(usage.count>=100){
+alert("Daily limit reached");
+return;
+}
+
 let text=msg.value.trim();
 if(!text)return;
+
+usage.count++;
+localStorage.setItem("usage_"+user.email,JSON.stringify(usage));
 
 messages.innerHTML+=`<p class="userText">You: ${text}</p>`;
 msg.value="";
@@ -240,7 +270,7 @@ messages.appendChild(p);
 let res=await fetch("/api/chat",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({message:buildPrompt(text)})
+body:JSON.stringify({message:buildPrompt(text),user:user?.name})
 });
 
 let data=await res.json();
@@ -278,18 +308,19 @@ p.appendChild(box);
 let content=box.querySelector("pre");
 let spin=box.querySelector(".spinner");
 
+content.textContent="";
 let i=0;
-function type(){
+let speed=1;
+
+let interval=setInterval(()=>{
 content.textContent+=code[i];
 i++;
-if(i<code.length){
-requestAnimationFrame(type);
-}else{
+if(i>=code.length){
+clearInterval(interval);
 spin.remove();
 hljs.highlightElement(content);
 }
-}
-type();
+},speed);
 
 }else{
 fastType(p,reply);
@@ -298,19 +329,15 @@ fastType(p,reply);
 messages.scrollTop=messages.scrollHeight;
 }
 
-/* COPY */
-function copyCode(btn){
-btn.style.transform="scale(0.9)";
-setTimeout(()=>btn.style.transform="scale(1)",100);
-navigator.clipboard.writeText(btn.closest(".codeBox").querySelector("pre").textContent);
-}
-
 /* RUN */
 function runCode(btn){
 let box=btn.closest(".codeBox");
 let code=box.querySelector("pre").textContent;
 
+let original=box.innerHTML;
+
 box.innerHTML=`<div class="spinner"></div>`;
+
 setTimeout(()=>{
 let iframe=document.createElement("iframe");
 iframe.style.width="100%";
@@ -322,9 +349,14 @@ box.appendChild(iframe);
 
 let back=document.createElement("button");
 back.innerText="Back";
-back.onclick=()=>send();
+back.style.float="right";
+
+back.onclick=()=>{
+box.innerHTML=original;
+};
+
 box.appendChild(back);
-},800);
+},500);
 }
 
 /* DEBUG */
@@ -334,24 +366,53 @@ let code=box.querySelector("pre").textContent;
 
 box.innerHTML=`<div class="spinner"></div>`;
 
-let res=await fetch("/api/debug",{
+let res=await fetch("/api/chat",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({code})
+body:JSON.stringify({message:"Fix this code:\n"+code})
 });
 
 let d=await res.json();
 
+let newCode=d.reply.replace(/```[\s\S]*?\n|```/g,"");
+
 box.innerHTML=`
-<pre class="codeContent">${d.fixed}</pre>
+<div class="codeHeader">
+<span>DEBUGGED</span>
+</div>
+<div class="spinner"></div>
+<pre class="codeContent"></pre>
 `;
+
+let content=box.querySelector("pre");
+let spin=box.querySelector(".spinner");
+
+let i=0;
+let interval=setInterval(()=>{
+content.textContent+=newCode[i];
+i++;
+if(i>=newCode.length){
+clearInterval(interval);
+spin.remove();
+hljs.highlightElement(content);
+}
+},1);
 }
 
 /* MODES */
 function newChat(){messages.innerHTML="";}
-function codeMode(){codeModeActive=true;exploreActive=false;evaluateMode=false;}
-function exploreMode(){exploreActive=true;codeModeActive=false;}
-function evaluateModeUI(){evaluateMode=true;codeModeActive=false;}
+function codeMode(){
+codeModeActive=true;exploreActive=false;evaluateMode=false;
+fastType(messages,"Describe what you want to code");
+}
+function exploreMode(){
+exploreActive=true;codeModeActive=false;
+fastType(messages,"Explore the universe");
+}
+function evaluateModeUI(){
+evaluateMode=true;codeModeActive=false;
+fastType(messages,"Evaluate World");
+}
 
 msg.addEventListener("keydown",e=>{
 if(e.key==="Enter") send();
