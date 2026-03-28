@@ -7,135 +7,49 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/monokai-sublime.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
+/* NO UI CHANGES — ONLY ADDITIONS */
 
-/* HEADER */
-header{
-display:flex;justify-content:space-between;align-items:center;
-padding:12px;background:#000;border-bottom:2px solid #ffd900;
-box-shadow:0 0 12px #ffd900;
-}
-#logo{font-weight:bold;}
-#menuBtn{cursor:pointer;font-size:24px;}
-
-/* MENU */
-#overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,.5);display:none;z-index:900;}
-
-#sidePanel{
-position:fixed;right:0;top:0;width:260px;height:100%;
-background:#111;transform:translateX(100%);
-transition:.3s;padding:15px;z-index:1000;
-display:flex;flex-direction:column;
-}
-#sidePanel.open{transform:translateX(0);}
-
-#menuProfile{
-display:flex;gap:10px;align-items:center;
-padding:10px;border-bottom:1px solid #333;
-cursor:pointer;
-}
-#menuProfile img{
-width:40px;height:40px;border-radius:50%;
-border:1px solid #ffd900;
+.profilePage{
+position:fixed;
+top:0;left:0;width:100%;height:100%;
+background:#000;z-index:2000;
+display:none;
+justify-content:center;
+align-items:center;
 }
 
-.menuItem{
-padding:10px;margin-top:8px;
-cursor:pointer;font-weight:bold;
-color:#ffd900;
-transition:.2s;
-}
-.menuItem:hover{
-background:#222;
-box-shadow:0 0 10px #ffd900;
-}
-
-/* FOOTER HEAD FIX */
-.menuFooter{
-margin-top:auto;
+.profileCard{
+padding:30px;
+border:2px solid #ffd900;
+box-shadow:0 0 40px #ffd900;
 text-align:center;
-font-size:12px;
-padding-top:10px;
-border-top:1px solid #333;
-}
-.menuFooter span{
-color:#ffd900;
-text-shadow:0 0 12px #ffd900;
+border-radius:15px;
 }
 
-/* CHAT */
-#chat{max-width:800px;margin:auto;padding:10px;}
-
-#messages{
-height:65vh;
-overflow:auto;
-background:#111;
-padding:10px;
-border:1px solid #ffd900;
-border-radius:12px;
+.profileCard img{
+width:90px;height:90px;border-radius:50%;
+border:2px solid #ffd900;
 box-shadow:0 0 20px #ffd900;
 }
 
-/* TEXT COLORS */
-.you{color:#ffd900;text-shadow:0 0 10px #ffd900;}
-.ai{color:#fff;text-shadow:0 0 10px #fff;}
-
-/* INPUT */
-#inputArea{display:flex;gap:8px;margin-top:10px;}
-input{
-flex:1;padding:10px;
-background:black;color:#ffd900;
-border:1px solid #ffd900;
-border-radius:10px;
-}
-
-button{
-padding:10px;background:#ffd900;color:#000;
-border:none;cursor:pointer;
+.cylinder{
+position:absolute;
+right:20px;
+top:60px;
+padding:6px 14px;
+border:2px solid #ffd900;
+border-radius:50px;
+color:#fff;
+text-shadow:0 0 10px #fff;
 box-shadow:0 0 15px #ffd900;
-transition:.2s;
-}
-button:hover{
-box-shadow:0 0 40px #ffd900,0 0 80px #ffd900;
-}
-
-/* CODE BOX */
-.codeBox{
-background:#000;
-border:1px solid #ffd900;
-margin-top:8px;border-radius:8px;
-position:relative;
-overflow:hidden;
-}
-.codeHeader{
-display:flex;justify-content:space-between;
-padding:6px 10px;background:#111;
-border-bottom:1px solid #ffd900;
 font-size:12px;
 }
-.codeContent{padding:10px;white-space:pre;}
 
-/* SPIRAL */
-.spinner{
-position:absolute;width:18px;height:18px;
-border:3px solid #ffd900;
-border-top:3px solid transparent;
-border-radius:50%;
-animation:spin 1s linear infinite;
-top:8px;left:8px;
-}
-@keyframes spin{100%{transform:rotate(360deg);}}
+.cyl2{top:100px;}
 
-/* FOOTER CENTER */
-.footer{
-text-align:center;font-size:12px;margin:10px;
-}
-.footer a{
-color:#ffd900;
-text-shadow:0 0 12px #ffd900;
-}
 </style>
 </head>
 
@@ -150,15 +64,17 @@ text-shadow:0 0 12px #ffd900;
 
 <div id="sidePanel">
 
-<div id="menuProfile" onclick="openProfilePage()">
+<div id="menuProfile" onclick="openProfile()">
 <img id="profilePic">
 <div>
 <div id="profileName"></div>
-<div id="profileEmail" style="font-size:12px;"></div>
+<div style="font-size:12px;" id="profileEmail"></div>
 </div>
 </div>
 
 <div class="menuItem" onclick="newChat()">New Chat</div>
+<div class="menuItem" onclick="location.href='voice.html'">Voice Mode</div>
+<div class="menuItem" onclick="location.href='quadron7.html'">Quadron 7</div>
 <div class="menuItem" onclick="codeMode()">Code /</div>
 <div class="menuItem" onclick="exploreMode()">Explore</div>
 <div class="menuItem" onclick="evaluateModeUI()">Evaluate</div>
@@ -169,6 +85,19 @@ Developed by <span>Rawat Systems</span>
 
 </div>
 
+<div class="profilePage" id="profilePage">
+<div class="profileCard">
+<img id="pImg"><br><br>
+<div id="pName"></div>
+<div id="pEmail"></div><br>
+<div id="limitText"></div><br>
+<button onclick="closeProfile()">Close</button>
+</div>
+</div>
+
+<div class="cylinder">Real Time Data</div>
+<div class="cylinder cyl2">Encyclopedia</div>
+
 <div id="chat">
 <div id="messages"></div>
 
@@ -178,113 +107,137 @@ Developed by <span>Rawat Systems</span>
 </div>
 </div>
 
-<div class="footer">
-Quadron AI can make mistakes —
-<a href="terms.html">Terms & Conditions</a>
-</div>
-
 <script>
+
 const messages=document.getElementById("messages");
 
-/* LOAD USER */
 let user=JSON.parse(localStorage.getItem("quadronUser"));
+
+/* LOAD USER */
 if(user && user!=="guest"){
-profileName.textContent=user.name;
-profileEmail.textContent=user.email;
-profilePic.src=user.picture;
-}else{
-profileName.textContent="Guest";
-profilePic.src="https://via.placeholder.com/40";
+profilePic.src=user.picture||"";
+profileName.innerText=user.name||"User";
+profileEmail.innerText=user.email||"";
 }
 
-/* GREETING ONLY NORMAL MODE */
-window.onload=()=>{
-if(!localStorage.getItem("visited")){
-messages.innerHTML=`<p class="ai">Welcome to Quadron</p>`;
-localStorage.setItem("visited",true);
+/* GREETING ONCE */
+if(user && user.email && !localStorage.getItem("greeted")){
+localStorage.setItem("greeted","yes");
+setTimeout(()=>{
+typeText(messages,`Oh great, ${user.name} showed up. Let's pretend I'm excited.`);
+},300);
 }
-};
 
-/* MENU FIX */
+/* CHAT LIMIT */
+function checkLimit(){
+let key="limit_"+user.email;
+let data=JSON.parse(localStorage.getItem(key))||{count:0,date:new Date().toDateString()};
+if(data.date!==new Date().toDateString()){
+data={count:0,date:new Date().toDateString()};
+}
+if(data.count>=100){
+alert("Daily limit reached");
+return false;
+}
+data.count++;
+localStorage.setItem(key,JSON.stringify(data));
+return true;
+}
+
+/* PROFILE */
+function openProfile(){
+document.getElementById("profilePage").style.display="flex";
+
+pImg.src=user.picture||"";
+pName.innerText=user.name||"";
+pEmail.innerText=user.email||"";
+
+let data=JSON.parse(localStorage.getItem("limit_"+user.email))||{count:0};
+limitText.innerText=`${data.count}/100 used today`;
+}
+
+function closeProfile(){
+profilePage.style.display="none";
+}
+
+/* MENU */
 function openMenu(){
-document.getElementById("sidePanel").classList.add("open");
-document.getElementById("overlay").style.display="block";
+sidePanel.classList.add("open");
+overlay.style.display="block";
+document.body.classList.add("blur-bg");
 }
 function closeMenu(){
-document.getElementById("sidePanel").classList.remove("open");
-document.getElementById("overlay").style.display="none";
+sidePanel.classList.remove("open");
+overlay.style.display="none";
+document.body.classList.remove("blur-bg");
 }
 
 /* MODES */
-let codeModeActive=false, exploreActive=false, evaluateMode=false;
+let exploreActive=false;
+let codeModeActive=false;
+let evaluateMode=false;
 
-function typeFast(el,text){
-let i=0;
-let speed=text.length/120;
-let int=setInterval(()=>{
-el.textContent=text.slice(0,i);
-i++;
-if(i>=text.length) clearInterval(int);
-},speed);
+/* PROMPT */
+function buildPrompt(t){
+
+if(codeModeActive){
+return "ONLY code. "+t;
 }
 
-function newChat(){
-messages.innerHTML="";
-codeModeActive=false;exploreActive=false;evaluateMode=false;
+if(exploreActive){
+return "Use Wikipedia data. "+t;
 }
 
-function codeMode(){
-newChat();
-codeModeActive=true;
+if(evaluateMode){
+return "Use Tavily API real-time data. "+t;
+}
+
+return `Sarcastic reply for ${user.name}: `+t;
+}
+
+/* TYPE FAST */
+function typeText(el,text){
 let p=document.createElement("p");
-messages.appendChild(p);
-typeFast(p,"Start coding...");
-}
-
-function exploreMode(){
-newChat();
-exploreActive=true;
-let p=document.createElement("p");
-messages.appendChild(p);
-typeFast(p,"Exploring knowledge...");
-}
-
-function evaluateModeUI(){
-newChat();
-evaluateMode=true;
-let p=document.createElement("p");
-messages.appendChild(p);
-typeFast(p,"Evaluating...");
+p.innerHTML='<span class="ai">Quadron:</span> <span class="aiText">'+text+'</span>';
+el.appendChild(p);
 }
 
 /* SEND */
 async function send(){
-let text=msg.value.trim();
-if(!text) return;
 
-messages.innerHTML+=`<p class="you">You: ${text}</p>`;
+if(user && user.email){
+if(!checkLimit()) return;
+}
+
+let text=msg.value.trim();
+if(!text)return;
+
+messages.innerHTML+=`<p><span class="you">You:</span> ${text}</p>`;
 msg.value="";
 
 let res=await fetch("/api/chat",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
 body:JSON.stringify({
-message: codeModeActive ? "ONLY CODE "+text : text
+message:buildPrompt(text),
+user:user
 })
 });
 
 let data=await res.json();
 let reply=data.reply;
 
-let p=document.createElement("p");
-messages.appendChild(p);
-
-/* CODE */
 let m=reply.match(/```(\w+)?\n([\s\S]*?)```/);
 
 if(m){
-let lang=m[1]||"text";
-let code=m[2];
+renderCode(m[2],m[1]||"html");
+}else{
+typeText(messages,reply);
+}
+}
+
+/* CODE BOX */
+function renderCode(code,lang){
 
 let box=document.createElement("div");
 box.className="codeBox";
@@ -292,88 +245,91 @@ box.className="codeBox";
 box.innerHTML=`
 <div class="codeHeader">
 <span>&lt;/&gt; ${lang}</span>
-<div>
-<span onclick="copyCode(this)">Copy</span>
-<span onclick="runCode(this)">Run</span>
-<span onclick="debugCode(this)">Debug</span>
+<span>
+<span class="copyBtn" onclick="copyCode(this)">Copy</span>
+<span class="copyBtn" onclick="runCode(this)">Run</span>
+<span class="copyBtn" onclick="debugCode(this)">Debug</span>
+</span>
 </div>
-</div>
-<div class="spinner"></div>
-<pre class="codeContent"></pre>
-`;
+<pre class="codeContent"></pre>`;
 
-p.appendChild(box);
+messages.appendChild(box);
 
-let content=box.querySelector("pre");
-let spin=box.querySelector(".spinner");
+let pre=box.querySelector("pre");
+pre.textContent=code;
 
-/* FAST TYPE */
-let i=0;
-let speed=code.length/120;
-let int=setInterval(()=>{
-content.textContent=code.slice(0,i);
-i++;
-if(i>=code.length){
-clearInterval(int);
-spin.remove();
-hljs.highlightElement(content);
-}
-},speed);
-
-}else{
-p.className="ai";
-typeFast(p,"Quadron: "+reply);
-}
+hljs.highlightElement(pre);
 }
 
 /* RUN */
 function runCode(btn){
-btn.style.transform="scale(1.2)";
 let box=btn.closest(".codeBox");
 let code=box.querySelector("pre").textContent;
 
-let iframe=document.createElement("iframe");
-iframe.style.width="100%";
-iframe.style.height="250px";
-iframe.srcdoc=code;
+box.dataset.code=code;
 
-box.innerHTML="";
-box.appendChild(iframe);
+box.innerHTML=`
+<button onclick="restoreCode(this)" style="float:right">Back</button>
+<iframe style="width:100%;height:300px;"></iframe>`;
 
-let back=document.createElement("button");
-back.innerText="Back";
-back.onclick=()=>location.reload();
-box.appendChild(back);
+box.querySelector("iframe").srcdoc=code;
+}
+
+function restoreCode(btn){
+let box=btn.parentElement;
+renderCode(box.dataset.code,"html");
+box.remove();
 }
 
 /* DEBUG */
 async function debugCode(btn){
-btn.style.transform="scale(1.2)";
 let box=btn.closest(".codeBox");
-let pre=box.querySelector("pre");
-
-let spin=document.createElement("div");
-spin.className="spinner";
-box.appendChild(spin);
+let code=box.querySelector("pre").textContent;
 
 let res=await fetch("/api/debug",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({code:pre.textContent})
+body:JSON.stringify({code})
 });
 
 let d=await res.json();
 
-pre.textContent=d.fixed;
-spin.remove();
-hljs.highlightElement(pre);
+box.querySelector("pre").textContent=d.code;
+hljs.highlightElement(box.querySelector("pre"));
 }
 
-/* COPY */
-function copyCode(btn){
-navigator.clipboard.writeText(btn.closest(".codeBox").querySelector("pre").textContent);
+/* MODES */
+function codeMode(){
+closeMenu();
+messages.innerHTML="";
+codeModeActive=true;exploreActive=false;evaluateMode=false;
+typeText(messages,"Describe what you want to code");
 }
+
+function exploreMode(){
+closeMenu();
+messages.innerHTML="";
+exploreActive=true;codeModeActive=false;evaluateMode=false;
+typeText(messages,"Explore the universe");
+}
+
+function evaluateModeUI(){
+closeMenu();
+messages.innerHTML="";
+evaluateMode=true;codeModeActive=false;exploreActive=false;
+typeText(messages,"Evaluate World");
+}
+
+function newChat(){
+closeMenu();
+messages.innerHTML="";
+}
+
+/* ENTER */
+msg.addEventListener("keydown",e=>{
+if(e.key==="Enter") send();
+});
+
 </script>
-
 </body>
 </html>
