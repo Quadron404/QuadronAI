@@ -33,14 +33,16 @@ export async function onRequest(context) {
 
         const tavilyData = await tavilyRes.json();
 
-        if (tavilyData?.results) {
+        if (tavilyData?.results?.length) {
           externalData = tavilyData.results
             .map(r => r.content)
             .join("\n\n");
+        } else {
+          externalData = "No real-time data found.";
         }
 
       } catch {
-        externalData = "";
+        externalData = "Failed to fetch real-time data.";
       }
     }
 
@@ -57,15 +59,17 @@ export async function onRequest(context) {
 
         if (wikiData?.extract) {
           externalData = wikiData.extract;
+        } else {
+          externalData = "No Wikipedia data found.";
         }
 
       } catch {
-        externalData = "";
+        externalData = "Failed to fetch Wikipedia data.";
       }
     }
 
     /* =========================
-       🧠 SYSTEM PROMPTS
+       🧠 SYSTEM PROMPTS (HARD ENFORCED)
     ========================== */
     let systemPrompt = "";
 
@@ -77,8 +81,7 @@ STRICT RULES:
 - ONLY output code
 - NO explanations
 - NO text
-- NO comments unless part of code
-- ALWAYS return inside triple backticks
+- ALWAYS wrap in triple backticks
 `;
     }
 
@@ -86,12 +89,14 @@ STRICT RULES:
       systemPrompt = `
 You are Quadron AI (Evaluate Mode).
 
-STRICT RULES:
-- Use ONLY provided real-time data
-- DO NOT use Wikipedia
-- DO NOT use prior knowledge
-- Be factual and structured
-- No hallucinations
+CRITICAL RULES:
+- You are GIVEN real-time data ALWAYS
+- You MUST use ONLY that data
+- NEVER say "I don't have data"
+- NEVER use prior knowledge
+- NEVER mention Tavily
+- Answer directly from given data
+- If data is limited, still answer using it
 `;
     }
 
@@ -99,10 +104,10 @@ STRICT RULES:
       systemPrompt = `
 You are Quadron AI (Explore Mode).
 
-STRICT RULES:
-- Use ONLY Wikipedia data provided
-- Explain clearly
+RULES:
+- Use ONLY Wikipedia data
 - No real-time claims
+- Clear explanation
 `;
     }
 
@@ -110,27 +115,30 @@ STRICT RULES:
       systemPrompt = `
 You are Quadron AI.
 
-Be helpful, slightly sarcastic, and clear.
+Be slightly sarcastic and clear.
 `;
     }
 
     /* =========================
-       🧾 FINAL USER MESSAGE
+       🧾 FINAL USER MESSAGE (FORCED DATA INJECTION)
     ========================== */
     let finalUserMessage = message;
 
-    if (externalData) {
+    if (mode === "evaluate" || mode === "explore") {
       finalUserMessage = `
-Use ONLY this data:
-
+DATA (MANDATORY TO USE):
 ${externalData}
 
-User Question: ${message}
+USER QUESTION:
+${message}
+
+INSTRUCTION:
+Answer STRICTLY using DATA above.
 `;
     }
 
     /* =========================
-       🤖 GROQ CALL
+       🤖 GROQ CALL (DETERMINISTIC)
     ========================== */
     const aiRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -140,12 +148,10 @@ User Question: ${message}
       },
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
+        temperature: 0,   // 🔥 CRITICAL FIX
         messages: [
           { role: "system", content: systemPrompt },
-          {
-            role: "user",
-            content: finalUserMessage
-          }
+          { role: "user", content: finalUserMessage }
         ]
       })
     });
