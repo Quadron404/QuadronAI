@@ -13,7 +13,28 @@ export async function onRequest(context) {
     }
 
     let externalData = "";
+/* =========================
+   🧠 INTENT DETECTION
+========================= */
+let q = message.toLowerCase();
 
+let intent = "general";
+
+if (q.includes("price") || q.includes("btc") || q.includes("tsla") || q.includes("stock")) {
+  intent = "finance";
+}
+else if (q.includes("predict") || q.includes("future")) {
+  intent = "prediction";
+}
+else if (q.includes("news") || q.includes("war")) {
+  intent = "news";
+}
+else if (q.includes("time") || q === "ist") {
+  intent = "time";
+}
+else if (q.includes("pm") || q.includes("president")) {
+  intent = "fact";
+}
     /* =========================
        🔵 EVALUATE MODE (SERPER CLEAN + ANALYSIS)
     ========================== */
