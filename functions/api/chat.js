@@ -129,6 +129,7 @@ Halucination Probability :
 Rules:
 - No fluff
 - Long paragraphs
+- Minimum word limit : 5,000 words
 - No tool mention
 - Be direct, sharp, logical
 `;
