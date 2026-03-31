@@ -13,12 +13,9 @@
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;transition:.3s;}
 .blur-bg{filter:blur(6px);}
 
-/* KEEP UI SAME */
 header{display:flex;justify-content:space-between;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 15px #ffd900;}
 header div:first-child{font-weight:bold;text-shadow:0 0 15px #ffd900;}
 #menuBtn{cursor:pointer;font-size:24px;}
-
-#backBtn{cursor:pointer;margin-right:10px;font-size:18px;}
 
 #overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;z-index:500;}
 #sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;display:flex;flex-direction:column;}
@@ -29,49 +26,41 @@ header div:first-child{font-weight:bold;text-shadow:0 0 15px #ffd900;}
 
 .menuItem{padding:10px;cursor:pointer;margin-top:8px;font-weight:bold;text-shadow:0 0 10px #fff;}
 
-.menuFooter{margin-top:auto;text-align:center;font-size:12px;color:#fff;text-shadow:0 0 10px #fff;}
-.menuFooter span{color:#ffd900;text-shadow:0 0 10px #ffd900;}
+.menuFooter{margin-top:auto;text-align:center;font-size:12px;}
+.menuFooter .white{color:#fff;text-shadow:0 0 10px #fff;}
+.menuFooter .yellow{color:#ffd900;text-shadow:0 0 10px #ffd900;}
 
 #chat{max-width:800px;margin:auto;padding:10px;}
 #messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;border-radius:12px;box-shadow:0 0 20px #ffd900;}
 
 #inputArea{display:flex;gap:8px;margin-top:10px;}
 input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
-input::placeholder{color:rgba(255,255,255,0.3);}
 
-button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;border-radius:20px;box-shadow:0 0 15px #ffd900;transition:.2s;}
-button:hover{box-shadow:0 0 35px #ffd900;}
+button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;border-radius:20px;box-shadow:0 0 15px #ffd900;}
 
-.userText{color:#ffd900;text-shadow:0 0 10px #ffd900;}
-.aiText{color:#fff;text-shadow:0 0 10px #fff;}
-.aiText a{color:#00aaff;text-shadow:0 0 10px #00aaff;text-decoration:none;}
+.userText{color:#ffd900;}
+.aiText{color:#fff;}
 
-.codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:hidden;position:relative;}
+.codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:hidden;}
 .codeHeader{display:flex;justify-content:space-between;padding:6px;background:#111;font-size:12px;border-bottom:1px solid #ffd900;}
-.copyBtn{cursor:pointer;padding:4px 8px;border:1px solid #fff;border-radius:4px;margin-left:5px;color:#fff;text-shadow:0 0 10px #fff;}
+.copyBtn{cursor:pointer;padding:4px 8px;border:1px solid #fff;border-radius:4px;margin-left:5px;color:#fff;}
 
-.spinner{position:absolute;width:20px;height:20px;border:3px solid #fff;border-top:3px solid transparent;border-radius:50%;animation:spin 1s linear infinite;top:35px;left:10px;}
-@keyframes spin{100%{transform:rotate(360deg);}}
-
-.footer{text-align:center;font-size:12px;margin:10px;color:#fff;text-shadow:0 0 10px #fff;}
-.footer a{color:#ffd900;text-shadow:0 0 15px #ffd900;text-decoration:none;}
+.footer{text-align:center;font-size:12px;margin:10px;color:#fff;}
+.footer a{color:#ffd900;}
 </style>
 </head>
 
 <body>
 
-<header id="mainHeader">
+<header>
 <div>Quadron AI</div>
-<div>
-<span id="backBtn">⬅</span>
-<span id="menuBtn">☰</span>
-</div>
+<div id="menuBtn">☰</div>
 </header>
 
 <div id="overlay"></div>
 
 <div id="sidePanel">
-<div id="menuProfile" onclick="window.location.href='profile.html'">
+<div id="menuProfile">
 <img id="profilePic">
 <div>
 <div id="profileName"></div>
@@ -79,13 +68,12 @@ button:hover{box-shadow:0 0 35px #ffd900;}
 </div>
 </div>
 
-<div class="menuItem" onclick="menuAction(newChat)">New Chat</div>
-<div class="menuItem" onclick="openNewWindow('code')">Code /</div>
-<div class="menuItem" onclick="openNewWindow('explore')">Explore</div>
-<div class="menuItem" onclick="voiceMode()">Voice Mode</div>
+<div class="menuItem" onclick="newChat()">New Chat</div>
+<div class="menuItem" onclick="window.open(location.href,'_blank');setMode('code')">Code /</div>
+<div class="menuItem" onclick="window.open(location.href,'_blank');setMode('explore')">Explore</div>
 
 <div class="menuFooter">
-Developed by <span>Rawat Systems</span>
+<span class="white">Developed by </span><span class="yellow">Rawat Systems</span>
 </div>
 </div>
 
@@ -93,79 +81,49 @@ Developed by <span>Rawat Systems</span>
 <div id="messages"></div>
 
 <div id="inputArea">
-<input id="msg" placeholder="Type here.....">
+<input id="msg">
 <button onclick="send()">Send</button>
 </div>
 </div>
 
-<div class="footer">
-Quadron AI can make mistakes, by using it you accept our 
-<a href="terms.html">Terms & Conditions</a>
-</div>
-
 <script>
-let user=JSON.parse(localStorage.getItem("quadronUser"))||{};
-profileName.textContent=user.name||"Guest";
-profileEmail.textContent=user.email||"";
-profilePic.src=user.picture||"https://via.placeholder.com/40";
+let mode="normal";
 
 /* DAILY LIMIT */
-let limitData=JSON.parse(localStorage.getItem("quadronLimit"))||{count:0,time:Date.now()};
-if(Date.now()-limitData.time>86400000){
-limitData={count:0,time:Date.now()};
-}
-function checkLimit(){
-if(limitData.count>=100){
-fastType(messages,"Quadron: Daily limit exceeded");
-return false;
-}
-limitData.count++;
-localStorage.setItem("quadronLimit",JSON.stringify(limitData));
-return true;
-}
+let usage=JSON.parse(localStorage.getItem("usage"))||{count:0,time:Date.now()};
+if(Date.now()-usage.time>86400000){usage={count:0,time:Date.now()};}
 
-/* BACK STORAGE */
-let historyStack=[];
+/* MENU FIX (blur only chat) */
+menuBtn.onclick=()=>{sidePanel.classList.add("open");overlay.style.display="block";document.getElementById("chat").classList.add("blur-bg");};
+overlay.onclick=()=>{sidePanel.classList.remove("open");overlay.style.display="none";document.getElementById("chat").classList.remove("blur-bg");};
 
-backBtn.onclick=function(){
-if(historyStack.length>0){
-messages.innerHTML=historyStack.pop();
+/* MODE */
+function setMode(m){
+localStorage.setItem("mode",m);
 }
-};
+mode=localStorage.getItem("mode")||"normal";
 
-/* MENU */
-menuBtn.onclick=openMenu;
-overlay.onclick=closeMenu;
-
-function openMenu(){
-sidePanel.classList.add("open");
-overlay.style.display="block";
-chat.classList.add("blur-bg");
+/* SAVE CHAT */
+function saveChat(){
+localStorage.setItem("chatData",messages.innerHTML);
 }
-function closeMenu(){
-sidePanel.classList.remove("open");
-overlay.style.display="none";
-chat.classList.remove("blur-bg");
+function loadChat(){
+messages.innerHTML=localStorage.getItem("chatData")||"";
 }
-function menuAction(fn){closeMenu();fn();}
-
-/* OPEN NEW WINDOW */
-function openNewWindow(type){
-window.open(`home.html?mode=${type}`,"_blank");
-}
-
-/* MODES FROM URL */
-let params=new URLSearchParams(window.location.search);
-let mode=params.get("mode")||"normal";
+loadChat();
 
 /* SEND */
 async function send(){
-if(!checkLimit()) return;
-
-historyStack.push(messages.innerHTML);
+if(usage.count>=100){
+messages.innerHTML+=`<p class="aiText">Quadron: Daily limit exceeded</p>`;
+return;
+}
 
 let text=msg.value.trim();
 if(!text)return;
+
+usage.count++;
+localStorage.setItem("usage",JSON.stringify(usage));
 
 messages.innerHTML+=`<p class="userText">You: ${text}</p>`;
 msg.value="";
@@ -188,7 +146,6 @@ let code=m[2];
 let box=document.createElement("div");
 box.className="codeBox";
 box.dataset.code=code;
-box.dataset.lang=lang;
 
 box.innerHTML=`
 <div class="codeHeader">
@@ -199,39 +156,33 @@ box.innerHTML=`
 <span class="copyBtn" onclick="debugCode(this)">Debug</span>
 </div>
 </div>
-<div class="spinner"></div>
-<pre></pre>
+<pre>${code}</pre>
 `;
 
 p.appendChild(box);
-let pre=box.querySelector("pre");
-typeCode(pre,code,box);
 
 }else{
-fastType(p,"Quadron: "+reply);
+p.innerHTML=`<span class="aiText">Quadron: ${reply}</span>`;
 }
+
+saveChat();
 }
 
 /* COPY FIX */
 function copyCode(btn){
-let text=btn.closest(".codeBox").dataset.code;
-navigator.clipboard.writeText(text);
+navigator.clipboard.writeText(btn.closest(".codeBox").dataset.code);
 btn.innerText="Copied!";
 setTimeout(()=>btn.innerText="Copy",1500);
 }
 
-/* RUN + DEBUG SAME */
+/* RUN */
 function runCode(btn){
-let box=btn.closest(".codeBox");
-let code=box.dataset.code;
-let iframe=document.createElement("iframe");
-iframe.style.width="100%";
-iframe.style.height="250px";
-box.innerHTML="";
-box.appendChild(iframe);
-iframe.srcdoc=code;
+let code=btn.closest(".codeBox").dataset.code;
+let win=window.open();
+win.document.write(code);
 }
 
+/* DEBUG */
 async function debugCode(btn){
 let box=btn.closest(".codeBox");
 let code=box.dataset.code;
@@ -241,35 +192,14 @@ headers:{"Content-Type":"application/json"},
 body:JSON.stringify({message:"ONLY FIX CODE\n"+code,mode:"code"})});
 
 let newCode=(await res.json()).reply.replace(/```[\s\S]*?\n|```/g,"");
-
 box.dataset.code=newCode;
 box.querySelector("pre").textContent=newCode;
-hljs.highlightElement(box.querySelector("pre"));
 }
 
-/* TYPING */
-function fastType(el,text){
-let span=document.createElement("span");
-span.className="aiText";
-el.appendChild(span);
-let i=0;
-let int=setInterval(()=>{
-span.innerHTML+=text[i++];
-if(i>=text.length) clearInterval(int);
-},5);
-}
-
-function typeCode(pre,code,box){
-let i=0;
-let spin=box.querySelector(".spinner");
-let int=setInterval(()=>{
-pre.textContent+=code[i++];
-if(i>=code.length){
-clearInterval(int);
-if(spin) spin.remove();
-hljs.highlightElement(pre);
-}
-},2);
+/* NEW CHAT */
+function newChat(){
+messages.innerHTML="";
+localStorage.removeItem("chatData");
 }
 
 msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
