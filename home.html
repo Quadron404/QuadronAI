@@ -13,7 +13,6 @@
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;transition:.3s;}
 .blur-bg{filter:blur(6px);}
 
-/* HEADER */
 header{
 display:flex;justify-content:space-between;
 padding:12px;background:#000;
@@ -23,7 +22,6 @@ box-shadow:0 0 15px #ffd900;
 header div:first-child{font-weight:bold;text-shadow:0 0 15px #ffd900;}
 #menuBtn{cursor:pointer;font-size:24px;}
 
-/* SIDE MENU */
 #overlay{
 position:fixed;width:100%;height:100%;
 background:rgba(0,0,0,0.4);
@@ -51,7 +49,6 @@ color:#fff;text-shadow:0 0 10px #fff;
 }
 .menuFooter span{color:#ffd900;text-shadow:0 0 10px #ffd900;}
 
-/* CHAT */
 #chat{max-width:800px;margin:auto;padding:10px;}
 #messages{
 height:65vh;overflow:auto;
@@ -61,7 +58,6 @@ border-radius:12px;
 box-shadow:0 0 20px #ffd900;
 }
 
-/* INPUT */
 #inputArea{display:flex;gap:8px;margin-top:10px;}
 input{
 flex:1;padding:10px;
@@ -79,18 +75,15 @@ transition:.2s;
 }
 button:hover{box-shadow:0 0 35px #ffd900;}
 
-/* TEXT */
 .userText{color:#ffd900;text-shadow:0 0 10px #ffd900;}
 .aiText{color:#fff;text-shadow:0 0 10px #fff;}
 
-/* LINKS (Explore mode) */
 .aiText a{
 color:#00aaff;
 text-shadow:0 0 10px #00aaff;
 text-decoration:none;
 }
 
-/* CODE BOX */
 .codeBox{
 background:#000;border:1px solid #ffd900;
 margin-top:8px;border-radius:8px;
@@ -108,7 +101,6 @@ margin-left:5px;color:#fff;
 text-shadow:0 0 10px #fff;
 }
 
-/* SPINNER */
 .spinner{
 position:absolute;width:20px;height:20px;
 border:3px solid #fff;border-top:3px solid transparent;
@@ -118,7 +110,6 @@ top:35px;left:10px;
 }
 @keyframes spin{100%{transform:rotate(360deg);}}
 
-/* FOOTER */
 .footer{text-align:center;font-size:12px;margin:10px;color:#fff;text-shadow:0 0 10px #fff;}
 .footer a{color:#ffd900;text-shadow:0 0 15px #ffd900;text-decoration:none;}
 </style>
@@ -172,63 +163,48 @@ profileName.textContent=user.name||"Guest";
 profileEmail.textContent=user.email||"";
 profilePic.src=user.picture||"https://via.placeholder.com/40";
 
-/* LIMIT SYSTEM */
 let key="limit_"+(user?.email||"guest");
 let data=JSON.parse(localStorage.getItem(key))||{count:0};
 
-/* ULTRA FAST TYPE */
+/* FAST TYPE */
 function fastType(el,text){
 let span=document.createElement("span");
 span.className="aiText";
 el.appendChild(span);
+span.innerHTML=text;
+}
+
+/* CODE TYPE */
+function typeCode(pre,code,box){
 let i=0;
+let spin=box.querySelector(".spinner");
+
 let int=setInterval(()=>{
-span.textContent=text.slice(0,i+=10);
-if(i>=text.length) clearInterval(int);
+pre.textContent+=code[i++];
+if(i>=code.length){
+clearInterval(int);
+if(spin) spin.remove();
+hljs.highlightElement(pre);
+}
 },0);
 }
 
-/* LINKIFY */
-function linkify(text){
-return text.replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank">$1</a>');
-}
+/* LINK FIX */
+function formatExplore(text){
+let urls=text.match(/https?:\/\/[^\s]+/g)||[];
+let clean=text.replace(/https?:\/\/[^\s]+/g,"").trim();
 
-/* GREETING */
-if(user.name){
-fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},
-body:JSON.stringify({message:`sarcastic greeting for ${user.name}`,user:user.name})})
-.then(r=>r.json())
-.then(d=>{
-messages.innerHTML="";
-fastType(messages,"Quadron: "+d.reply);
-});
+if(urls.length>0){
+return clean + `<br><br><a href="${urls[0]}" target="_blank">${urls[0]}</a>`;
 }
-
-/* MENU */
-function openMenu(){
-sidePanel.classList.add("open");
-overlay.style.display="block";
-chat.classList.add("blur-bg");
-mainHeader.classList.add("blur-bg");
-}
-function closeMenu(){
-sidePanel.classList.remove("open");
-overlay.style.display="none";
-chat.classList.remove("blur-bg");
-mainHeader.classList.remove("blur-bg");
-}
-
-function menuAction(fn){
-messages.innerHTML="";
-fn();
-closeMenu();
+return clean;
 }
 
 /* MODES */
 let mode="normal";
 function buildPrompt(t){
 if(mode==="code") return "ONLY CODE\n"+t;
-if(mode==="explore") return "Give sources with links "+t;
+if(mode==="explore") return "Explain in detail and give ONLY ONE source link at end\n"+t;
 return t;
 }
 
@@ -260,22 +236,10 @@ let code=m[2];
 
 let box=document.createElement("div");
 box.className="codeBox";
-
 box.dataset.code=code;
 box.dataset.lang=lang;
 
-box.innerHTML=buildCodeUI(lang,code,true);
-p.appendChild(box);
-
-}else{
-reply=linkify(reply);
-fastType(p,"Quadron: "+reply);
-}
-}
-
-/* BUILD CODE UI */
-function buildCodeUI(lang,code,typing){
-return `
+box.innerHTML=`
 <div class="codeHeader">
 <span>&lt;/&gt; ${lang}</span>
 <div>
@@ -284,9 +248,19 @@ return `
 <span class="copyBtn" onclick="debugCode(this)">Debug</span>
 </div>
 </div>
-${typing?'<div class="spinner"></div>':''}
-<pre>${typing?"":code}</pre>
+<div class="spinner"></div>
+<pre></pre>
 `;
+
+p.appendChild(box);
+
+let pre=box.querySelector("pre");
+typeCode(pre,code,box);
+
+}else{
+if(mode==="explore") reply=formatExplore(reply);
+fastType(p,"Quadron: "+reply);
+}
 }
 
 /* RUN */
@@ -299,23 +273,34 @@ box.innerHTML=`
 <iframe style="width:100%;height:250px;"></iframe>
 `;
 
-box.querySelector("iframe").srcdoc=code;
+let iframe=box.querySelector("iframe");
+iframe.srcdoc=code;
 }
 
-/* RESTORE FULL UI */
+/* RESTORE */
 function restoreCode(btn){
 let box=btn.closest(".codeBox");
 let code=box.dataset.code;
 let lang=box.dataset.lang;
 
-box.innerHTML=buildCodeUI(lang,code,false);
+box.innerHTML=`
+<div class="codeHeader">
+<span>&lt;/&gt; ${lang}</span>
+<div>
+<span class="copyBtn" onclick="copyCode(this)">Copy</span>
+<span class="copyBtn" onclick="runCode(this)">Run</span>
+<span class="copyBtn" onclick="debugCode(this)">Debug</span>
+</div>
+</div>
+<pre>${code}</pre>
+`;
+
 hljs.highlightElement(box.querySelector("pre"));
 }
 
 /* COPY */
 function copyCode(btn){
-let code=btn.closest(".codeBox").dataset.code;
-navigator.clipboard.writeText(code);
+navigator.clipboard.writeText(btn.closest(".codeBox").dataset.code);
 }
 
 /* DEBUG */
