@@ -10,61 +10,235 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 
 <style>
-/* ONLY ADDED THIS */
-a{
+body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;transition:.3s;}
+.blur-bg{filter:blur(6px);}
+
+/* HEADER */
+header{
+display:flex;justify-content:space-between;
+padding:12px;background:#000;
+border-bottom:2px solid #ffd900;
+box-shadow:0 0 15px #ffd900;
+}
+header div:first-child{font-weight:bold;text-shadow:0 0 15px #ffd900;}
+#menuBtn{cursor:pointer;font-size:24px;}
+
+/* SIDE MENU */
+#overlay{
+position:fixed;width:100%;height:100%;
+background:rgba(0,0,0,0.4);
+display:none;z-index:500;
+}
+#sidePanel{
+position:fixed;right:0;top:0;width:260px;height:100%;
+background:#111;transform:translateX(100%);
+transition:.3s;padding:15px;z-index:1000;
+display:flex;flex-direction:column;
+}
+#sidePanel.open{transform:translateX(0);}
+
+#menuProfile{
+display:flex;gap:10px;padding:10px;
+border-bottom:1px solid #333;cursor:pointer;
+}
+#menuProfile img{width:40px;height:40px;border-radius:50%;border:1px solid #ffd900;}
+
+.menuItem{padding:10px;cursor:pointer;margin-top:8px;font-weight:bold;text-shadow:0 0 10px #fff;}
+
+.menuFooter{
+margin-top:auto;text-align:center;font-size:12px;
+color:#fff;text-shadow:0 0 10px #fff;
+}
+.menuFooter span{color:#ffd900;text-shadow:0 0 10px #ffd900;}
+
+/* CHAT */
+#chat{max-width:800px;margin:auto;padding:10px;}
+#messages{
+height:65vh;overflow:auto;
+background:#111;padding:10px;
+border:1px solid #ffd900;
+border-radius:12px;
+box-shadow:0 0 20px #ffd900;
+}
+
+/* INPUT */
+#inputArea{display:flex;gap:8px;margin-top:10px;}
+input{
+flex:1;padding:10px;
+background:black;color:#ffd900;
+border:1px solid #ffd900;border-radius:10px;
+}
+input::placeholder{color:rgba(255,255,255,0.3);}
+
+button{
+padding:10px;background:#ffd900;color:#000;
+border:none;cursor:pointer;
+border-radius:20px;
+box-shadow:0 0 15px #ffd900;
+transition:.2s;
+}
+button:hover{box-shadow:0 0 35px #ffd900;}
+
+/* TEXT */
+.userText{color:#ffd900;text-shadow:0 0 10px #ffd900;}
+.aiText{color:#fff;text-shadow:0 0 10px #fff;}
+
+/* LINKS (Explore mode) */
+.aiText a{
 color:#00aaff;
 text-shadow:0 0 10px #00aaff;
 text-decoration:none;
 }
-</style>
 
-<!-- KEEP YOUR ORIGINAL STYLE EXACTLY SAME -->
+/* CODE BOX */
+.codeBox{
+background:#000;border:1px solid #ffd900;
+margin-top:8px;border-radius:8px;
+overflow:hidden;position:relative;
+}
+.codeHeader{
+display:flex;justify-content:space-between;
+padding:6px;background:#111;font-size:12px;
+border-bottom:1px solid #ffd900;
+}
+.copyBtn{
+cursor:pointer;padding:4px 8px;
+border:1px solid #fff;border-radius:4px;
+margin-left:5px;color:#fff;
+text-shadow:0 0 10px #fff;
+}
+
+/* SPINNER */
+.spinner{
+position:absolute;width:20px;height:20px;
+border:3px solid #fff;border-top:3px solid transparent;
+border-radius:50%;
+animation:spin 1s linear infinite;
+top:35px;left:10px;
+}
+@keyframes spin{100%{transform:rotate(360deg);}}
+
+/* FOOTER */
+.footer{text-align:center;font-size:12px;margin:10px;color:#fff;text-shadow:0 0 10px #fff;}
+.footer a{color:#ffd900;text-shadow:0 0 15px #ffd900;text-decoration:none;}
+</style>
 </head>
 
 <body>
 
-<!-- KEEP HTML SAME -->
+<header id="mainHeader">
+<div>Quadron AI</div>
+<div id="menuBtn" onclick="openMenu()">☰</div>
+</header>
+
+<div id="overlay" onclick="closeMenu()"></div>
+
+<div id="sidePanel">
+<div id="menuProfile" onclick="window.location.href='profile.html'">
+<img id="profilePic">
+<div>
+<div id="profileName"></div>
+<div id="profileEmail" style="font-size:12px;"></div>
+</div>
+</div>
+
+<div class="menuItem" onclick="menuAction(newChat)">New Chat</div>
+<div class="menuItem" onclick="menuAction(codeMode)">Code /</div>
+<div class="menuItem" onclick="menuAction(exploreMode)">Explore</div>
+<div class="menuItem" onclick="voiceMode()">Voice Mode</div>
+
+<div class="menuFooter">
+Developed by <span>Rawat Systems</span>
+</div>
+</div>
+
+<div id="chat">
+<div id="messages"></div>
+
+<div id="inputArea">
+<input id="msg" placeholder="Type here.....">
+<button onclick="send()">Send</button>
+</div>
+</div>
+
+<div class="footer">
+Quadron AI can make mistakes, by using it you accept our 
+<a href="terms.html">Terms & Conditions</a>
+</div>
 
 <script>
+let user=JSON.parse(localStorage.getItem("quadronUser"))||{};
+profileName.textContent=user.name||"Guest";
+profileEmail.textContent=user.email||"";
+profilePic.src=user.picture||"https://via.placeholder.com/40";
 
-/* ULTRA FAST TYPING */
+/* LIMIT SYSTEM */
+let key="limit_"+(user?.email||"guest");
+let data=JSON.parse(localStorage.getItem(key))||{count:0};
+
+/* ULTRA FAST TYPE */
 function fastType(el,text){
 let span=document.createElement("span");
 span.className="aiText";
-span.innerHTML=text;
 el.appendChild(span);
+let i=0;
+let int=setInterval(()=>{
+span.textContent=text.slice(0,i+=10);
+if(i>=text.length) clearInterval(int);
+},0);
 }
 
-/* LINK PARSER */
+/* LINKIFY */
 function linkify(text){
-return text.replace(/https?:\/\/[^\s]+/g,url=>{
-return `<a href="${url}" target="_blank">${url}</a>`;
+return text.replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank">$1</a>');
+}
+
+/* GREETING */
+if(user.name){
+fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},
+body:JSON.stringify({message:`sarcastic greeting for ${user.name}`,user:user.name})})
+.then(r=>r.json())
+.then(d=>{
+messages.innerHTML="";
+fastType(messages,"Quadron: "+d.reply);
 });
 }
 
-/* LIMIT TRACKING */
-function updateUsage(){
-let user=JSON.parse(localStorage.getItem("quadronUser"))||{};
-let key="limit_"+(user.email||"guest");
-
-let data=JSON.parse(localStorage.getItem(key))||{count:0};
-data.count++;
-localStorage.setItem(key,JSON.stringify(data));
+/* MENU */
+function openMenu(){
+sidePanel.classList.add("open");
+overlay.style.display="block";
+chat.classList.add("blur-bg");
+mainHeader.classList.add("blur-bg");
+}
+function closeMenu(){
+sidePanel.classList.remove("open");
+overlay.style.display="none";
+chat.classList.remove("blur-bg");
+mainHeader.classList.remove("blur-bg");
 }
 
-/* EXPLORE MODE FIX */
+function menuAction(fn){
+messages.innerHTML="";
+fn();
+closeMenu();
+}
+
+/* MODES */
+let mode="normal";
 function buildPrompt(t){
 if(mode==="code") return "ONLY CODE\n"+t;
-if(mode==="explore") return "Give detailed answer with sources and links "+t;
+if(mode==="explore") return "Give sources with links "+t;
 return t;
 }
 
-/* SEND FIX */
+/* SEND */
 async function send(){
 let text=msg.value.trim();
 if(!text)return;
 
-updateUsage();
+data.count++;
+localStorage.setItem(key,JSON.stringify(data));
 
 messages.innerHTML+=`<p class="userText">You: ${text}</p>`;
 msg.value="";
@@ -72,16 +246,12 @@ msg.value="";
 let p=document.createElement("p");
 messages.appendChild(p);
 
-let res=await fetch("/api/chat",{
-method:"POST",
+let res=await fetch("/api/chat",{method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({message:buildPrompt(text),mode})
-});
+body:JSON.stringify({message:buildPrompt(text),mode})});
 
-let data=await res.json();
-let reply=data.reply;
+let reply=(await res.json()).reply;
 
-/* CODE DETECT */
 let m=reply.match(/```(\w+)?\n([\s\S]*?)```/);
 
 if(m){
@@ -91,8 +261,21 @@ let code=m[2];
 let box=document.createElement("div");
 box.className="codeBox";
 
-/* SAVE ORIGINAL FULL HTML */
-box.dataset.full = `
+box.dataset.code=code;
+box.dataset.lang=lang;
+
+box.innerHTML=buildCodeUI(lang,code,true);
+p.appendChild(box);
+
+}else{
+reply=linkify(reply);
+fastType(p,"Quadron: "+reply);
+}
+}
+
+/* BUILD CODE UI */
+function buildCodeUI(lang,code,typing){
+return `
 <div class="codeHeader">
 <span>&lt;/&gt; ${lang}</span>
 <div>
@@ -101,34 +284,15 @@ box.dataset.full = `
 <span class="copyBtn" onclick="debugCode(this)">Debug</span>
 </div>
 </div>
-<div class="spinner"></div>
-<pre></pre>
+${typing?'<div class="spinner"></div>':''}
+<pre>${typing?"":code}</pre>
 `;
-
-box.innerHTML=box.dataset.full;
-
-p.appendChild(box);
-
-let pre=box.querySelector("pre");
-let spin=box.querySelector(".spinner");
-
-/* ULTRA FAST CODE LOAD */
-pre.textContent=code;
-spin.remove();
-hljs.highlightElement(pre);
-
-}else{
-reply=linkify(reply);
-fastType(p,"Quadron: "+reply);
-}
 }
 
-/* RUN FIX */
+/* RUN */
 function runCode(btn){
 let box=btn.closest(".codeBox");
-let code=box.querySelector("pre").textContent;
-
-box.dataset.code=code;
+let code=box.dataset.code;
 
 box.innerHTML=`
 <button style="float:right;color:#fff;background:none;border:1px solid #fff;text-shadow:0 0 10px #fff;" onclick="restoreCode(this)">Back</button>
@@ -138,18 +302,45 @@ box.innerHTML=`
 box.querySelector("iframe").srcdoc=code;
 }
 
-/* FULL RESTORE */
+/* RESTORE FULL UI */
 function restoreCode(btn){
 let box=btn.closest(".codeBox");
+let code=box.dataset.code;
+let lang=box.dataset.lang;
 
-box.innerHTML=box.dataset.full;
-
-let pre=box.querySelector("pre");
-pre.textContent=box.dataset.code;
-
-hljs.highlightElement(pre);
+box.innerHTML=buildCodeUI(lang,code,false);
+hljs.highlightElement(box.querySelector("pre"));
 }
 
+/* COPY */
+function copyCode(btn){
+let code=btn.closest(".codeBox").dataset.code;
+navigator.clipboard.writeText(code);
+}
+
+/* DEBUG */
+async function debugCode(btn){
+let box=btn.closest(".codeBox");
+let code=box.dataset.code;
+
+let res=await fetch("/api/chat",{method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({message:"ONLY FIX CODE\n"+code,mode:"code"})});
+
+let newCode=(await res.json()).reply.replace(/```[\s\S]*?\n|```/g,"");
+
+box.dataset.code=newCode;
+box.querySelector("pre").textContent=newCode;
+hljs.highlightElement(box.querySelector("pre"));
+}
+
+/* MODES */
+function newChat(){mode="normal";}
+function codeMode(){mode="code";fastType(messages,"Describe What You Want To Code");}
+function exploreMode(){mode="explore";fastType(messages,"Explore The Universe");}
+function voiceMode(){window.location.href="voice.html";}
+
+msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
 </script>
 
 </body>
