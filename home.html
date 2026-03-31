@@ -13,101 +13,42 @@
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;transition:.3s;}
 .blur-bg{filter:blur(6px);}
 
-header{
-display:flex;justify-content:space-between;
-padding:12px;background:#000;
-border-bottom:2px solid #ffd900;
-box-shadow:0 0 15px #ffd900;
-}
+/* KEEP UI SAME */
+header{display:flex;justify-content:space-between;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 15px #ffd900;}
 header div:first-child{font-weight:bold;text-shadow:0 0 15px #ffd900;}
 #menuBtn{cursor:pointer;font-size:24px;}
 
-#overlay{
-position:fixed;width:100%;height:100%;
-background:rgba(0,0,0,0.4);
-display:none;z-index:500;
-}
-#sidePanel{
-position:fixed;right:0;top:0;width:260px;height:100%;
-background:#111;transform:translateX(100%);
-transition:.3s;padding:15px;z-index:1000;
-display:flex;flex-direction:column;
-}
+#overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;z-index:500;}
+#sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;display:flex;flex-direction:column;}
 #sidePanel.open{transform:translateX(0);}
 
-#menuProfile{
-display:flex;gap:10px;padding:10px;
-border-bottom:1px solid #333;cursor:pointer;
-}
+#menuProfile{display:flex;gap:10px;padding:10px;border-bottom:1px solid #333;cursor:pointer;}
 #menuProfile img{width:40px;height:40px;border-radius:50%;border:1px solid #ffd900;}
 
 .menuItem{padding:10px;cursor:pointer;margin-top:8px;font-weight:bold;text-shadow:0 0 10px #fff;}
 
-.menuFooter{
-margin-top:auto;text-align:center;font-size:12px;
-color:#fff;text-shadow:0 0 10px #fff;
-}
+.menuFooter{margin-top:auto;text-align:center;font-size:12px;color:#fff;text-shadow:0 0 10px #fff;}
 .menuFooter span{color:#ffd900;text-shadow:0 0 10px #ffd900;}
 
 #chat{max-width:800px;margin:auto;padding:10px;}
-#messages{
-height:65vh;overflow:auto;
-background:#111;padding:10px;
-border:1px solid #ffd900;
-border-radius:12px;
-box-shadow:0 0 20px #ffd900;
-}
+#messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;border-radius:12px;box-shadow:0 0 20px #ffd900;}
 
 #inputArea{display:flex;gap:8px;margin-top:10px;}
-input{
-flex:1;padding:10px;
-background:black;color:#ffd900;
-border:1px solid #ffd900;border-radius:10px;
-}
+input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
 input::placeholder{color:rgba(255,255,255,0.3);}
 
-button{
-padding:10px;background:#ffd900;color:#000;
-border:none;cursor:pointer;
-border-radius:20px;
-box-shadow:0 0 15px #ffd900;
-transition:.2s;
-}
+button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;border-radius:20px;box-shadow:0 0 15px #ffd900;transition:.2s;}
 button:hover{box-shadow:0 0 35px #ffd900;}
 
 .userText{color:#ffd900;text-shadow:0 0 10px #ffd900;}
 .aiText{color:#fff;text-shadow:0 0 10px #fff;}
+.aiText a{color:#00aaff;text-shadow:0 0 10px #00aaff;text-decoration:none;}
 
-.aiText a{
-color:#00aaff;
-text-shadow:0 0 10px #00aaff;
-text-decoration:none;
-}
+.codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:hidden;position:relative;}
+.codeHeader{display:flex;justify-content:space-between;padding:6px;background:#111;font-size:12px;border-bottom:1px solid #ffd900;}
+.copyBtn{cursor:pointer;padding:4px 8px;border:1px solid #fff;border-radius:4px;margin-left:5px;color:#fff;text-shadow:0 0 10px #fff;}
 
-.codeBox{
-background:#000;border:1px solid #ffd900;
-margin-top:8px;border-radius:8px;
-overflow:hidden;position:relative;
-}
-.codeHeader{
-display:flex;justify-content:space-between;
-padding:6px;background:#111;font-size:12px;
-border-bottom:1px solid #ffd900;
-}
-.copyBtn{
-cursor:pointer;padding:4px 8px;
-border:1px solid #fff;border-radius:4px;
-margin-left:5px;color:#fff;
-text-shadow:0 0 10px #fff;
-}
-
-.spinner{
-position:absolute;width:20px;height:20px;
-border:3px solid #fff;border-top:3px solid transparent;
-border-radius:50%;
-animation:spin 1s linear infinite;
-top:35px;left:10px;
-}
+.spinner{position:absolute;width:20px;height:20px;border:3px solid #fff;border-top:3px solid transparent;border-radius:50%;animation:spin 1s linear infinite;top:35px;left:10px;}
 @keyframes spin{100%{transform:rotate(360deg);}}
 
 .footer{text-align:center;font-size:12px;margin:10px;color:#fff;text-shadow:0 0 10px #fff;}
@@ -119,10 +60,10 @@ top:35px;left:10px;
 
 <header id="mainHeader">
 <div>Quadron AI</div>
-<div id="menuBtn" onclick="openMenu()">☰</div>
+<div id="menuBtn">☰</div>
 </header>
 
-<div id="overlay" onclick="closeMenu()"></div>
+<div id="overlay"></div>
 
 <div id="sidePanel">
 <div id="menuProfile" onclick="window.location.href='profile.html'">
@@ -163,25 +104,47 @@ profileName.textContent=user.name||"Guest";
 profileEmail.textContent=user.email||"";
 profilePic.src=user.picture||"https://via.placeholder.com/40";
 
-let key="limit_"+(user?.email||"guest");
-let data=JSON.parse(localStorage.getItem(key))||{count:0};
+/* GREETING ONCE */
+if(user.name && !localStorage.getItem("greeted")){
+fastType(messages,"Quadron: Oh great, "+user.name+" is here. Let's pretend this will be productive.");
+localStorage.setItem("greeted",true);
+}
 
-/* PROPER FAST TYPING (VISIBLE BUT FAST) */
+/* MENU FIX */
+menuBtn.onclick=openMenu;
+overlay.onclick=closeMenu;
+
+function openMenu(){
+sidePanel.classList.add("open");
+overlay.style.display="block";
+chat.classList.add("blur-bg");
+}
+
+function closeMenu(){
+sidePanel.classList.remove("open");
+overlay.style.display="none";
+chat.classList.remove("blur-bg");
+}
+
+function menuAction(fn){
+closeMenu();
+fn();
+}
+
+/* TYPING */
 function fastType(el,text){
 let span=document.createElement("span");
 span.className="aiText";
 el.appendChild(span);
 
 let i=0;
-let speed=2; // balanced speed
-
 let int=setInterval(()=>{
-span.innerHTML=text.slice(0,i+=5);
+span.innerHTML+=text[i++];
 if(i>=text.length) clearInterval(int);
-},speed);
+},5);
 }
 
-/* CODE TYPING (VISIBLE) */
+/* CODE TYPE FIX */
 function typeCode(pre,code,box){
 let i=0;
 let spin=box.querySelector(".spinner");
@@ -193,44 +156,16 @@ clearInterval(int);
 if(spin) spin.remove();
 hljs.highlightElement(pre);
 }
-},1);
+},2);
 }
 
-/* GREETING FIX */
-if(user.name){
-fetch("/api/chat",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({message:`sarcastic greeting for ${user.name}`})
-})
-.then(r=>r.json())
-.then(d=>{
-messages.innerHTML="";
-fastType(messages,"Quadron: "+d.reply);
-});
-}
-
-/* MENU FIX */
-function openMenu(){
-sidePanel.classList.add("open");
-overlay.style.display="block";
-chat.classList.add("blur-bg");
-mainHeader.classList.add("blur-bg");
-}
-function closeMenu(){
-sidePanel.classList.remove("open");
-overlay.style.display="none";
-chat.classList.remove("blur-bg");
-mainHeader.classList.remove("blur-bg");
-}
-
-/* EXPLORE FORMAT */
+/* EXPLORE FIX */
 function formatExplore(text){
 let urls=text.match(/https?:\/\/[^\s]+/g)||[];
 let clean=text.replace(/https?:\/\/[^\s]+/g,"").trim();
 
-if(urls.length){
-return clean+"<br><br><a href='"+urls[0]+"' target='_blank'>"+urls[0]+"</a>";
+if(urls.length>0){
+return clean + `<br><br><a href="${urls[0]}" target="_blank">${urls[0]}</a>`;
 }
 return clean;
 }
@@ -239,7 +174,7 @@ return clean;
 let mode="normal";
 function buildPrompt(t){
 if(mode==="code") return "ONLY CODE\n"+t;
-if(mode==="explore") return "Explain properly and give only 1 source link at end\n"+t;
+if(mode==="explore") return "Explain properly and give ONLY ONE source link at end\n"+t;
 return t;
 }
 
@@ -248,20 +183,15 @@ async function send(){
 let text=msg.value.trim();
 if(!text)return;
 
-data.count++;
-localStorage.setItem(key,JSON.stringify(data));
-
 messages.innerHTML+=`<p class="userText">You: ${text}</p>`;
 msg.value="";
 
 let p=document.createElement("p");
 messages.appendChild(p);
 
-let res=await fetch("/api/chat",{
-method:"POST",
+let res=await fetch("/api/chat",{method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({message:buildPrompt(text)})
-});
+body:JSON.stringify({message:buildPrompt(text),mode})});
 
 let reply=(await res.json()).reply;
 
@@ -291,7 +221,8 @@ box.innerHTML=`
 
 p.appendChild(box);
 
-typeCode(box.querySelector("pre"),code,box);
+let pre=box.querySelector("pre");
+typeCode(pre,code,box);
 
 }else{
 if(mode==="explore") reply=formatExplore(reply);
@@ -299,38 +230,19 @@ fastType(p,"Quadron: "+reply);
 }
 }
 
-/* RUN */
+/* RUN FIX */
 function runCode(btn){
 let box=btn.closest(".codeBox");
 let code=box.dataset.code;
 
-box.innerHTML=`
-<button style="float:right;color:#fff;background:none;border:1px solid #fff;text-shadow:0 0 10px #fff;" onclick="restoreCode(this)">Back</button>
-<iframe style="width:100%;height:250px;"></iframe>
-`;
+let iframe=document.createElement("iframe");
+iframe.style.width="100%";
+iframe.style.height="250px";
 
-box.querySelector("iframe").srcdoc=code;
-}
+box.innerHTML="";
+box.appendChild(iframe);
 
-/* RESTORE */
-function restoreCode(btn){
-let box=btn.closest(".codeBox");
-let code=box.dataset.code;
-let lang=box.dataset.lang;
-
-box.innerHTML=`
-<div class="codeHeader">
-<span>&lt;/&gt; ${lang}</span>
-<div>
-<span class="copyBtn" onclick="copyCode(this)">Copy</span>
-<span class="copyBtn" onclick="runCode(this)">Run</span>
-<span class="copyBtn" onclick="debugCode(this)">Debug</span>
-</div>
-</div>
-<pre>${code}</pre>
-`;
-
-hljs.highlightElement(box.querySelector("pre"));
+iframe.srcdoc=code;
 }
 
 /* COPY */
@@ -343,11 +255,9 @@ async function debugCode(btn){
 let box=btn.closest(".codeBox");
 let code=box.dataset.code;
 
-let res=await fetch("/api/chat",{
-method:"POST",
+let res=await fetch("/api/chat",{method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({message:"ONLY FIX CODE\n"+code})
-});
+body:JSON.stringify({message:"ONLY FIX CODE\n"+code,mode:"code"})});
 
 let newCode=(await res.json()).reply.replace(/```[\s\S]*?\n|```/g,"");
 
@@ -357,7 +267,7 @@ hljs.highlightElement(box.querySelector("pre"));
 }
 
 /* MODES */
-function newChat(){mode="normal";}
+function newChat(){mode="normal";messages.innerHTML="";}
 function codeMode(){mode="code";fastType(messages,"Describe What You Want To Code");}
 function exploreMode(){mode="explore";fastType(messages,"Explore The Universe");}
 function voiceMode(){window.location.href="voice.html";}
