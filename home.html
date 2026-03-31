@@ -13,9 +13,12 @@
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;transition:.3s;}
 .blur-bg{filter:blur(6px);}
 
+/* KEEP UI SAME */
 header{display:flex;justify-content:space-between;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 15px #ffd900;}
 header div:first-child{font-weight:bold;text-shadow:0 0 15px #ffd900;}
 #menuBtn{cursor:pointer;font-size:24px;}
+
+#backBtn{cursor:pointer;margin-right:10px;font-size:18px;}
 
 #overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;z-index:500;}
 #sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;display:flex;flex-direction:column;}
@@ -26,24 +29,26 @@ header div:first-child{font-weight:bold;text-shadow:0 0 15px #ffd900;}
 
 .menuItem{padding:10px;cursor:pointer;margin-top:8px;font-weight:bold;text-shadow:0 0 10px #fff;}
 
-.menuFooter{margin-top:auto;text-align:center;font-size:12px;}
-.menuFooter .dev{color:#fff;text-shadow:0 0 10px #fff;}
-.menuFooter .brand{color:#ffd900;text-shadow:0 0 10px #ffd900;}
+.menuFooter{margin-top:auto;text-align:center;font-size:12px;color:#fff;text-shadow:0 0 10px #fff;}
+.menuFooter span{color:#ffd900;text-shadow:0 0 10px #ffd900;}
 
 #chat{max-width:800px;margin:auto;padding:10px;}
 #messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;border-radius:12px;box-shadow:0 0 20px #ffd900;}
 
 #inputArea{display:flex;gap:8px;margin-top:10px;}
 input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
+input::placeholder{color:rgba(255,255,255,0.3);}
 
-button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;border-radius:20px;box-shadow:0 0 15px #ffd900;}
+button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;border-radius:20px;box-shadow:0 0 15px #ffd900;transition:.2s;}
+button:hover{box-shadow:0 0 35px #ffd900;}
 
 .userText{color:#ffd900;text-shadow:0 0 10px #ffd900;}
 .aiText{color:#fff;text-shadow:0 0 10px #fff;}
+.aiText a{color:#00aaff;text-shadow:0 0 10px #00aaff;text-decoration:none;}
 
 .codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:hidden;position:relative;}
 .codeHeader{display:flex;justify-content:space-between;padding:6px;background:#111;font-size:12px;border-bottom:1px solid #ffd900;}
-.copyBtn{cursor:pointer;padding:4px 8px;border:1px solid #fff;border-radius:4px;margin-left:5px;color:#fff;}
+.copyBtn{cursor:pointer;padding:4px 8px;border:1px solid #fff;border-radius:4px;margin-left:5px;color:#fff;text-shadow:0 0 10px #fff;}
 
 .spinner{position:absolute;width:20px;height:20px;border:3px solid #fff;border-top:3px solid transparent;border-radius:50%;animation:spin 1s linear infinite;top:35px;left:10px;}
 @keyframes spin{100%{transform:rotate(360deg);}}
@@ -55,15 +60,18 @@ button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;bor
 
 <body>
 
-<header>
+<header id="mainHeader">
 <div>Quadron AI</div>
-<div id="menuBtn">☰</div>
+<div>
+<span id="backBtn">⬅</span>
+<span id="menuBtn">☰</span>
+</div>
 </header>
 
 <div id="overlay"></div>
 
 <div id="sidePanel">
-<div id="menuProfile">
+<div id="menuProfile" onclick="window.location.href='profile.html'">
 <img id="profilePic">
 <div>
 <div id="profileName"></div>
@@ -77,7 +85,7 @@ button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;bor
 <div class="menuItem" onclick="voiceMode()">Voice Mode</div>
 
 <div class="menuFooter">
-<span class="dev">Developed by</span> <span class="brand">Rawat Systems</span>
+Developed by <span>Rawat Systems</span>
 </div>
 </div>
 
@@ -96,41 +104,65 @@ Quadron AI can make mistakes, by using it you accept our
 </div>
 
 <script>
-let usage=JSON.parse(localStorage.getItem("usage"))||{count:0,time:Date.now()};
+let user=JSON.parse(localStorage.getItem("quadronUser"))||{};
+profileName.textContent=user.name||"Guest";
+profileEmail.textContent=user.email||"";
+profilePic.src=user.picture||"https://via.placeholder.com/40";
 
-/* RESET AFTER 24H */
-if(Date.now()-usage.time>86400000){
-usage={count:0,time:Date.now()};
+/* DAILY LIMIT */
+let limitData=JSON.parse(localStorage.getItem("quadronLimit"))||{count:0,time:Date.now()};
+if(Date.now()-limitData.time>86400000){
+limitData={count:0,time:Date.now()};
 }
-
-/* LIMIT CHECK */
-function canUse(){
-if(usage.count>=100){
-messages.innerHTML+=`<p class="aiText">Quadron: Daily limit exceeded</p>`;
+function checkLimit(){
+if(limitData.count>=100){
+fastType(messages,"Quadron: Daily limit exceeded");
 return false;
 }
-usage.count++;
-localStorage.setItem("usage",JSON.stringify(usage));
+limitData.count++;
+localStorage.setItem("quadronLimit",JSON.stringify(limitData));
 return true;
 }
 
+/* BACK STORAGE */
+let historyStack=[];
+
+backBtn.onclick=function(){
+if(historyStack.length>0){
+messages.innerHTML=historyStack.pop();
+}
+};
+
 /* MENU */
-menuBtn.onclick=()=>{sidePanel.classList.add("open");overlay.style.display="block";chat.classList.add("blur-bg");};
-overlay.onclick=()=>{sidePanel.classList.remove("open");overlay.style.display="none";chat.classList.remove("blur-bg");};
+menuBtn.onclick=openMenu;
+overlay.onclick=closeMenu;
 
-function menuAction(fn){sidePanel.classList.remove("open");overlay.style.display="none";chat.classList.remove("blur-bg");fn();}
+function openMenu(){
+sidePanel.classList.add("open");
+overlay.style.display="block";
+chat.classList.add("blur-bg");
+}
+function closeMenu(){
+sidePanel.classList.remove("open");
+overlay.style.display="none";
+chat.classList.remove("blur-bg");
+}
+function menuAction(fn){closeMenu();fn();}
 
-/* NEW WINDOW MODES */
+/* OPEN NEW WINDOW */
 function openNewWindow(type){
-window.open(window.location.href+"?mode="+type,"_blank");
+window.open(`home.html?mode=${type}`,"_blank");
 }
 
-/* BACK STORAGE */
-let lastCodeData=null;
+/* MODES FROM URL */
+let params=new URLSearchParams(window.location.search);
+let mode=params.get("mode")||"normal";
 
 /* SEND */
 async function send(){
-if(!canUse()) return;
+if(!checkLimit()) return;
+
+historyStack.push(messages.innerHTML);
 
 let text=msg.value.trim();
 if(!text)return;
@@ -143,7 +175,7 @@ messages.appendChild(p);
 
 let res=await fetch("/api/chat",{method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({message:text})});
+body:JSON.stringify({message:text,mode})});
 
 let reply=(await res.json()).reply;
 
@@ -153,18 +185,6 @@ if(m){
 let lang=m[1]||"html";
 let code=m[2];
 
-lastCodeData={lang,code};
-
-let box=createCodeBox(lang,code);
-p.appendChild(box);
-
-}else{
-p.innerHTML=`<span class="aiText">Quadron: ${reply}</span>`;
-}
-}
-
-/* CREATE CODE BOX */
-function createCodeBox(lang,code){
 let box=document.createElement("div");
 box.className="codeBox";
 box.dataset.code=code;
@@ -179,55 +199,46 @@ box.innerHTML=`
 <span class="copyBtn" onclick="debugCode(this)">Debug</span>
 </div>
 </div>
-<pre>${code}</pre>
+<div class="spinner"></div>
+<pre></pre>
 `;
 
-hljs.highlightElement(box.querySelector("pre"));
-return box;
+p.appendChild(box);
+let pre=box.querySelector("pre");
+typeCode(pre,code,box);
+
+}else{
+fastType(p,"Quadron: "+reply);
+}
 }
 
-/* COPY WITH TEXT */
+/* COPY FIX */
 function copyCode(btn){
-navigator.clipboard.writeText(btn.closest(".codeBox").dataset.code);
-btn.innerText="Copied !";
+let text=btn.closest(".codeBox").dataset.code;
+navigator.clipboard.writeText(text);
+btn.innerText="Copied!";
 setTimeout(()=>btn.innerText="Copy",1500);
 }
 
-/* RUN WITH BACK */
+/* RUN + DEBUG SAME */
 function runCode(btn){
 let box=btn.closest(".codeBox");
-
+let code=box.dataset.code;
 let iframe=document.createElement("iframe");
 iframe.style.width="100%";
 iframe.style.height="250px";
-
-let back=document.createElement("div");
-back.className="copyBtn";
-back.innerText="Back";
-back.onclick=()=>restoreCode(box);
-
 box.innerHTML="";
-box.appendChild(back);
 box.appendChild(iframe);
-
-iframe.srcdoc=box.dataset.code;
+iframe.srcdoc=code;
 }
 
-/* BACK RESTORE */
-function restoreCode(box){
-let {lang,code}=lastCodeData;
-let newBox=createCodeBox(lang,code);
-box.replaceWith(newBox);
-}
-
-/* DEBUG */
 async function debugCode(btn){
 let box=btn.closest(".codeBox");
 let code=box.dataset.code;
 
 let res=await fetch("/api/chat",{method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({message:"ONLY FIX CODE\n"+code})});
+body:JSON.stringify({message:"ONLY FIX CODE\n"+code,mode:"code"})});
 
 let newCode=(await res.json()).reply.replace(/```[\s\S]*?\n|```/g,"");
 
@@ -236,8 +247,30 @@ box.querySelector("pre").textContent=newCode;
 hljs.highlightElement(box.querySelector("pre"));
 }
 
-/* CHAT RESET */
-function newChat(){messages.innerHTML="";}
+/* TYPING */
+function fastType(el,text){
+let span=document.createElement("span");
+span.className="aiText";
+el.appendChild(span);
+let i=0;
+let int=setInterval(()=>{
+span.innerHTML+=text[i++];
+if(i>=text.length) clearInterval(int);
+},5);
+}
+
+function typeCode(pre,code,box){
+let i=0;
+let spin=box.querySelector(".spinner");
+let int=setInterval(()=>{
+pre.textContent+=code[i++];
+if(i>=code.length){
+clearInterval(int);
+if(spin) spin.remove();
+hljs.highlightElement(pre);
+}
+},2);
+}
 
 msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
 </script>
