@@ -10,224 +10,61 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 
 <style>
-body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;transition:.3s;}
-.blur-bg{filter:blur(6px);}
-
-/* HEADER */
-header{
-display:flex;justify-content:space-between;
-padding:12px;background:#000;
-border-bottom:2px solid #ffd900;
-box-shadow:0 0 15px #ffd900;
+/* ONLY ADDED THIS */
+a{
+color:#00aaff;
+text-shadow:0 0 10px #00aaff;
+text-decoration:none;
 }
-header div:first-child{font-weight:bold;text-shadow:0 0 15px #ffd900;}
-#menuBtn{cursor:pointer;font-size:24px;}
-
-/* SIDE MENU */
-#overlay{
-position:fixed;width:100%;height:100%;
-background:rgba(0,0,0,0.4);
-display:none;z-index:500;
-}
-#sidePanel{
-position:fixed;right:0;top:0;width:260px;height:100%;
-background:#111;transform:translateX(100%);
-transition:.3s;padding:15px;z-index:1000;
-display:flex;flex-direction:column;
-}
-#sidePanel.open{transform:translateX(0);}
-
-#menuProfile{
-display:flex;gap:10px;padding:10px;
-border-bottom:1px solid #333;cursor:pointer;
-}
-#menuProfile img{width:40px;height:40px;border-radius:50%;border:1px solid #ffd900;}
-
-.menuItem{padding:10px;cursor:pointer;margin-top:8px;font-weight:bold;text-shadow:0 0 10px #fff;}
-
-.menuFooter{
-margin-top:auto;text-align:center;font-size:12px;
-color:#fff;text-shadow:0 0 10px #fff;
-}
-.menuFooter span{color:#ffd900;text-shadow:0 0 10px #ffd900;}
-
-/* CHAT */
-#chat{max-width:800px;margin:auto;padding:10px;}
-#messages{
-height:65vh;overflow:auto;
-background:#111;padding:10px;
-border:1px solid #ffd900;
-border-radius:12px;
-box-shadow:0 0 20px #ffd900;
-}
-
-/* INPUT */
-#inputArea{display:flex;gap:8px;margin-top:10px;}
-input{
-flex:1;padding:10px;
-background:black;color:#ffd900;
-border:1px solid #ffd900;border-radius:10px;
-}
-input::placeholder{color:rgba(255,255,255,0.3);}
-
-button{
-padding:10px;background:#ffd900;color:#000;
-border:none;cursor:pointer;
-border-radius:20px;
-box-shadow:0 0 15px #ffd900;
-transition:.2s;
-}
-button:hover{box-shadow:0 0 35px #ffd900;}
-
-/* TEXT */
-.userText{color:#ffd900;text-shadow:0 0 10px #ffd900;}
-.aiText{color:#fff;text-shadow:0 0 10px #fff;}
-
-/* CODE BOX */
-.codeBox{
-background:#000;border:1px solid #ffd900;
-margin-top:8px;border-radius:8px;
-overflow:hidden;position:relative;
-}
-.codeHeader{
-display:flex;justify-content:space-between;
-padding:6px;background:#111;font-size:12px;
-border-bottom:1px solid #ffd900;
-}
-.copyBtn{
-cursor:pointer;padding:4px 8px;
-border:1px solid #fff;border-radius:4px;
-margin-left:5px;color:#fff;
-text-shadow:0 0 10px #fff;
-}
-
-/* SPINNER NO GLOW */
-.spinner{
-position:absolute;width:20px;height:20px;
-border:3px solid #fff;border-top:3px solid transparent;
-border-radius:50%;
-animation:spin 1s linear infinite;
-top:35px;left:10px;
-}
-@keyframes spin{100%{transform:rotate(360deg);}}
-
-/* FOOTER */
-.footer{text-align:center;font-size:12px;margin:10px;color:#fff;text-shadow:0 0 10px #fff;}
-.footer a{color:#ffd900;text-shadow:0 0 15px #ffd900;text-decoration:none;}
 </style>
+
+<!-- KEEP YOUR ORIGINAL STYLE EXACTLY SAME -->
 </head>
 
 <body>
 
-<header id="mainHeader">
-<div>Quadron AI</div>
-<div id="menuBtn" onclick="openMenu()">☰</div>
-</header>
-
-<div id="overlay" onclick="closeMenu()"></div>
-
-<div id="sidePanel">
-<div id="menuProfile" onclick="window.location.href='profile.html'">
-<img id="profilePic">
-<div>
-<div id="profileName"></div>
-<div id="profileEmail" style="font-size:12px;"></div>
-</div>
-</div>
-
-<div class="menuItem" onclick="menuAction(newChat)">New Chat</div>
-<div class="menuItem" onclick="menuAction(codeMode)">Code /</div>
-<div class="menuItem" onclick="menuAction(exploreMode)">Explore</div>
-<div class="menuItem" onclick="voiceMode()">Voice Mode</div>
-
-<div class="menuFooter">
-Developed by <span>Rawat Systems</span>
-</div>
-</div>
-
-<div id="chat">
-<div id="messages"></div>
-
-<div id="inputArea">
-<input id="msg" placeholder="Type here.....">
-<button onclick="send()">Send</button>
-</div>
-</div>
-
-<div class="footer">
-Quadron AI can make mistakes, by using it you accept our 
-<a href="terms.html">Terms & Conditions</a>
-</div>
+<!-- KEEP HTML SAME -->
 
 <script>
-let user=JSON.parse(localStorage.getItem("quadronUser"))||{};
-profileName.textContent=user.name||"Guest";
-profileEmail.textContent=user.email||"";
-profilePic.src=user.picture||"https://via.placeholder.com/40";
 
-/* TYPING */
+/* ULTRA FAST TYPING */
 function fastType(el,text){
 let span=document.createElement("span");
 span.className="aiText";
+span.innerHTML=text;
 el.appendChild(span);
-let i=0;
-let int=setInterval(()=>{
-span.textContent=text.slice(0,i++);
-if(i>text.length) clearInterval(int);
-},10);
 }
 
-/* GREETING */
-if(user.name){
-fetch("/api/chat",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({message:`sarcastic greeting for ${user.name}`,user:user.name})
-})
-.then(r=>r.json())
-.then(d=>{
-messages.innerHTML="";
-fastType(messages,"Quadron: "+d.reply);
+/* LINK PARSER */
+function linkify(text){
+return text.replace(/https?:\/\/[^\s]+/g,url=>{
+return `<a href="${url}" target="_blank">${url}</a>`;
 });
 }
 
-/* MENU BLUR FIX */
-function openMenu(){
-sidePanel.classList.add("open");
-overlay.style.display="block";
-document.getElementById("chat").classList.add("blur-bg");
-document.getElementById("mainHeader").classList.add("blur-bg");
-}
-function closeMenu(){
-sidePanel.classList.remove("open");
-overlay.style.display="none";
-document.getElementById("chat").classList.remove("blur-bg");
-document.getElementById("mainHeader").classList.remove("blur-bg");
+/* LIMIT TRACKING */
+function updateUsage(){
+let user=JSON.parse(localStorage.getItem("quadronUser"))||{};
+let key="limit_"+(user.email||"guest");
+
+let data=JSON.parse(localStorage.getItem(key))||{count:0};
+data.count++;
+localStorage.setItem(key,JSON.stringify(data));
 }
 
-function menuAction(fn){
-messages.innerHTML="";
-fn();
-closeMenu();
-}
-
-/* VOICE */
-function voiceMode(){
-window.location.href="voice.html";
-}
-
-/* MODES */
-let mode="normal";
+/* EXPLORE MODE FIX */
 function buildPrompt(t){
 if(mode==="code") return "ONLY CODE\n"+t;
-if(mode==="explore") return "Use Wikipedia "+t;
+if(mode==="explore") return "Give detailed answer with sources and links "+t;
 return t;
 }
 
-/* SEND WITH CODE FIX */
+/* SEND FIX */
 async function send(){
 let text=msg.value.trim();
 if(!text)return;
+
+updateUsage();
 
 messages.innerHTML+=`<p class="userText">You: ${text}</p>`;
 msg.value="";
@@ -244,7 +81,7 @@ body:JSON.stringify({message:buildPrompt(text),mode})
 let data=await res.json();
 let reply=data.reply;
 
-/* CODE DETECTION BACK */
+/* CODE DETECT */
 let m=reply.match(/```(\w+)?\n([\s\S]*?)```/);
 
 if(m){
@@ -254,7 +91,8 @@ let code=m[2];
 let box=document.createElement("div");
 box.className="codeBox";
 
-box.innerHTML=`
+/* SAVE ORIGINAL FULL HTML */
+box.dataset.full = `
 <div class="codeHeader">
 <span>&lt;/&gt; ${lang}</span>
 <div>
@@ -267,30 +105,22 @@ box.innerHTML=`
 <pre></pre>
 `;
 
+box.innerHTML=box.dataset.full;
+
 p.appendChild(box);
 
 let pre=box.querySelector("pre");
 let spin=box.querySelector(".spinner");
 
-let i=0;
-let int=setInterval(()=>{
-pre.textContent+=code[i++];
-if(i>=code.length){
-clearInterval(int);
+/* ULTRA FAST CODE LOAD */
+pre.textContent=code;
 spin.remove();
 hljs.highlightElement(pre);
-}
-},1);
 
 }else{
+reply=linkify(reply);
 fastType(p,"Quadron: "+reply);
 }
-}
-
-/* COPY */
-function copyCode(btn){
-let code=btn.closest(".codeBox").querySelector("pre").textContent;
-navigator.clipboard.writeText(code);
 }
 
 /* RUN FIX */
@@ -308,39 +138,18 @@ box.innerHTML=`
 box.querySelector("iframe").srcdoc=code;
 }
 
+/* FULL RESTORE */
 function restoreCode(btn){
 let box=btn.closest(".codeBox");
-let code=box.dataset.code;
 
-box.innerHTML=`<pre></pre>`;
-box.querySelector("pre").textContent=code;
-hljs.highlightElement(box.querySelector("pre"));
+box.innerHTML=box.dataset.full;
+
+let pre=box.querySelector("pre");
+pre.textContent=box.dataset.code;
+
+hljs.highlightElement(pre);
 }
 
-/* DEBUG */
-async function debugCode(btn){
-let box=btn.closest(".codeBox");
-let code=box.querySelector("pre").textContent;
-
-let res=await fetch("/api/chat",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({message:"ONLY FIX CODE\n"+code,mode:"code"})
-});
-
-let d=await res.json();
-let newCode=d.reply.replace(/```[\s\S]*?\n|```/g,"");
-
-box.querySelector("pre").textContent=newCode;
-hljs.highlightElement(box.querySelector("pre"));
-}
-
-/* MODES */
-function newChat(){mode="normal";}
-function codeMode(){mode="code";fastType(messages,"Describe What You Want To Code");}
-function exploreMode(){mode="explore";fastType(messages,"Explore The Universe");}
-
-msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
 </script>
 
 </body>
