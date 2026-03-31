@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Quadron AI</title>
+<link rel="icon" href="favicon.html">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/monokai-sublime.min.css">
@@ -10,7 +11,7 @@
 
 <style>
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;transition:.3s;}
-.blur-bg{backdrop-filter:blur(6px);}
+.blur-bg{filter:blur(6px);}
 
 /* HEADER */
 header{
@@ -19,6 +20,7 @@ padding:12px;background:#000;
 border-bottom:2px solid #ffd900;
 box-shadow:0 0 15px #ffd900;
 }
+header div:first-child{font-weight:bold;text-shadow:0 0 15px #ffd900;}
 #menuBtn{cursor:pointer;font-size:24px;}
 
 /* SIDE MENU */
@@ -45,6 +47,7 @@ border-bottom:1px solid #333;cursor:pointer;
 
 .menuFooter{
 margin-top:auto;text-align:center;font-size:12px;
+color:#fff;text-shadow:0 0 10px #fff;
 }
 .menuFooter span{color:#ffd900;text-shadow:0 0 10px #ffd900;}
 
@@ -65,14 +68,19 @@ flex:1;padding:10px;
 background:black;color:#ffd900;
 border:1px solid #ffd900;border-radius:10px;
 }
+input::placeholder{color:rgba(255,255,255,0.3);}
+
 button{
 padding:10px;background:#ffd900;color:#000;
 border:none;cursor:pointer;
-box-shadow:0 0 20px #ffd900;
+border-radius:20px;
+box-shadow:0 0 15px #ffd900;
+transition:.2s;
 }
+button:hover{box-shadow:0 0 35px #ffd900;}
 
 /* TEXT */
-.userText{color:#ffd900;}
+.userText{color:#ffd900;text-shadow:0 0 10px #ffd900;}
 .aiText{color:#fff;text-shadow:0 0 10px #fff;}
 
 /* CODE BOX */
@@ -90,21 +98,22 @@ border-bottom:1px solid #ffd900;
 cursor:pointer;padding:4px 8px;
 border:1px solid #fff;border-radius:4px;
 margin-left:5px;color:#fff;
+text-shadow:0 0 10px #fff;
 }
 
-/* WHITE SPIRAL */
+/* SPINNER FIXED (NO GLOW) */
 .spinner{
 position:absolute;width:20px;height:20px;
 border:3px solid #fff;border-top:3px solid transparent;
 border-radius:50%;
 animation:spin 1s linear infinite;
 top:35px;left:10px;
-box-shadow:0 0 15px #fff,0 0 30px #fff;
+box-shadow:none;
 }
 @keyframes spin{100%{transform:rotate(360deg);}}
 
 /* FOOTER */
-.footer{text-align:center;font-size:12px;margin:10px;}
+.footer{text-align:center;font-size:12px;margin:10px;color:#fff;text-shadow:0 0 10px #fff;}
 .footer a{color:#ffd900;text-shadow:0 0 15px #ffd900;text-decoration:none;}
 </style>
 </head>
@@ -119,7 +128,7 @@ box-shadow:0 0 15px #fff,0 0 30px #fff;
 <div id="overlay" onclick="closeMenu()"></div>
 
 <div id="sidePanel">
-<div id="menuProfile">
+<div id="menuProfile" onclick="window.location.href='profile.html'">
 <img id="profilePic">
 <div>
 <div id="profileName"></div>
@@ -133,7 +142,7 @@ box-shadow:0 0 15px #fff,0 0 30px #fff;
 <div class="menuItem" onclick="voiceMode()">Voice Mode</div>
 
 <div class="menuFooter">
-<span>Rawat Systems</span>
+Developed by <span>Rawat Systems</span>
 </div>
 </div>
 
@@ -141,13 +150,13 @@ box-shadow:0 0 15px #fff,0 0 30px #fff;
 <div id="messages"></div>
 
 <div id="inputArea">
-<input id="msg">
+<input id="msg" placeholder="Type here.....">
 <button onclick="send()">Send</button>
 </div>
 </div>
 
 <div class="footer">
-Quadron AI can make mistakes,
+Quadron AI can make mistakes, by using it you accept our 
 <a href="terms.html">Terms & Conditions</a>
 </div>
 
@@ -157,7 +166,19 @@ profileName.textContent=user.name||"Guest";
 profileEmail.textContent=user.email||"";
 profilePic.src=user.picture||"https://via.placeholder.com/40";
 
-/* ALWAYS GREETING */
+/* TYPING */
+function fastType(el,text){
+let span=document.createElement("span");
+span.className="aiText";
+el.appendChild(span);
+let i=0;
+let int=setInterval(()=>{
+span.textContent=text.slice(0,i++);
+if(i>text.length) clearInterval(int);
+},10);
+}
+
+/* GREETING WITH TYPING */
 if(user.name){
 fetch("/api/chat",{
 method:"POST",
@@ -166,7 +187,8 @@ body:JSON.stringify({message:`sarcastic greeting for ${user.name}`,user:user.nam
 })
 .then(r=>r.json())
 .then(d=>{
-messages.innerHTML=`<p class="aiText">Quadron: ${d.reply}</p>`;
+messages.innerHTML="";
+fastType(messages,"Quadron: "+d.reply);
 });
 }
 
@@ -174,10 +196,12 @@ messages.innerHTML=`<p class="aiText">Quadron: ${d.reply}</p>`;
 function openMenu(){
 sidePanel.classList.add("open");
 overlay.style.display="block";
+document.body.classList.add("blur-bg");
 }
 function closeMenu(){
 sidePanel.classList.remove("open");
 overlay.style.display="none";
+document.body.classList.remove("blur-bg");
 }
 document.body.onclick=(e)=>{
 if(!sidePanel.contains(e.target) && e.target.id!=="menuBtn"){
@@ -191,7 +215,7 @@ fn();
 closeMenu();
 }
 
-/* VOICE MODE REDIRECT */
+/* VOICE */
 function voiceMode(){
 window.location.href="voice.html";
 }
@@ -202,18 +226,6 @@ function buildPrompt(t){
 if(mode==="code") return "ONLY CODE\n"+t;
 if(mode==="explore") return "Use Wikipedia "+t;
 return t;
-}
-
-/* TYPE FAST */
-function fastType(el,text){
-let span=document.createElement("span");
-span.className="aiText";
-el.appendChild(span);
-let i=0;
-let int=setInterval(()=>{
-span.textContent=text.slice(0,i++);
-if(i>text.length) clearInterval(int);
-},1);
 }
 
 /* SEND */
@@ -236,88 +248,32 @@ body:JSON.stringify({message:buildPrompt(text),mode})
 let data=await res.json();
 let reply=data.reply;
 
-if(mode==="code" && !reply.includes("```")){
-reply="```html\n"+reply+"\n```";
-}
-
-let m=reply.match(/```(\w+)?\n([\s\S]*?)```/);
-
-if(m){
-let lang=m[1]||"html";
-let code=m[2];
-
-let box=document.createElement("div");
-box.className="codeBox";
-
-box.innerHTML=`
-<div class="codeHeader">
-<span>&lt;/&gt; ${lang}</span>
-<div>
-<span class="copyBtn" onclick="copyCode(this)">Copy</span>
-<span class="copyBtn" onclick="runCode(this)">Run</span>
-<span class="copyBtn" onclick="debugCode(this)">Debug</span>
-</div>
-</div>
-<div class="spinner"></div>
-<pre></pre>
-`;
-
-p.appendChild(box);
-
-let pre=box.querySelector("pre");
-let spin=box.querySelector(".spinner");
-
-let i=0;
-let int=setInterval(()=>{
-pre.textContent+=code[i++];
-if(i>=code.length){
-clearInterval(int);
-spin.remove();
-hljs.highlightElement(pre);
-}
-},1);
-
-}else{
 fastType(p,"Quadron: "+reply);
 }
-}
 
-/* COPY */
-function copyCode(btn){
-let code=btn.closest(".codeBox").querySelector("pre").textContent;
-navigator.clipboard.writeText(code);
-btn.innerText="Copied!";
-setTimeout(()=>btn.innerText="Copy",2000);
-}
-
-/* RUN */
+/* RUN FIX */
 function runCode(btn){
 let box=btn.closest(".codeBox");
 let code=box.querySelector("pre").textContent;
 
 box.innerHTML=`
-<button style="float:right;color:#fff;background:none;border:1px solid #fff;" onclick="location.reload()">Back</button>
+<button style="float:right;color:#fff;background:none;border:1px solid #fff;text-shadow:0 0 10px #fff;" onclick="restoreCode(this)">Back</button>
 <iframe style="width:100%;height:250px;"></iframe>
 `;
 
+box.dataset.code=code;
 box.querySelector("iframe").srcdoc=code;
 }
 
-/* DEBUG */
-async function debugCode(btn){
+function restoreCode(btn){
 let box=btn.closest(".codeBox");
-let code=box.querySelector("pre").textContent;
+let code=box.dataset.code;
 
-let res=await fetch("/api/chat",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({message:"ONLY FIX CODE\n"+code,mode:"code"})
-});
+box.innerHTML=`
+<pre></pre>
+`;
 
-let d=await res.json();
-let newCode=d.reply.replace(/```[\s\S]*?\n|```/g,"");
-
-box.querySelector("pre").textContent=newCode;
+box.querySelector("pre").textContent=code;
 hljs.highlightElement(box.querySelector("pre"));
 }
 
