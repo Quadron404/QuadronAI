@@ -20,7 +20,6 @@ body {
 
 .blur-bg { filter:blur(6px); }
 
-/* KEEP UI SAME */
 header {
   display:flex;
   justify-content:space-between;
@@ -63,21 +62,6 @@ header div:first-child {
 
 #sidePanel.open { transform:translateX(0); }
 
-#menuProfile {
-  display:flex;
-  gap:10px;
-  padding:10px;
-  border-bottom:1px solid #333;
-  cursor:pointer;
-}
-
-#menuProfile img {
-  width:40px;
-  height:40px;
-  border-radius:50%;
-  border:1px solid #ffd900;
-}
-
 .menuItem {
   padding:10px;
   cursor:pointer;
@@ -90,13 +74,18 @@ header div:first-child {
   margin-top:auto;
   text-align:center;
   font-size:12px;
+  position:relative;
+  bottom:10px;
+}
+
+.menuFooter {
   color:#fff;
-  text-shadow:0 0 10px #fff;
+  text-shadow:0 0 8px #fff;
 }
 
 .menuFooter span {
   color:#ffd900;
-  text-shadow:0 0 10px #ffd900;
+  text-shadow:0 0 12px #ffd900;
 }
 
 #chat {
@@ -130,8 +119,6 @@ input {
   border-radius:10px;
 }
 
-input::placeholder { color:rgba(255,255,255,0.3); }
-
 button {
   padding:10px;
   background:#ffd900;
@@ -140,13 +127,10 @@ button {
   cursor:pointer;
   border-radius:20px;
   box-shadow:0 0 15px #ffd900;
-  transition:.2s;
 }
 
-button:hover { box-shadow:0 0 35px #ffd900; }
-
-.userText { color:#ffd900; text-shadow:0 0 10px #ffd900; }
-.aiText { color:#fff; text-shadow:0 0 10px #fff; }
+.userText { color:#ffd900; }
+.aiText { color:#fff; }
 
 .codeBox {
   background:#000;
@@ -154,7 +138,6 @@ button:hover { box-shadow:0 0 35px #ffd900; }
   margin-top:8px;
   border-radius:8px;
   overflow:hidden;
-  position:relative;
 }
 
 .codeHeader {
@@ -173,35 +156,12 @@ button:hover { box-shadow:0 0 35px #ffd900; }
   border-radius:4px;
   margin-left:5px;
   color:#fff;
-  text-shadow:0 0 10px #fff;
 }
 
-.spinner {
-  position:absolute;
-  width:20px;
-  height:20px;
-  border:3px solid #fff;
-  border-top:3px solid transparent;
-  border-radius:50%;
-  animation:spin 1s linear infinite;
-  top:35px;
-  left:10px;
-}
-
-@keyframes spin { 100% { transform:rotate(360deg); } }
-
-.footer {
-  text-align:center;
-  font-size:12px;
-  margin:10px;
-  color:#fff;
-  text-shadow:0 0 10px #fff;
-}
-
-.footer a {
-  color:#ffd900;
-  text-shadow:0 0 15px #ffd900;
-  text-decoration:none;
+.link {
+  color:#00bfff;
+  text-shadow:0 0 10px #00bfff;
+  cursor:pointer;
 }
 </style>
 </head>
@@ -216,17 +176,9 @@ button:hover { box-shadow:0 0 35px #ffd900; }
 <div id="overlay"></div>
 
 <div id="sidePanel">
-  <div id="menuProfile" onclick="window.location.href='profile.html'">
-    <img id="profilePic">
-    <div>
-      <div id="profileName"></div>
-      <div id="profileEmail" style="font-size:12px;"></div>
-    </div>
-  </div>
-
   <div class="menuItem" onclick="menuAction(newChat)">New Chat</div>
-  <div class="menuItem" onclick="menuAction(codeMode)">Code /</div>
-  <div class="menuItem" onclick="menuAction(exploreMode)">Explore</div>
+  <div class="menuItem" onclick="window.open('code.html','_blank')">Code /</div>
+  <div class="menuItem" onclick="window.open('explore.html','_blank')">Explore</div>
   <div class="menuItem" onclick="voiceMode()">Voice Mode</div>
 
   <div class="menuFooter">
@@ -242,66 +194,83 @@ button:hover { box-shadow:0 0 35px #ffd900; }
   </div>
 </div>
 
-<div class="footer">
-  Quadron AI can make mistakes, by using it you accept our
-  <a href="terms.html">Terms & Conditions</a>
-</div>
-
 <script>
-let user = JSON.parse(localStorage.getItem("quadronUser")) || {};
 
-profileName.textContent = user.name || "Guest";
-profileEmail.textContent = user.email || "";
-profilePic.src = user.picture || "https://via.placeholder.com/40";
+/* DAILY LIMIT SYSTEM */
+function checkLimit(){
+  let data = JSON.parse(localStorage.getItem("limitData")) || {count:0,time:Date.now()};
+  
+  if(Date.now() - data.time > 86400000){
+    data = {count:0,time:Date.now()};
+  }
 
-/* GREETING */
-if(user.name && !localStorage.getItem("greeted")){
-  fastType(messages, "Quadron: Oh great, " + user.name + " is here. Let's pretend this will be productive.");
-  localStorage.setItem("greeted", true);
+  if(data.count >= 100){
+    messages.innerHTML += `<p class="aiText">Quadron: Daily limit exceeded</p>`;
+    return false;
+  }
+
+  data.count++;
+  localStorage.setItem("limitData", JSON.stringify(data));
+  return true;
 }
 
 /* MENU */
-menuBtn.onclick = openMenu;
-overlay.onclick = closeMenu;
-
-function openMenu(){
-  sidePanel.classList.add("open");
-  overlay.style.display = "block";
-  chat.classList.add("blur-bg");
-}
-
-function closeMenu(){
-  sidePanel.classList.remove("open");
-  overlay.style.display = "none";
-  chat.classList.remove("blur-bg");
-}
+menuBtn.onclick = ()=>{ sidePanel.classList.add("open"); overlay.style.display="block"; }
+overlay.onclick = ()=>{ sidePanel.classList.remove("open"); overlay.style.display="none"; }
 
 function menuAction(fn){
-  closeMenu();
+  sidePanel.classList.remove("open");
+  overlay.style.display="none";
   fn();
 }
 
-/* TYPE */
-function fastType(el, text){
-  let span = document.createElement("span");
-  span.className = "aiText";
-  el.appendChild(span);
-  let i = 0;
-  let int = setInterval(()=>{
-    span.innerHTML += text[i++];
-    if(i >= text.length) clearInterval(int);
-  },5);
+/* LINK DETECTOR */
+function formatText(text){
+  return text.replace(/(https?:\/\/[^\s]+)/g, url =>
+    `<span class="link" onclick="window.open('${url}')">${url}</span>`
+  );
+}
+
+/* CODE DETECTOR */
+function renderResponse(text){
+  if(text.includes("```")){
+    let code = text.split("```")[1];
+
+    return `
+    <div class="codeBox">
+      <div class="codeHeader">
+        <span>Code</span>
+        <div>
+          <span class="copyBtn" onclick="copyCode(this)">Copy</span>
+          <span class="copyBtn">Run</span>
+          <span class="copyBtn">Debug</span>
+        </div>
+      </div>
+      <pre><code>${code}</code></pre>
+    </div>`;
+  }
+  return formatText(text);
+}
+
+/* COPY */
+function copyCode(el){
+  let code = el.closest(".codeBox").innerText;
+  navigator.clipboard.writeText(code);
+  el.innerText = "Copied !";
+  setTimeout(()=> el.innerText="Copy",1500);
 }
 
 /* SEND */
 async function send(){
+  if(!checkLimit()) return;
+
   let text = msg.value.trim();
   if(!text) return;
 
   messages.innerHTML += `<p class="userText">You: ${text}</p>`;
   msg.value = "";
 
-  let p = document.createElement("p");
+  let p = document.createElement("div");
   messages.appendChild(p);
 
   let res = await fetch("/api/chat",{
@@ -311,12 +280,16 @@ async function send(){
   });
 
   let reply = (await res.json()).reply;
-  fastType(p, "Quadron: " + reply);
+  p.innerHTML = `<div class="aiText">Quadron: ${renderResponse(reply)}</div>`;
+
+  hljs.highlightAll();
 }
 
+/* ENTER */
 msg.addEventListener("keydown",e=>{
   if(e.key==="Enter") send();
 });
+
 </script>
 
 </body>
