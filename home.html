@@ -130,7 +130,7 @@ box-shadow:0 0 15px #fff,0 0 30px #fff;
 <div class="menuItem" onclick="menuAction(newChat)">New Chat</div>
 <div class="menuItem" onclick="menuAction(codeMode)">Code /</div>
 <div class="menuItem" onclick="menuAction(exploreMode)">Explore</div>
-<div class="menuItem" onclick="menuAction(evaluateModeUI)">Evaluate</div>
+<div class="menuItem" onclick="voiceMode()">Voice Mode</div>
 
 <div class="menuFooter">
 <span>Rawat Systems</span>
@@ -191,12 +191,16 @@ fn();
 closeMenu();
 }
 
+/* VOICE MODE REDIRECT */
+function voiceMode(){
+window.location.href="voice.html";
+}
+
 /* MODES */
 let mode="normal";
 function buildPrompt(t){
 if(mode==="code") return "ONLY CODE\n"+t;
 if(mode==="explore") return "Use Wikipedia "+t;
-if(mode==="evaluate") return "Use Tavily "+t;
 return t;
 }
 
@@ -321,7 +325,6 @@ hljs.highlightElement(box.querySelector("pre"));
 function newChat(){mode="normal";}
 function codeMode(){mode="code";fastType(messages,"Describe What You Want To Code");}
 function exploreMode(){mode="explore";fastType(messages,"Explore The Universe");}
-function evaluateModeUI(){mode="evaluate";fastType(messages,"Evaluate Stars");}
 
 msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
 </script>
