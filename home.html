@@ -81,7 +81,7 @@ button:hover{box-shadow:0 0 35px #ffd900;}
 
 <script>
 
-/* SAFE ELEMENT REFERENCES (FIX) */
+/* SAFE ELEMENT REFERENCES */
 const menuBtn = document.getElementById("menuBtn");
 const overlay = document.getElementById("overlay");
 const sidePanel = document.getElementById("sidePanel");
@@ -105,7 +105,7 @@ if(user.name && !localStorage.getItem("greeted")){
   localStorage.setItem("greeted", true);
 }
 
-/* MENU CORE */
+/* MENU */
 menuBtn.onclick = openMenu;
 overlay.onclick = closeMenu;
 
@@ -121,46 +121,46 @@ function closeMenu(){
   chat.classList.remove("blur-bg");
 }
 
-/* MENU ACTION WRAPPER */
 function menuAction(fn){
   closeMenu();
-  if(typeof fn === "function") fn();
+  if(typeof fn==="function") fn();
 }
 
-/* MODES (NO LOGIC CHANGE, JUST ENSURED EXISTENCE) */
-let mode = "normal";
+/* MODES */
+let mode="normal";
 
+function resetChat(){
+  messages.innerHTML="";
+}
+
+/* MENU ACTIONS NOW RESET CHAT */
 function newChat(){
-  mode = "normal";
-  messages.innerHTML = "";
+  mode="normal";
+  resetChat();
 }
 
 function codeMode(){
-  mode = "code";
+  mode="code";
+  resetChat();
   fastType(messages,"Describe What You Want To Code");
 }
 
 function exploreMode(){
-  mode = "explore";
+  mode="explore";
+  resetChat();
   fastType(messages,"Explore The Universe");
 }
 
 function voiceMode(){
-  window.location.href = "voice.html";
+  window.location.href="voice.html";
 }
 
-/* MENU BUTTON BINDINGS (FIXED RELIABILITY) */
-document.getElementById("menuProfile").onclick = () => {
-  window.location.href = "profile.html";
-};
-
-document.getElementById("newChatBtn").onclick = () => menuAction(newChat);
-document.getElementById("codeModeBtn").onclick = () => menuAction(codeMode);
-document.getElementById("exploreModeBtn").onclick = () => menuAction(exploreMode);
-document.getElementById("voiceModeBtn").onclick = () => {
-  closeMenu();
-  voiceMode();
-};
+/* MENU BINDINGS */
+menuProfile.onclick=()=>window.location.href="profile.html";
+newChatBtn.onclick=()=>menuAction(newChat);
+codeModeBtn.onclick=()=>menuAction(codeMode);
+exploreModeBtn.onclick=()=>menuAction(exploreMode);
+voiceModeBtn.onclick=()=>{closeMenu();voiceMode();};
 
 /* TYPE */
 function fastType(el,text){
@@ -174,6 +174,17 @@ function fastType(el,text){
   },5);
 }
 
+/* WIKIPEDIA FETCH */
+async function getWikiData(query){
+  try{
+    let res=await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
+    let data=await res.json();
+    return data.extract || "";
+  }catch{
+    return "";
+  }
+}
+
 /* SEND */
 async function send(){
   let text=msg.value.trim();
@@ -185,13 +196,43 @@ async function send(){
   let p=document.createElement("p");
   messages.appendChild(p);
 
+  let finalPrompt=text;
+
+  /* MODE MODIFICATIONS */
+  if(mode==="code"){
+    finalPrompt="ONLY RETURN CODE. NO TEXT.\n"+text;
+  }
+
+  if(mode==="explore"){
+    let wiki=await getWikiData(text);
+    finalPrompt=`Use this data:\n${wiki}\n\nExplain clearly and give one source link at end.\n${text}`;
+  }
+
   let res=await fetch("/api/chat",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({message:text})
+    body:JSON.stringify({message:finalPrompt})
   });
 
   let reply=(await res.json()).reply;
+
+  /* FORCE CODE BOX IN CODE MODE */
+  if(mode==="code"){
+    let box=document.createElement("div");
+    box.style.background="#000";
+    box.style.border="1px solid #ffd900";
+    box.style.marginTop="8px";
+    box.style.borderRadius="8px";
+
+    let pre=document.createElement("pre");
+    pre.textContent=reply;
+
+    box.appendChild(pre);
+    p.appendChild(box);
+    hljs.highlightElement(pre);
+    return;
+  }
+
   fastType(p,"Quadron: "+reply);
 }
 
