@@ -10,8 +10,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 
 <style>
-/* SAME UI - UNCHANGED */
-body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;transition:.3s;}
+body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;}
 .blur-bg{filter:blur(6px);}
 header{display:flex;justify-content:space-between;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 15px #ffd900;}
 header div:first-child{font-weight:bold;text-shadow:0 0 15px #ffd900;}
@@ -19,163 +18,169 @@ header div:first-child{font-weight:bold;text-shadow:0 0 15px #ffd900;}
 #overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;z-index:500;}
 #sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;display:flex;flex-direction:column;}
 #sidePanel.open{transform:translateX(0);}
-#menuProfile{display:flex;gap:10px;padding:10px;border-bottom:1px solid #333;cursor:pointer;}
-#menuProfile img{width:40px;height:40px;border-radius:50%;border:1px solid #ffd900;}
-.menuItem{padding:10px;cursor:pointer;margin-top:8px;font-weight:bold;text-shadow:0 0 10px #fff;}
-.menuFooter{margin-top:auto;text-align:center;font-size:12px;color:#fff;text-shadow:0 0 10px #fff;}
-.menuFooter span{color:#ffd900;text-shadow:0 0 10px #ffd900;}
 #chat{max-width:800px;margin:auto;padding:10px;}
 #messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;border-radius:12px;box-shadow:0 0 20px #ffd900;}
 #inputArea{display:flex;gap:8px;margin-top:10px;}
 input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
-input::placeholder{color:rgba(255,255,255,0.3);}
-button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;border-radius:20px;box-shadow:0 0 15px #ffd900;transition:.2s;}
-button:hover{box-shadow:0 0 35px #ffd900;}
-.userText{color:#ffd900;text-shadow:0 0 10px #ffd900;}
-.aiText{color:#fff;text-shadow:0 0 10px #fff;}
-.footer{text-align:center;font-size:12px;margin:10px;color:#fff;text-shadow:0 0 10px #fff;}
-.footer a{color:#ffd900;text-shadow:0 0 15px #ffd900;text-decoration:none;}
-
-/* CODE BOX ADDITIONS */
-.codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:hidden;}
-.codeHeader{display:flex;justify-content:space-between;padding:6px;background:#111;border-bottom:1px solid #ffd900;}
-.codeTitle{color:#fff;text-shadow:0 0 10px #fff;}
-.codeBtn{cursor:pointer;margin-left:6px;color:#fff;text-shadow:0 0 10px #fff;}
-.backBtn{color:#ffd900;text-shadow:0 0 10px #ffd900;cursor:pointer;}
-.spinner{width:15px;height:15px;border:3px solid #fff;border-top:3px solid transparent;border-radius:50%;animation:spin 1s linear infinite;margin-left:10px;}
-@keyframes spin{100%{transform:rotate(360deg);}}
+button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;border-radius:20px;}
+.userText{color:#ffd900;}
+.aiText{color:#fff;}
 </style>
 </head>
 
 <body>
 
 <header>
-<div>Quadron AI</div>
-<div id="menuBtn">☰</div>
+  <div>Quadron AI</div>
+  <div id="menuBtn">☰</div>
 </header>
 
 <div id="overlay"></div>
-
-<div id="sidePanel">
-<div id="menuProfile">
-<img id="profilePic">
-<div>
-<div id="profileName"></div>
-<div id="profileEmail" style="font-size:12px;"></div>
-</div>
-</div>
-
-<div class="menuItem" id="newChatBtn">New Chat</div>
-<div class="menuItem" id="codeModeBtn">Code /</div>
-<div class="menuItem" id="exploreModeBtn">Explore</div>
-<div class="menuItem" id="voiceModeBtn">Voice Mode</div>
-
-<div class="menuFooter">
-Developed by <span>Rawat Systems</span>
-</div>
-</div>
+<div id="sidePanel"></div>
 
 <div id="chat">
-<div id="messages"></div>
-<div id="inputArea">
-<input id="msg" placeholder="Type here.....">
-<button onclick="send()">Send</button>
-</div>
-</div>
-
-<div class="footer">
-Quadron AI can make mistakes, by using it you accept our
-<a href="terms.html">Terms & Conditions</a>
+  <div id="messages"></div>
+  <div id="inputArea">
+    <input id="msg" placeholder="Type here.....">
+    <button id="sendBtn">Send</button>
+  </div>
 </div>
 
 <script>
 
-/* (ALL ORIGINAL CODE KEPT SAME ABOVE) */
+const menuBtn = document.getElementById("menuBtn");
+const overlay = document.getElementById("overlay");
+const sidePanel = document.getElementById("sidePanel");
+const chat = document.getElementById("chat");
+const messages = document.getElementById("messages");
+const msg = document.getElementById("msg");
+const sendBtn = document.getElementById("sendBtn");
+
+menuBtn.onclick = ()=> {
+  sidePanel.classList.add("open");
+  overlay.style.display="block";
+  chat.classList.add("blur-bg");
+};
+
+overlay.onclick = ()=> {
+  sidePanel.classList.remove("open");
+  overlay.style.display="none";
+  chat.classList.remove("blur-bg");
+};
+
+let mode="normal";
+
+/* FAST TYPE */
+function fastType(el,text){
+  let span=document.createElement("span");
+  span.className="aiText";
+  el.appendChild(span);
+  let i=0;
+  let int=setInterval(()=>{
+    span.innerHTML+=text[i++];
+    if(i>=text.length) clearInterval(int);
+  },5);
+}
 
 /* CODE BOX SYSTEM */
-function createCodeBox(code,lang="html"){
-  let id="code_"+Date.now();
-  localStorage.setItem(id,code);
+function createCodeBox(code){
+
+  localStorage.setItem("quadron_code",code);
 
   let box=document.createElement("div");
-  box.className="codeBox";
+  box.style.background="#000";
+  box.style.border="1px solid #ffd900";
+  box.style.borderRadius="8px";
+  box.style.marginTop="10px";
 
-  box.innerHTML=`
-    <div class="codeHeader">
-      <span class="codeTitle">&lt;/&gt; ${lang}</span>
-      <div>
-        <span class="codeBtn" onclick="copyCode('${id}',this)">Copy</span>
-        <span class="codeBtn" onclick="runCode('${id}',this)">Run</span>
-        <span class="codeBtn" onclick="debugCode('${id}',this)">Debugg</span>
-      </div>
-    </div>
-    <div style="position:relative;">
-      <div class="spinner"></div>
-      <pre></pre>
-    </div>
-  `;
+  let top=document.createElement("div");
+  top.style.display="flex";
+  top.style.justifyContent="space-between";
+  top.style.padding="6px";
+  top.style.borderBottom="1px solid #ffd900";
 
-  let pre=box.querySelector("pre");
+  let name=document.createElement("div");
+  name.innerHTML="</> code";
+  name.style.color="#fff";
+  name.style.textShadow="0 0 10px #fff";
+
+  let btns=document.createElement("div");
+
+  function glowBtn(text,color="#fff"){
+    let b=document.createElement("button");
+    b.textContent=text;
+    b.style.background="transparent";
+    b.style.color=color;
+    b.style.textShadow="0 0 10px "+color;
+    return b;
+  }
+
+  let copy=glowBtn("Copy");
+  let run=glowBtn("Run");
+  let debug=glowBtn("Debugg");
+
+  btns.append(copy,run,debug);
+  top.append(name,btns);
+
+  let pre=document.createElement("pre");
+  box.append(top,pre);
+
+  messages.appendChild(box);
+
+  /* typing animation */
   let i=0;
-  let spin=box.querySelector(".spinner");
-
-  let int=setInterval(()=>{
+  let typing=setInterval(()=>{
     pre.textContent+=code[i++];
     if(i>=code.length){
-      clearInterval(int);
-      spin.remove();
-      hljs.highlightElement(pre);
+      clearInterval(typing);
     }
   },2);
 
-  return box;
+  /* copy */
+  copy.onclick=()=>{
+    navigator.clipboard.writeText(code);
+    copy.textContent="Copied !";
+    setTimeout(()=>copy.textContent="Copy",1500);
+  };
+
+  /* run */
+  run.onclick=()=>{
+    pre.innerHTML="";
+    btns.innerHTML="";
+
+    let back=glowBtn("Back","#ffd900");
+    btns.append(back);
+
+    try{
+      let iframe=document.createElement("iframe");
+      iframe.style.width="100%";
+      iframe.style.height="300px";
+      iframe.srcdoc=code;
+      pre.appendChild(iframe);
+    }catch{
+      pre.textContent="Execution error";
+    }
+
+    back.onclick=()=>{
+      box.remove();
+      createCodeBox(localStorage.getItem("quadron_code"));
+    };
+  };
+
+  /* debug */
+  debug.onclick=async ()=>{
+    let res=await fetch("/api/chat",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({message:"Fix this code:\n"+code})
+    });
+    let fixed=(await res.json()).reply;
+    box.remove();
+    createCodeBox(fixed);
+  };
 }
 
-function copyCode(id,btn){
-  let code=localStorage.getItem(id);
-  navigator.clipboard.writeText(code);
-  btn.innerText="Copied !";
-  setTimeout(()=>btn.innerText="Copy",1500);
-}
-
-function runCode(id,btn){
-  let code=localStorage.getItem(id);
-  let box=btn.closest(".codeBox");
-
-  box.innerHTML=`
-    <div class="codeHeader">
-      <span class="codeTitle">&lt;/&gt; running</span>
-      <span class="backBtn" onclick="backCode('${id}',this)">Back</span>
-    </div>
-    <iframe style="width:100%;height:300px;border:none;"></iframe>
-  `;
-
-  box.querySelector("iframe").srcdoc=code;
-}
-
-function backCode(id,btn){
-  let code=localStorage.getItem(id);
-  let newBox=createCodeBox(code);
-  btn.closest(".codeBox").replaceWith(newBox);
-}
-
-async function debugCode(id,btn){
-  let code=localStorage.getItem(id);
-
-  let res=await fetch("/api/chat",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({message:"FIX THIS CODE ONLY:\n"+code})
-  });
-
-  let newCode=(await res.json()).reply;
-  localStorage.setItem(id,newCode);
-
-  let newBox=createCodeBox(newCode);
-  btn.closest(".codeBox").replaceWith(newBox);
-}
-
-/* MODIFY SEND ONLY WHERE CODE BOX USED */
+/* SEND */
 async function send(){
   let text=msg.value.trim();
   if(!text)return;
@@ -186,39 +191,35 @@ async function send(){
   let p=document.createElement("p");
   messages.appendChild(p);
 
-  let finalPrompt=text;
+  let prompt=text;
 
   if(mode==="code"){
-    finalPrompt="ONLY RETURN CODE.\n"+text;
-  }
-
-  if(mode==="explore"){
-    let wiki=await getWikiData(text);
-    finalPrompt=`${wiki}\n${text}`;
+    prompt="ONLY RETURN CODE\n"+text;
   }
 
   let res=await fetch("/api/chat",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({message:finalPrompt})
+    body:JSON.stringify({message:prompt})
   });
 
   let reply=(await res.json()).reply;
 
   if(mode==="code"){
-    let box=createCodeBox(reply);
-    p.appendChild(box);
+    createCodeBox(reply);
     return;
   }
 
-  if(mode==="explore"){
-    reply=reply.replace(/https[^\s]+/g,(url)=>`<a href="${url}" target="_blank" style="color:#00aaff;text-shadow:0 0 10px #00aaff;">${url}</a>`);
-    p.innerHTML=`<span class="aiText">Quadron: ${reply}</span>`;
-    return;
-  }
+  /* explore link detection */
+  reply = reply.replace(/https[^\s]+/g, url=>{
+    return `<a href="${url}" target="_blank" style="color:#00f;text-shadow:0 0 10px #00f;">${url}</a>`;
+  });
 
-  fastType(p,"Quadron: "+reply);
+  p.innerHTML="Quadron: "+reply;
 }
+
+sendBtn.onclick=send;
+msg.addEventListener("keydown",e=>{ if(e.key==="Enter") send(); });
 
 </script>
 
