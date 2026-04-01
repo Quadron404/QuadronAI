@@ -36,150 +36,101 @@ button:hover{box-shadow:0 0 35px #ffd900;}
 .footer{text-align:center;font-size:12px;margin:10px;color:#fff;text-shadow:0 0 10px #fff;}
 .footer a{color:#ffd900;text-shadow:0 0 15px #ffd900;text-decoration:none;}
 
-/* CODE BOX ADDITIONS ONLY */
-.codeBox{background:#000;border:1px solid #ffd900;margin-top:8px;border-radius:8px;overflow:hidden;}
-.codeHeader{display:flex;justify-content:space-between;padding:6px;background:#111;border-bottom:1px solid #ffd900;}
-.codeTitle{color:#fff;text-shadow:0 0 10px #fff;}
-.codeBtn{cursor:pointer;margin-left:8px;color:#fff;text-shadow:0 0 10px #fff;}
-.backBtn{color:#ffd900;text-shadow:0 0 10px #ffd900;cursor:pointer;}
-.spinner{width:20px;height:20px;border:3px solid #fff;border-top:3px solid transparent;border-radius:50%;animation:spin 1s linear infinite;margin:5px;}
-@keyframes spin{100%{transform:rotate(360deg);}}
+/* NEW CODE BOX STYLES */
+.code-header{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:6px 10px;border-bottom:1px solid #ffd900;
+}
+.code-title{color:#fff;text-shadow:0 0 10px #fff;}
+.code-actions span{
+  margin-left:12px;cursor:pointer;color:#fff;
+  text-shadow:0 0 10px #fff;font-size:13px;
+}
+.back-btn{color:#ffd900;text-shadow:0 0 10px #ffd900;cursor:pointer;}
+.loader{
+  width:20px;height:20px;border:2px solid #fff;border-top:2px solid transparent;
+  border-radius:50%;animation:spin 1s linear infinite;margin:5px auto;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.linkify{color:#00f;text-shadow:0 0 8px #00f;}
 </style>
 </head>
 
 <body>
+
 <header>
-<div>Quadron AI</div>
-<div id="menuBtn">☰</div>
+  <div>Quadron AI</div>
+  <div id="menuBtn">☰</div>
 </header>
 
 <div id="overlay"></div>
 
 <div id="sidePanel">
-<div id="menuProfile">
-<img id="profilePic">
-<div>
-<div id="profileName"></div>
-<div id="profileEmail" style="font-size:12px;"></div>
-</div>
-</div>
+  <div id="menuProfile">
+    <img id="profilePic">
+    <div>
+      <div id="profileName"></div>
+      <div id="profileEmail" style="font-size:12px;"></div>
+    </div>
+  </div>
 
-<div class="menuItem" id="newChatBtn">New Chat</div>
-<div class="menuItem" id="codeModeBtn">Code /</div>
-<div class="menuItem" id="exploreModeBtn">Explore</div>
-<div class="menuItem" id="voiceModeBtn">Voice Mode</div>
+  <div class="menuItem" id="newChatBtn">New Chat</div>
+  <div class="menuItem" id="codeModeBtn">Code /</div>
+  <div class="menuItem" id="exploreModeBtn">Explore</div>
+  <div class="menuItem" id="voiceModeBtn">Voice Mode</div>
 
-<div class="menuFooter">Developed by <span>Rawat Systems</span></div>
+  <div class="menuFooter">
+    Developed by <span>Rawat Systems</span>
+  </div>
 </div>
 
 <div id="chat">
-<div id="messages"></div>
-<div id="inputArea">
-<input id="msg" placeholder="Type here.....">
-<button onclick="send()">Send</button>
-</div>
+  <div id="messages"></div>
+  <div id="inputArea">
+    <input id="msg" placeholder="Type here.....">
+    <button onclick="send()">Send</button>
+  </div>
 </div>
 
 <div class="footer">
-Quadron AI can make mistakes, by using it you accept our
-<a href="terms.html">Terms & Conditions</a>
+  Quadron AI can make mistakes, by using it you accept our
+  <a href="terms.html">Terms & Conditions</a>
 </div>
 
 <script>
-/* EXISTING CODE SAME ABOVE */
 
-/* LINK DETECT (EXPLORE ONLY) */
-function linkify(text){
-  return text.replace(/https[^\s]+/g, url=>`<a href="${url}" target="_blank" style="color:#00aaff;text-shadow:0 0 10px #00aaff">${url}</a>`);
-}
+/* SAFE ELEMENTS */
+const menuBtn=document.getElementById("menuBtn");
+const overlay=document.getElementById("overlay");
+const sidePanel=document.getElementById("sidePanel");
+const chat=document.getElementById("chat");
+const messages=document.getElementById("messages");
+const msg=document.getElementById("msg");
 
-/* CODE BOX SYSTEM */
-function createCodeBox(code, lang="html"){
-  let id="code_"+Date.now();
-  localStorage.setItem(id, code);
+/* MENU WORKING */
+menuBtn.onclick=openMenu;
+overlay.onclick=closeMenu;
+function openMenu(){sidePanel.classList.add("open");overlay.style.display="block";chat.classList.add("blur-bg");}
+function closeMenu(){sidePanel.classList.remove("open");overlay.style.display="none";chat.classList.remove("blur-bg");}
 
-  let box=document.createElement("div");
-  box.className="codeBox";
-
-  box.innerHTML=`
-    <div class="codeHeader">
-      <span class="codeTitle">&lt;/&gt; ${lang}</span>
-      <div>
-        <span class="codeBtn" onclick="copyCode(this,'${id}')">Copy</span>
-        <span class="codeBtn" onclick="runCode(this,'${id}','${lang}')">Run</span>
-        <span class="codeBtn" onclick="debugCode(this,'${id}','${lang}')">Debugg</span>
-      </div>
-    </div>
-    <div class="spinner"></div>
-    <pre></pre>
-  `;
-
-  let pre=box.querySelector("pre");
+/* TYPE */
+function fastTypeCode(el,text){
   let i=0;
-  let spin=box.querySelector(".spinner");
-
   let int=setInterval(()=>{
-    pre.textContent+=code[i++];
-    if(i>=code.length){
-      clearInterval(int);
-      spin.remove();
-      hljs.highlightElement(pre);
-    }
+    el.textContent+=text[i++];
+    if(i>=text.length) clearInterval(int);
   },2);
-
-  return box;
 }
 
-function copyCode(btn,id){
-  let code=localStorage.getItem(id);
-  navigator.clipboard.writeText(code);
-  btn.textContent="Copied !";
-  setTimeout(()=>btn.textContent="Copy",1500);
+/* LINKIFY */
+function linkify(text){
+  if(!text.includes("https")) return text;
+  let idx=text.indexOf("https");
+  let link=text.substring(idx);
+  return text.substring(0,idx)+`<a href="${link}" target="_blank" class="linkify">${link}</a>`;
 }
 
-function runCode(btn,id,lang){
-  let box=btn.closest(".codeBox");
-  let code=localStorage.getItem(id);
-
-  box.innerHTML=`
-    <div class="codeHeader">
-      <span class="codeTitle">&lt;/&gt; ${lang}</span>
-      <span class="backBtn" onclick="restoreCode(this,'${id}','${lang}')">Back</span>
-    </div>
-  `;
-
-  let iframe=document.createElement("iframe");
-  iframe.style.width="100%";
-  iframe.style.height="250px";
-  iframe.srcdoc=code;
-  box.appendChild(iframe);
-}
-
-function restoreCode(btn,id,lang){
-  let box=btn.closest(".codeBox");
-  let code=localStorage.getItem(id);
-  let newBox=createCodeBox(code,lang);
-  box.replaceWith(newBox);
-}
-
-async function debugCode(btn,id,lang){
-  let code=localStorage.getItem(id);
-
-  let res=await fetch("/api/chat",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({message:"ONLY FIX CODE\n"+code})
-  });
-
-  let newCode=(await res.json()).reply;
-  localStorage.setItem(id,newCode);
-
-  let box=btn.closest(".codeBox");
-  let newBox=createCodeBox(newCode,lang);
-  box.replaceWith(newBox);
-}
-
-/* MODIFY SEND ONLY FOR CODE BOX + LINK */
+/* SEND */
 async function send(){
   let text=msg.value.trim();
   if(!text)return;
@@ -191,38 +142,108 @@ async function send(){
   messages.appendChild(p);
 
   let finalPrompt=text;
+  if(mode==="code") finalPrompt="ONLY RETURN CODE.\n"+text;
 
-  if(mode==="code"){
-    finalPrompt="ONLY RETURN CODE. NO TEXT.\n"+text;
-  }
-
-  if(mode==="explore"){
-    let wiki=await getWikiData(text);
-    finalPrompt=`Use this data:\n${wiki}\n\nExplain clearly and give one source link at end.\n${text}`;
-  }
-
-  let res=await fetch("/api/chat",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({message:finalPrompt})
-  });
-
+  let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:finalPrompt})});
   let reply=(await res.json()).reply;
 
   if(mode==="code"){
-    let box=createCodeBox(reply,"html");
+    let box=document.createElement("div");
+    box.style.background="#000";
+    box.style.border="1px solid #ffd900";
+    box.style.borderRadius="8px";
+
+    let header=document.createElement("div");
+    header.className="code-header";
+
+    let title=document.createElement("div");
+    title.className="code-title";
+    title.textContent="</> code";
+
+    let actions=document.createElement("div");
+    actions.className="code-actions";
+
+    let copy=document.createElement("span");
+    copy.textContent="Copy";
+
+    let run=document.createElement("span");
+    run.textContent="Run";
+
+    let debug=document.createElement("span");
+    debug.textContent="Debugg";
+
+    actions.append(copy,run,debug);
+    header.append(title,actions);
+
+    let pre=document.createElement("pre");
+
+    let loader=document.createElement("div");
+    loader.className="loader";
+
+    box.append(header,loader,pre);
     p.appendChild(box);
+
+    fastTypeCode(pre,reply);
+    setTimeout(()=>loader.remove(),500);
+
+    localStorage.setItem("quadron_code",reply);
+
+    copy.onclick=()=>{
+      navigator.clipboard.writeText(localStorage.getItem("quadron_code"));
+      copy.textContent="Copied !";
+      setTimeout(()=>copy.textContent="Copy",1000);
+    };
+
+    run.onclick=()=>{
+      let code=localStorage.getItem("quadron_code");
+      pre.remove();
+
+      actions.innerHTML="";
+      let back=document.createElement("span");
+      back.className="back-btn";
+      back.textContent="Back";
+      actions.append(back);
+
+      let iframe=document.createElement("iframe");
+      iframe.style.width="100%";
+      iframe.style.height="300px";
+      box.appendChild(iframe);
+      iframe.srcdoc=code;
+
+      back.onclick=()=>{
+        iframe.remove();
+        actions.innerHTML="";
+        actions.append(copy,run,debug);
+        box.appendChild(pre);
+        pre.textContent="";
+        fastTypeCode(pre,code);
+      };
+    };
+
+    debug.onclick=async ()=>{
+      let code=localStorage.getItem("quadron_code");
+      let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:"Fix this code:\n"+code})});
+      let fixed=(await res.json()).reply;
+      localStorage.setItem("quadron_code",fixed);
+      pre.textContent="";
+      fastTypeCode(pre,fixed);
+    };
+
     return;
   }
 
   if(mode==="explore"){
-    reply=linkify(reply);
-    p.innerHTML=`<span class="aiText">Quadron: ${reply}</span>`;
+    p.innerHTML=`<span class="aiText">Quadron: ${linkify(reply)}</span>`;
     return;
   }
 
-  fastType(p,"Quadron: "+reply);
+  p.innerHTML=`<span class="aiText">Quadron: ${reply}</span>`;
 }
+
+let mode="normal";
+
+msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
+
 </script>
 
 </body>
