@@ -225,23 +225,31 @@ async function send(){
 
 if(mode==="explore"){
 
-  // Remove any existing <a> tags but keep URL
-  reply = reply.replace(/<a[^>]*>(.*?)<\/a>/gi, "$1");
+  // 1. Completely remove ALL anchor tags safely
+  reply = reply.replace(/<a[^>]*>/gi, "");
+  reply = reply.replace(/<\/a>/gi, "");
 
-  // Detect "Source:" and force everything after it into clean links
+  // 2. Remove broken attributes like target="_blank"> leftovers
+  reply = reply.replace(/target="_blank">/gi, "");
+
+  // 3. Remove 'undefined' attached to URLs
+  reply = reply.replace(/undefined/g, "");
+
+  // 4. Fix Source: → make only the URL clickable
   reply = reply.replace(/Source:\s*(https?:\/\/[^\s]+)/gi, (match, url)=>{
-    let cleanUrl = url.replace(/[.,)\]]+$/,'');
+    let cleanUrl = url.replace(/[.,)\]"']+$/,'');
     return `Source: <a class="link" href="${cleanUrl}" target="_blank">${cleanUrl}</a>`;
   });
 
-  // Also fallback: convert any remaining raw links
+  // 5. Convert remaining clean URLs
   reply = reply.replace(
     /(https?:\/\/[^\s<]+)/g,
     (url)=>{
-      let cleanUrl = url.replace(/[.,)\]]+$/,'');
+      let cleanUrl = url.replace(/[.,)\]"']+$/,'');
       return `<a class="link" href="${cleanUrl}" target="_blank">${cleanUrl}</a>`;
     }
   );
+
 }
   fastType(p,"Quadron: "+reply);
 }
