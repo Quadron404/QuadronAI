@@ -36,14 +36,16 @@ button:hover{box-shadow:0 0 35px #ffd900;}
 .footer{text-align:center;font-size:12px;margin:10px;color:#fff;text-shadow:0 0 10px #fff;}
 .footer a{color:#ffd900;text-shadow:0 0 15px #ffd900;text-decoration:none;}
 
-/* CODE BOX ADDITION */
-.codeHeader{display:flex;justify-content:space-between;padding:6px;border-bottom:1px solid #ffd900;}
+/* NEW CODE BOX */
+.codeBox{background:#000;border:1px solid #ffd900;border-radius:10px;margin-top:10px;overflow:hidden;}
+.codeTop{display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #ffd900;}
 .codeTitle{color:#fff;text-shadow:0 0 10px #fff;}
 .codeBtns span{margin-left:10px;cursor:pointer;color:#fff;text-shadow:0 0 10px #fff;}
-.backBtn{color:#ffd900 !important;text-shadow:0 0 10px #ffd900;}
-.loader{width:18px;height:18px;border:2px solid #fff;border-top:2px solid transparent;border-radius:50%;animation:spin 1s linear infinite;margin:5px auto;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.link{color:#00f;text-shadow:0 0 8px #00f;}
+.codeBtns span:hover{opacity:.7;}
+.backBtn{color:#ffd900;text-shadow:0 0 10px #ffd900;cursor:pointer;}
+.loader{width:20px;height:20px;border:3px solid #fff;border-top:3px solid transparent;border-radius:50%;animation:spin 1s linear infinite;margin:5px;}
+@keyframes spin{100%{transform:rotate(360deg);}}
+a.link{color:#00f;text-shadow:0 0 10px #00f;}
 </style>
 </head>
 
@@ -90,24 +92,9 @@ button:hover{box-shadow:0 0 35px #ffd900;}
 
 <script>
 
-/* SAME ORIGINAL JS ABOVE UNCHANGED */
-
-/* FAST CODE TYPE */
-function typeCode(el,text){
-  let i=0;
-  let int=setInterval(()=>{
-    el.textContent+=text[i++];
-    if(i>=text.length) clearInterval(int);
-  },2);
-}
-
-/* LINK DETECT */
-function makeLink(txt){
-  if(!txt.includes("https")) return txt;
-  let i=txt.indexOf("https");
-  let link=txt.substring(i);
-  return txt.substring(0,i)+`<a href="${link}" target="_blank" class="link">${link}</a>`;
-}
+/* MENU FIXED */
+menuBtn.onclick = ()=>{sidePanel.classList.add("open");overlay.style.display="block";chat.classList.add("blur-bg");}
+overlay.onclick = ()=>{sidePanel.classList.remove("open");overlay.style.display="none";chat.classList.remove("blur-bg");}
 
 /* SEND */
 async function send(){
@@ -121,110 +108,118 @@ async function send(){
   messages.appendChild(p);
 
   let finalPrompt=text;
-
   if(mode==="code") finalPrompt="ONLY RETURN CODE.\n"+text;
-
-  if(mode==="explore"){
-    let wiki=await getWikiData(text);
-    finalPrompt=`Use this data:\n${wiki}\nExplain clearly and give one source link at end.\n${text}`;
-  }
 
   let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:finalPrompt})});
   let reply=(await res.json()).reply;
 
   if(mode==="code"){
-
-    let box=document.createElement("div");
-    box.style.background="#000";
-    box.style.border="1px solid #ffd900";
-    box.style.borderRadius="8px";
-
-    let header=document.createElement("div");
-    header.className="codeHeader";
-
-    let title=document.createElement("div");
-    title.className="codeTitle";
-    title.textContent="</> code";
-
-    let btns=document.createElement("div");
-    btns.className="codeBtns";
-
-    let copy=document.createElement("span");
-    copy.textContent="Copy";
-
-    let run=document.createElement("span");
-    run.textContent="Run";
-
-    let debug=document.createElement("span");
-    debug.textContent="Debugg";
-
-    btns.append(copy,run,debug);
-    header.append(title,btns);
-
-    let loader=document.createElement("div");
-    loader.className="loader";
-
-    let pre=document.createElement("pre");
-
-    box.append(header,loader,pre);
-    p.appendChild(box);
-
-    localStorage.setItem("code_temp",reply);
-
-    typeCode(pre,reply);
-    setTimeout(()=>loader.remove(),500);
-
-    copy.onclick=()=>{
-      navigator.clipboard.writeText(localStorage.getItem("code_temp"));
-      copy.textContent="Copied !";
-      setTimeout(()=>copy.textContent="Copy",1000);
-    };
-
-    run.onclick=()=>{
-      let code=localStorage.getItem("code_temp");
-
-      pre.remove();
-      btns.innerHTML="";
-
-      let back=document.createElement("span");
-      back.textContent="Back";
-      back.className="backBtn";
-      btns.append(back);
-
-      let iframe=document.createElement("iframe");
-      iframe.style.width="100%";
-      iframe.style.height="300px";
-      box.appendChild(iframe);
-      iframe.srcdoc=code;
-
-      back.onclick=()=>{
-        iframe.remove();
-        btns.innerHTML="";
-        btns.append(copy,run,debug);
-        box.appendChild(pre);
-        pre.textContent="";
-        typeCode(pre,code);
-      };
-    };
-
-    debug.onclick=async ()=>{
-      let code=localStorage.getItem("code_temp");
-      let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:"Fix this code:\n"+code})});
-      let fixed=(await res.json()).reply;
-      localStorage.setItem("code_temp",fixed);
-      pre.textContent="";
-      typeCode(pre,fixed);
-    };
-
+    createCodeBox(p,reply);
     return;
   }
 
   if(mode==="explore"){
-    p.innerHTML=`<span class="aiText">Quadron: ${makeLink(reply)}</span>`;
-    return;
+    reply = reply.replace(/https[^\s]+/g, url=>`<a class="link" href="${url}" target="_blank">${url}</a>`);
   }
 
   fastType(p,"Quadron: "+reply);
+}
+
+/* CODE BOX SYSTEM */
+function createCodeBox(parent,code){
+  let box=document.createElement("div");
+  box.className="codeBox";
+
+  let top=document.createElement("div");
+  top.className="codeTop";
+
+  let title=document.createElement("div");
+  title.className="codeTitle";
+  title.innerHTML="&lt;/&gt; name of code";
+
+  let btns=document.createElement("div");
+  btns.className="codeBtns";
+
+  let copy=document.createElement("span");
+  copy.textContent="Copy";
+
+  let run=document.createElement("span");
+  run.textContent="Run";
+
+  let debug=document.createElement("span");
+  debug.textContent="Debugg";
+
+  btns.append(copy,run,debug);
+  top.append(title,btns);
+
+  let pre=document.createElement("pre");
+  box.append(top);
+
+  let loader=document.createElement("div");
+  loader.className="loader";
+  box.append(loader);
+
+  parent.appendChild(box);
+
+  let i=0;
+  let txt="";
+  let int=setInterval(()=>{
+    txt+=code[i++];
+    pre.textContent=txt;
+    if(i>=code.length){
+      clearInterval(int);
+      loader.remove();
+      box.appendChild(pre);
+      hljs.highlightElement(pre);
+    }
+  },2);
+
+  localStorage.setItem("lastCode",code);
+
+  copy.onclick=()=>{
+    navigator.clipboard.writeText(code);
+    copy.textContent="Copied !";
+    setTimeout(()=>copy.textContent="Copy",1500);
+  };
+
+  run.onclick=()=>{
+    localStorage.setItem("lastCode",code);
+    box.innerHTML="";
+    let top2=document.createElement("div");
+    top2.className="codeTop";
+
+    let t=document.createElement("div");
+    t.className="codeTitle";
+    t.innerHTML="&lt;/&gt; name of code";
+
+    let back=document.createElement("div");
+    back.className="backBtn";
+    back.textContent="Back";
+
+    top2.append(t,back);
+    box.append(top2);
+
+    let iframe=document.createElement("iframe");
+    iframe.style.width="100%";
+    iframe.style.height="300px";
+    box.append(iframe);
+
+    iframe.contentDocument.open();
+    iframe.contentDocument.write(code);
+    iframe.contentDocument.close();
+
+    back.onclick=()=>{
+      box.remove();
+      createCodeBox(parent,localStorage.getItem("lastCode"));
+    };
+  };
+
+  debug.onclick=async()=>{
+    let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:"Fix this code:\n"+code})});
+    let fixed=(await res.json()).reply;
+    box.remove();
+    createCodeBox(parent,fixed);
+  };
 }
 
 </script>
