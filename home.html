@@ -44,7 +44,11 @@ button:hover{box-shadow:0 0 35px #ffd900;}
 .backBtn{color:#ffd900;text-shadow:0 0 10px #ffd900;cursor:pointer;}
 .loader{width:20px;height:20px;border:3px solid #fff;border-top:3px solid transparent;border-radius:50%;animation:spin 1s linear infinite;margin:5px;}
 @keyframes spin{100%{transform:rotate(360deg);}}
-a.link{color:#00f;text-shadow:0 0 10px #00f;}
+a.link{
+  color:#ffd900;
+  text-shadow:0 0 10px #ffd900, 0 0 20px #ffd900;
+  text-decoration:none;
+}
 </style>
 </head>
 
@@ -152,20 +156,39 @@ function fastType(el,text){
   span.className="aiText";
   el.appendChild(span);
 
-  // If HTML exists (like links), render instantly
-  if(text.includes("<a")){
-    span.innerHTML = text;
-    return;
+  // Split text into parts (text + links)
+  let parts = text.split(/(<a.*?>.*?<\/a>)/g);
+
+  let i = 0;
+
+  function typePart(){
+    if(i >= parts.length) return;
+
+    let part = parts[i];
+
+    // If it's a link → render instantly
+    if(part.startsWith("<a")){
+      span.innerHTML += part;
+      i++;
+      typePart();
+    }else{
+      // Fast typing for normal text
+      let j = 0;
+      let speed = 2; // VERY FAST
+
+      let int = setInterval(()=>{
+        span.innerHTML += part[j++];
+        if(j >= part.length){
+          clearInterval(int);
+          i++;
+          typePart();
+        }
+      }, speed);
+    }
   }
 
-  // Otherwise do typing animation
-  let i=0;
-  let int=setInterval(()=>{
-    span.textContent += text[i++];
-    if(i>=text.length) clearInterval(int);
-  },5);
+  typePart();
 }
-
 /* WIKI FIXED (ONLY SYNTAX FIX) */
 async function getWikiData(query){
   try{
