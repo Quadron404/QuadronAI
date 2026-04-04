@@ -192,18 +192,21 @@ async function send(){
 
   if(mode==="code"){createCodeBox(p,reply);return;}
 
- if(mode==="explore"){
-  // Convert plain text URLs into clean clickable links
+if(mode==="explore"){
+
+  // Step 1: Remove any existing <a> tags but keep inner URL text
+  reply = reply.replace(/<a[^>]*>(.*?)<\/a>/gi, "$1");
+
+  // Step 2: Convert clean URLs into proper glowing clickable links
   reply = reply.replace(
     /(https?:\/\/[^\s<]+)/g,
     (url)=>{
-      // remove trailing punctuation if any
       let cleanUrl = url.replace(/[.,)\]]+$/,'');
       return `<a class="link" href="${cleanUrl}" target="_blank">${cleanUrl}</a>`;
     }
   );
-  }
 
+}
   fastType(p,"Quadron: "+reply);
 }
 
