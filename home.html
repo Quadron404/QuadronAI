@@ -151,9 +151,17 @@ function fastType(el,text){
   let span=document.createElement("span");
   span.className="aiText";
   el.appendChild(span);
+
+  // If HTML exists (like links), render instantly
+  if(text.includes("<a")){
+    span.innerHTML = text;
+    return;
+  }
+
+  // Otherwise do typing animation
   let i=0;
   let int=setInterval(()=>{
-    span.innerHTML+=text[i++];
+    span.textContent += text[i++];
     if(i>=text.length) clearInterval(int);
   },5);
 }
@@ -194,10 +202,16 @@ async function send(){
 
 if(mode==="explore"){
 
-  // Step 1: Remove any existing <a> tags but keep inner URL text
+  // Remove any existing <a> tags but keep URL
   reply = reply.replace(/<a[^>]*>(.*?)<\/a>/gi, "$1");
 
-  // Step 2: Convert clean URLs into proper glowing clickable links
+  // Detect "Source:" and force everything after it into clean links
+  reply = reply.replace(/Source:\s*(https?:\/\/[^\s]+)/gi, (match, url)=>{
+    let cleanUrl = url.replace(/[.,)\]]+$/,'');
+    return `Source: <a class="link" href="${cleanUrl}" target="_blank">${cleanUrl}</a>`;
+  });
+
+  // Also fallback: convert any remaining raw links
   reply = reply.replace(
     /(https?:\/\/[^\s<]+)/g,
     (url)=>{
@@ -205,7 +219,6 @@ if(mode==="explore"){
       return `<a class="link" href="${cleanUrl}" target="_blank">${cleanUrl}</a>`;
     }
   );
-
 }
   fastType(p,"Quadron: "+reply);
 }
