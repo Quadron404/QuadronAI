@@ -227,6 +227,9 @@ if(mode==="explore"){
 
   reply = reply.replace(/Source:\s*([^\s]+)/gi, (match, url)=>{
 
+    // Remove 'undefined' if present
+    url = url.replace(/undefined/g, "");
+
     // Add https if missing
     if(!url.startsWith("http")){
       url = "https://" + url;
