@@ -215,7 +215,7 @@ async function send(){
 
   if(mode==="explore"){
     let wiki=await getWikiData(text);
-    finalPrompt=`Use this data:\n${wiki}\n\nExplain clearly and give one source link at end.\n${text}`;
+    finalPrompt=`Use this data:\n${wiki}\n\nExplain clearly and give one source link at end do not provide html codes with link just provide simple link like example.com.\n${text}`;
   }
 
   let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:finalPrompt})});
