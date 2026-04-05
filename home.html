@@ -347,35 +347,27 @@ if(amazonLink){
     window.open(amazonLink, "_blank");
   };
 
-  setTimeout(()=>{
-    p.appendChild(box);
-    // ALSO ADD AMAZON BOX IN EXPLORE MODE
-if(amazonLink){
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 
-  let amazonBox = document.createElement("div");
-  amazonBox.className = "sourceBox";
-
-  amazonBox.innerHTML = `
-    <img src="https://www.amazon.in/favicon.ico">
-    <div class="sourceText">
-      <div class="sourceTitle">View on Amazon</div>
-      <div class="sourceLink">${text}</div>
-    </div>
-  `;
-
-  amazonBox.onclick = ()=>{
-    window.open(amazonLink, "_blank");
-  };
-
-  p.appendChild(amazonBox);
+<script>
+function createAmazonSearchLink(query) {
+  const tag = "psr0a-21";
+  const cleanQuery = query.replace(/undefined/g, "").trim();
+  const encoded = encodeURIComponent(cleanQuery);
+  return `https://www.amazon.in/s?k=${encoded}&tag=${tag}`;
 }
-  }, 100);
-}
-    // Append box after typing
-    setTimeout(()=>{
-      p.appendChild(box);
-    }, 100);
 
+function detectProductQuery(text) {
+  const keywords = [
+    "buy","price","best","under","laptop","phone",
+    "amazon","flipkart","deal","cheap","top","gaming"
+  ];
+  text = text.toLowerCase();
+  return keywords.some(k => text.includes(k));
+}
+</script>
+
+<style>
     return;
   }
 }
