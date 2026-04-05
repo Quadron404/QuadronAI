@@ -225,19 +225,18 @@ async function send(){
 
 if(mode==="explore"){
 
-  // 🔥 STEP 1: REMOVE ALL 'undefined' GLOBALLY FIRST
-  reply = reply.replace(/undefined/g, "");
-
-  // 🔥 STEP 2: Convert Source to clickable link
   reply = reply.replace(/Source:\s*([^\s]+)/gi, (match, url)=>{
 
+    // 🔥 Remove ONLY 'undefined' at the END of the link
+    let cleanUrl = url.replace(/undefined+$/i, "");
+
     // Add https if missing
-    if(!url.startsWith("http")){
-      url = "https://" + url;
+    if(!cleanUrl.startsWith("http")){
+      cleanUrl = "https://" + cleanUrl;
     }
 
-    // Final cleanup
-    let cleanUrl = url.replace(/[.,)\]"'>]+$/,'');
+    // Remove any trailing junk symbols
+    cleanUrl = cleanUrl.replace(/[.,)\]"'>]+$/,'');
 
     return `Source: <a class="link" href="${cleanUrl}" target="_blank">${cleanUrl}</a>`;
   });
