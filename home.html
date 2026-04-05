@@ -227,20 +227,17 @@ if(mode==="explore"){
 
   reply = reply.replace(/Source:\s*([^\s]+)/gi, (match, rawUrl)=>{
 
-    // Extract ONLY valid URL (stops before 'undefined' automatically)
-    let matchUrl = rawUrl.match(/(https?:\/\/[a-zA-Z0-9./\-_%#?=&]+)/);
+    // STOP before 'undefined'
+    let matchUrl = rawUrl.match(/https?:\/\/[^\s]*?(?=undefined|\s|$)/i);
 
     let cleanUrl = matchUrl ? matchUrl[0] : rawUrl;
-
-    // Remove trailing 'undefined' just in case
-    cleanUrl = cleanUrl.replace(/undefined$/i, "");
 
     // Add https if missing
     if(!cleanUrl.startsWith("http")){
       cleanUrl = "https://" + cleanUrl;
     }
 
-    // Final safety cleanup
+    // Final cleanup
     cleanUrl = cleanUrl.replace(/[.,)\]"'>]+$/,'');
 
     return `Source: <a class="link" href="${cleanUrl}" target="_blank">${cleanUrl}</a>`;
