@@ -8,11 +8,12 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/monokai-sublime.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
-    function createAmazonSearchLink(query) {
-  const tag = "psr0a-21"; // 🔁 PUT YOUR AMAZON TAG
+
+<script>
+function createAmazonSearchLink(query) {
+  const tag = "psr0a-21";
   const cleanQuery = query.replace(/undefined/g, "").trim();
   const encoded = encodeURIComponent(cleanQuery);
-
   return `https://www.amazon.in/s?k=${encoded}&tag=${tag}`;
 }
 
@@ -21,11 +22,10 @@ function detectProductQuery(text) {
     "buy","price","best","under","laptop","phone",
     "amazon","flipkart","deal","cheap","top","gaming"
   ];
-
   text = text.toLowerCase();
   return keywords.some(k => text.includes(k));
 }
-
+</script>
 
 <style>
 /* SAME UI - UNCHANGED */
