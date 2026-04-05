@@ -225,20 +225,19 @@ async function send(){
 
 if(mode==="explore"){
 
-  reply = reply.replace(/Source:\s*([^\s]+)/gi, (match, rawUrl)=>{
+  // 🔥 STEP 1: REMOVE ALL 'undefined' GLOBALLY FIRST
+  reply = reply.replace(/undefined/g, "");
 
-    // STOP before 'undefined'
-    let matchUrl = rawUrl.match(/https?:\/\/[^\s]*?(?=undefined|\s|$)/i);
-
-    let cleanUrl = matchUrl ? matchUrl[0] : rawUrl;
+  // 🔥 STEP 2: Convert Source to clickable link
+  reply = reply.replace(/Source:\s*([^\s]+)/gi, (match, url)=>{
 
     // Add https if missing
-    if(!cleanUrl.startsWith("http")){
-      cleanUrl = "https://" + cleanUrl;
+    if(!url.startsWith("http")){
+      url = "https://" + url;
     }
 
     // Final cleanup
-    cleanUrl = cleanUrl.replace(/[.,)\]"'>]+$/,'');
+    let cleanUrl = url.replace(/[.,)\]"'>]+$/,'');
 
     return `Source: <a class="link" href="${cleanUrl}" target="_blank">${cleanUrl}</a>`;
   });
