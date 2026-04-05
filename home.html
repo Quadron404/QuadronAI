@@ -7,7 +7,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/monokai-sublime.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js">
+  <script>
+    function createAmazonSearchLink(query) {
+  const tag = "psr0a-21"; // 🔁 PUT YOUR AMAZON TAG
+  const cleanQuery = query.replace(/undefined/g, "").trim();
+  const encoded = encodeURIComponent(cleanQuery);
+
+  return `https://www.amazon.in/s?k=${encoded}&tag=${tag}`;
+}
+
+function detectProductQuery(text) {
+  const keywords = [
+    "buy","price","best","under","laptop","phone",
+    "amazon","flipkart","deal","cheap","top","gaming"
+  ];
+
+  text = text.toLowerCase();
+  return keywords.some(k => text.includes(k));
+}
+
 
 <style>
 /* SAME UI - UNCHANGED */
@@ -259,6 +278,12 @@ async function getWikiData(query){
 /* SEND (API LOGIC UNCHANGED) */
 async function send(){
   let text=msg.value.trim();
+  let isProductQuery = detectProductQuery(text);
+let amazonLink = "";
+
+if(isProductQuery){
+  amazonLink = createAmazonSearchLink(text);
+}
   if(!text)return;
 
   messages.innerHTML+=`<p class="userText">You: ${text}</p>`;
@@ -305,6 +330,48 @@ if(mode==="explore"){
 
     fastType(p,"Quadron: "+reply);
 
+// ADD AMAZON BOX IF PRODUCT QUERY
+if(amazonLink){
+
+  let box = document.createElement("div");
+  box.className = "sourceBox";
+
+  box.innerHTML = `
+    <img src="https://www.amazon.in/favicon.ico">
+    <div class="sourceText">
+      <div class="sourceTitle">View on Amazon</div>
+      <div class="sourceLink">${text}</div>
+    </div>
+  `;
+
+  box.onclick = ()=>{
+    window.open(amazonLink, "_blank");
+  };
+
+  setTimeout(()=>{
+    p.appendChild(box);
+    // ALSO ADD AMAZON BOX IN EXPLORE MODE
+if(amazonLink){
+
+  let amazonBox = document.createElement("div");
+  amazonBox.className = "sourceBox";
+
+  amazonBox.innerHTML = `
+    <img src="https://www.amazon.in/favicon.ico">
+    <div class="sourceText">
+      <div class="sourceTitle">View on Amazon</div>
+      <div class="sourceLink">${text}</div>
+    </div>
+  `;
+
+  amazonBox.onclick = ()=>{
+    window.open(amazonLink, "_blank");
+  };
+
+  p.appendChild(amazonBox);
+}
+  }, 100);
+}
     // Append box after typing
     setTimeout(()=>{
       p.appendChild(box);
