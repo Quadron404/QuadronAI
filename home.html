@@ -326,16 +326,19 @@ if(mode==="explore"){
 
     // Create source box
     let box = createSourceBox(url);
+    setTimeout(()=>{
+  p.appendChild(box);
+},100);
 
     fastType(p,"Quadron: "+reply);
 
 // ADD AMAZON BOX IF PRODUCT QUERY
 if(amazonLink){
 
-  let box = document.createElement("div");
-  box.className = "sourceBox";
+  let amazonBox = document.createElement("div");
+  amazonBox.className = "sourceBox";
 
-  box.innerHTML = `
+  amazonBox.innerHTML = `
     <img src="https://www.amazon.in/favicon.ico">
     <div class="sourceText">
       <div class="sourceTitle">View on Amazon</div>
@@ -343,31 +346,15 @@ if(amazonLink){
     </div>
   `;
 
-  box.onclick = ()=>{
+  amazonBox.onclick = ()=>{
     window.open(amazonLink, "_blank");
   };
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
-
-<script>
-function createAmazonSearchLink(query) {
-  const tag = "psr0a-21";
-  const cleanQuery = query.replace(/undefined/g, "").trim();
-  const encoded = encodeURIComponent(cleanQuery);
-  return `https://www.amazon.in/s?k=${encoded}&tag=${tag}`;
+  setTimeout(()=>{
+    p.appendChild(amazonBox);
+  }, 100);
 }
 
-function detectProductQuery(text) {
-  const keywords = [
-    "buy","price","best","under","laptop","phone",
-    "amazon","flipkart","deal","cheap","top","gaming"
-  ];
-  text = text.toLowerCase();
-  return keywords.some(k => text.includes(k));
-}
-</script>
-
-<style>
     return;
   }
 }
