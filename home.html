@@ -297,7 +297,7 @@ if(isProductQuery){
 
   if(mode==="explore"){
     let wiki=await getWikiData(text);
-    finalPrompt=`Use this data:\n${wiki}\n\nExplain clearly and give one source link at end do not provide html codes with link just provide links in end as "Source: link".\n${text}`;
+    finalPrompt=`Use this data:\n${wiki}\n\nExplain clearly and give one source link at end do not provide html codes with link just provide links in end as "Source: link" DO NOT PROVIDE AMAZON.COM LINK IN SOURCE IN CASE OF AMAZON LEAVE SOURCE AREA EMPTY.\n${text}`;
   }
 
   let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:finalPrompt})});
