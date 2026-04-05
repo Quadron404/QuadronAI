@@ -225,12 +225,14 @@ async function send(){
 
 if(mode==="explore"){
 
-  reply = reply.replace(/Source:\s*([^\s]+)/gi, (match, url)=>{
+  reply = reply.replace(/Source:\s*([^\s]+)/gi, (match, rawUrl)=>{
 
-    // Extract only valid URL part (stops before 'undefined' or junk)
-    let cleanUrl = url.match(/https?:\/\/[^\s"]+/i)?.[0] || url;
+    // Extract ONLY valid URL (stops before 'undefined' automatically)
+    let matchUrl = rawUrl.match(/(https?:\/\/[a-zA-Z0-9./\-_%#?=&]+)/);
 
-    // Remove trailing 'undefined' strictly
+    let cleanUrl = matchUrl ? matchUrl[0] : rawUrl;
+
+    // Remove trailing 'undefined' just in case
     cleanUrl = cleanUrl.replace(/undefined$/i, "");
 
     // Add https if missing
@@ -238,7 +240,7 @@ if(mode==="explore"){
       cleanUrl = "https://" + cleanUrl;
     }
 
-    // Final cleanup of any trailing garbage
+    // Final safety cleanup
     cleanUrl = cleanUrl.replace(/[.,)\]"'>]+$/,'');
 
     return `Source: <a class="link" href="${cleanUrl}" target="_blank">${cleanUrl}</a>`;
