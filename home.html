@@ -227,16 +227,19 @@ if(mode==="explore"){
 
   reply = reply.replace(/Source:\s*([^\s]+)/gi, (match, url)=>{
 
-    // Remove ONLY 'undefined' if it appears at the end
-    url = url.replace(/undefined$/i, "");
+    // Extract only valid URL part (stops before 'undefined' or junk)
+    let cleanUrl = url.match(/https?:\/\/[^\s"]+/i)?.[0] || url;
+
+    // Remove trailing 'undefined' strictly
+    cleanUrl = cleanUrl.replace(/undefined$/i, "");
 
     // Add https if missing
-    if(!url.startsWith("http")){
-      url = "https://" + url;
+    if(!cleanUrl.startsWith("http")){
+      cleanUrl = "https://" + cleanUrl;
     }
 
-    // Clean trailing junk (including leftover pieces)
-    let cleanUrl = url.replace(/[.,)\]"'>]+$/,'');
+    // Final cleanup of any trailing garbage
+    cleanUrl = cleanUrl.replace(/[.,)\]"'>]+$/,'');
 
     return `Source: <a class="link" href="${cleanUrl}" target="_blank">${cleanUrl}</a>`;
   });
