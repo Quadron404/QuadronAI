@@ -49,6 +49,43 @@ a.link{
   text-shadow:0 0 10px #ffd900, 0 0 20px #ffd900;
   text-decoration:none;
 }
+.sourceBox{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:10px;
+  padding:10px;
+  border:1px solid #fff;
+  border-radius:10px;
+  cursor:pointer;
+  transition:0.2s;
+  box-shadow:0 0 10px #fff;
+}
+
+.sourceBox:hover{
+  box-shadow:0 0 25px #fff;
+}
+
+.sourceBox img{
+  width:20px;
+  height:20px;
+}
+
+.sourceText{
+  display:flex;
+  flex-direction:column;
+}
+
+.sourceTitle{
+  color:#fff;
+  font-size:14px;
+  text-shadow:0 0 5px #fff;
+}
+
+.sourceLink{
+  color:#aaa;
+  font-size:12px;
+}
 </style>
 </head>
 
@@ -189,6 +226,27 @@ function fastType(el,text){
 
   typePart();
 }
+function createSourceBox(url){
+
+  let domain = (new URL(url)).hostname;
+
+  let box = document.createElement("div");
+  box.className = "sourceBox";
+
+  box.innerHTML = `
+    <img src="https://www.google.com/s2/favicons?domain=${domain}" />
+    <div class="sourceText">
+      <div class="sourceTitle">${domain}</div>
+      <div class="sourceLink">${url}</div>
+    </div>
+  `;
+
+  box.onclick = ()=>{
+    window.open(url, "_blank");
+  };
+
+  return box;
+}
 /* WIKI FIXED (ONLY SYNTAX FIX) */
 async function getWikiData(query){
   try{
@@ -225,22 +283,35 @@ async function send(){
 
 if(mode==="explore"){
 
-  reply = reply.replace(/Source:\s*([^\s]+)/gi, (match, url)=>{
+  let sourceMatch = reply.match(/Source:\s*([^\s]+)/i);
 
-    // 🔥 Remove ONLY 'undefined' at the END of the link
-    let cleanUrl = url.replace(/undefined+$/i, "");
+  if(sourceMatch){
+
+    let url = sourceMatch[1];
+
+    // Clean undefined from end
+    url = url.replace(/undefined+$/i, "");
 
     // Add https if missing
-    if(!cleanUrl.startsWith("http")){
-      cleanUrl = "https://" + cleanUrl;
+    if(!url.startsWith("http")){
+      url = "https://" + url;
     }
 
-    // Remove any trailing junk symbols
-    cleanUrl = cleanUrl.replace(/[.,)\]"'>]+$/,'');
+    // Remove Source text from reply
+    reply = reply.replace(/Source:\s*[^\s]+/i, "");
 
-    return `Source: <a class="link" href="${cleanUrl}" target="_blank">${cleanUrl}</a>`;
-  });
+    // Create source box
+    let box = createSourceBox(url);
 
+    fastType(p,"Quadron: "+reply);
+
+    // Append box after typing
+    setTimeout(()=>{
+      p.appendChild(box);
+    }, 100);
+
+    return;
+  }
 }
   fastType(p,"Quadron: "+reply);
 }
