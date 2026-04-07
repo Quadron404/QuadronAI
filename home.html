@@ -389,26 +389,37 @@ function createCodeBox(parent,code){
 
   btns.append(copy,run,debug);
   top.append(title,btns);
+  let loaderWrap = document.createElement("div");
+  loaderWrap.style.display="flex";
+  loaderWrap.style.justifyContent="flex-start";
+  loaderWrap.style.paddingLeft="8px";
+
+  let loader=document.createElement("div");
+  loader.className="loader";
+
+  loaderWrap.appendChild(loader);
 
   let loader=document.createElement("div");
   loader.className="loader";
 
   let pre=document.createElement("pre");
 
-  box.append(top,loader);
+  box.append(top,loaderWrap);
   parent.appendChild(box);
 
-  let i=0,txt="";
-  let int=setInterval(()=>{
-    txt+=code[i++];
-    pre.textContent=txt;
-    if(i>=code.length){
-      clearInterval(int);
-      loader.remove();
-      box.appendChild(pre);
-      hljs.highlightElement(pre);
-    }
-  },2);
+let i=0,txt="";
+box.appendChild(pre);
+
+let int=setInterval(()=>{
+  txt+=code[i++];
+  pre.textContent=txt;
+
+  if(i>=code.length){
+    clearInterval(int);
+    loaderWrap.remove();
+    hljs.highlightElement(pre);
+  }
+},1); // faster typing
 
   copy.onclick=()=>{
     navigator.clipboard.writeText(code);
@@ -423,7 +434,9 @@ function createCodeBox(parent,code){
 
     let t=document.createElement("div");
     t.className="codeTitle";
-    t.innerHTML="&lt;/&gt; name of code";
+    let codeName = code.split("\n")[0].slice(0,40) || "Code";
+    let codeName = code.split("\n")[0].slice(0,40) || "Code";
+    t.innerHTML="&lt;/&gt; " + codeName;
 
     let back=document.createElement("div");
     back.className="backBtn";
@@ -445,12 +458,34 @@ function createCodeBox(parent,code){
     };
   };
 
-  debug.onclick=async()=>{
-    let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:"Fix this code:\n"+code})});
-    let fixed=(await res.json()).reply;
-    box.remove();
-    createCodeBox(parent,fixed);
-  };
+ debug.onclick=async()=>{
+
+  pre.textContent="";
+  box.appendChild(loaderWrap);
+
+  let res=await fetch("/api/chat",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({message:"Fix this code:\n"+code})
+  });
+
+  let fixed=(await res.json()).reply;
+
+  code = fixed; // update code reference
+
+  let i=0,txt="";
+
+  let int=setInterval(()=>{
+    txt+=fixed[i++];
+    pre.textContent=txt;
+
+    if(i>=fixed.length){
+      clearInterval(int);
+      loaderWrap.remove();
+      hljs.highlightElement(pre);
+    }
+  },1);
+};
 }
 
 msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
