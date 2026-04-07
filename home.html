@@ -389,8 +389,13 @@ function createCodeBox(parent,code){
 
   btns.append(copy,run,debug);
   top.append(title,btns);
-  let loader=document.createElement("div");
+  let loaderWrap = document.createElement("div");
+  loaderWrap.style.display="flex";
+  loaderWrap.style.paddingLeft="8px";
+
+  let loader = document.createElement("div");
   loader.className="loader";
+
   loaderWrap.appendChild(loader);
 
   let pre=document.createElement("pre");
