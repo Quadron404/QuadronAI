@@ -38,8 +38,39 @@ header div:first-child{font-weight:bold;text-shadow:0 0 15px #ffd900;}
 #sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;display:flex;flex-direction:column;}
 #sidePanel.open{transform:translateX(0);}
 #menuProfile{display:flex;gap:10px;padding:10px;border-bottom:1px solid #333;cursor:pointer;}
-#menuProfile img{width:40px;height:40px;border-radius:50%;border:1px solid #ffd900;}
-.menuItem{padding:10px;cursor:pointer;margin-top:8px;font-weight:bold;text-shadow:0 0 10px #fff;}
+#menuProfile img{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  border:2px solid #ffd900;
+  box-shadow:0 0 10px #ffd900;
+  transition:0.2s;
+}
+  #profileName{
+  font-weight:bold;
+  color:#ffd900;
+  text-shadow:0 0 10px #ffd900;
+  transition:0.2s;
+}
+
+#profileEmail{
+  color:#ffd900;
+  text-shadow:0 0 8px #ffd900;
+  transition:0.2s;
+}
+.menuItem{
+  padding:10px;
+  cursor:pointer;
+  margin-top:8px;
+  font-weight:bold;
+  color:#fff;
+  text-shadow:0 0 8px #fff, 0 0 15px #fff;
+  transition:0.2s;
+}
+
+.menuItem:hover{
+  text-shadow:0 0 15px #fff, 0 0 30px #fff, 0 0 50px #fff;
+}
 .menuFooter{margin-top:auto;text-align:center;font-size:12px;color:#fff;text-shadow:0 0 10px #fff;}
 .menuFooter span{color:#ffd900;text-shadow:0 0 10px #ffd900;}
 #chat{max-width:800px;margin:auto;padding:10px;}
@@ -53,6 +84,15 @@ button:hover{box-shadow:0 0 35px #ffd900;}
 .aiText{color:#fff;text-shadow:0 0 10px #fff;}
 .footer{text-align:center;font-size:12px;margin:10px;color:#fff;text-shadow:0 0 10px #fff;}
 .footer a{color:#ffd900;text-shadow:0 0 15px #ffd900;text-decoration:none;}
+#menuProfile:hover #profileName,
+#menuProfile:hover #profileEmail{
+  text-shadow:0 0 20px #ffd900, 0 0 40px #ffd900;
+}
+
+#menuProfile:hover img{
+  box-shadow:0 0 20px #ffd900, 0 0 40px #ffd900;
+  border-color:#ffd900;
+}
 
 /* CODE BOX ADDITIONS ONLY */
 .codeBox{background:#000;border:1px solid #ffd900;border-radius:10px;margin-top:10px;overflow:hidden;}
@@ -139,7 +179,7 @@ a.link{
   <div id="messages"></div>
   <div id="inputArea">
     <input id="msg" placeholder="Type here.....">
-    <button onclick="send()">Send</button>
+    <button id="sendBtn">Send</button>
   </div>
 </div>
 
@@ -175,7 +215,11 @@ if(user.name && !localStorage.getItem("greeted")){
 }
 
 /* MENU */
-menuBtn.onclick = ()=>{sidePanel.classList.add("open");overlay.style.display="block";chat.classList.add("blur-bg");};
+menuBtn.addEventListener("click", ()=>{
+  sidePanel.classList.add("open");
+  overlay.style.display="block";
+  chat.classList.add("blur-bg");
+});
 overlay.onclick = closeMenu;
 
 function closeMenu(){
