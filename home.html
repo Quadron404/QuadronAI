@@ -384,7 +384,7 @@ if(amazonLink){
 }
 
 /* CODE BOX */
-function createCodeBox(parent,code){
+function createCodeBox(parent,code, instant=false){
   
   let originalCode = code;
   let box=document.createElement("div");
@@ -430,22 +430,29 @@ let codeName = detectCodeName(code);
 
   let pre=document.createElement("pre");
 
-  box.append(top,loaderWrap);
+  box.append(top);
+box.append(loaderWrap);
   parent.appendChild(box);
 
-let i=0,txt="";
 box.appendChild(pre);
 
-let int=setInterval(()=>{
-  txt+=code[i++];
-  pre.textContent=txt;
+if(instant){
+  pre.textContent = code;
+  loaderWrap.remove();
+  hljs.highlightElement(pre);
+}else{
+  let i=0,txt="";
+  let int=setInterval(()=>{
+    txt+=code[i++];
+    pre.textContent=txt;
 
-  if(i>=code.length){
-    clearInterval(int);
-    loaderWrap.remove();
-    hljs.highlightElement(pre);
-  }
-},1); // faster typing
+    if(i>=code.length){
+      clearInterval(int);
+      loaderWrap.remove();
+      hljs.highlightElement(pre);
+    }
+  },1);
+}
 
   copy.onclick=()=>{
     navigator.clipboard.writeText(code);
@@ -453,33 +460,34 @@ let int=setInterval(()=>{
     setTimeout(()=>copy.textContent="Copy",1500);
   };
 
-  run.onclick=()=>{
-    box.innerHTML="";
-    let top2=document.createElement("div");
-    top2.className="codeTop";
+ run.onclick=()=>{
 
-    let t=document.createElement("div");
-    t.className="codeTitle";
-    let codeName = code.split("\n")[0].slice(0,40) || "Code";
-    t.innerHTML="&lt;/&gt; " + codeName;
+  pre.style.display="none";
 
-    let back=document.createElement("div");
-    back.className="backBtn";
-    back.textContent="Back";
+  let existingFrame = box.querySelector("iframe");
+  if(existingFrame) existingFrame.remove();
 
-    top2.append(t,back);
-    box.append(top2);
+  let iframe=document.createElement("iframe");
+  iframe.style.width="100%";
+  iframe.style.height="300px";
 
-    let iframe=document.createElement("iframe");
-    iframe.style.width="100%";
-    iframe.style.height="300px";
-    box.append(iframe);
+  let back=document.createElement("div");
+  back.className="backBtn";
+  back.textContent="Back";
 
-    iframe.contentDocument.write(code);
+  top.innerHTML="";
+  top.append(title, back);
 
-   back.onclick=()=>{
-  box.innerHTML="";
-  createCodeBox(parent, originalCode);
+  box.appendChild(iframe);
+  iframe.contentDocument.write(code);
+
+  back.onclick=()=>{
+    iframe.remove();
+    pre.style.display="block";
+
+    top.innerHTML="";
+    top.append(title, btns);
+  };
 };
   };
 
