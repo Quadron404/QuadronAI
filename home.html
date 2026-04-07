@@ -373,8 +373,8 @@ function createCodeBox(parent,code){
 
   let title=document.createElement("div");
   title.className="codeTitle";
-  title.innerHTML="&lt;/&gt; name of code";
-
+  let codeName = code.split("\n")[0].slice(0,40) || "Code";
+  title.innerHTML="&lt;/&gt; " + codeName;
   let btns=document.createElement("div");
   btns.className="codeBtns";
 
@@ -389,18 +389,9 @@ function createCodeBox(parent,code){
 
   btns.append(copy,run,debug);
   top.append(title,btns);
-  let loaderWrap = document.createElement("div");
-  loaderWrap.style.display="flex";
-  loaderWrap.style.justifyContent="flex-start";
-  loaderWrap.style.paddingLeft="8px";
-
   let loader=document.createElement("div");
   loader.className="loader";
-
   loaderWrap.appendChild(loader);
-
-  let loader=document.createElement("div");
-  loader.className="loader";
 
   let pre=document.createElement("pre");
 
@@ -434,7 +425,6 @@ let int=setInterval(()=>{
 
     let t=document.createElement("div");
     t.className="codeTitle";
-    let codeName = code.split("\n")[0].slice(0,40) || "Code";
     let codeName = code.split("\n")[0].slice(0,40) || "Code";
     t.innerHTML="&lt;/&gt; " + codeName;
 
