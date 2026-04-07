@@ -293,8 +293,24 @@ if(isProductQuery){
 
   let finalPrompt=text;
 
-  if(mode==="code") finalPrompt="ONLY RETURN CODE. NO TEXT.\n"+text;
+  if(mode==="code"){
+  finalPrompt = `
+You are a code generator.
 
+Rules:
+- Output ONLY complete working code
+- No explanations
+- No comments unless inside code
+- No markdown (no \`\`\`)
+- No "Here is code"
+- No text before or after
+- Code must be directly runnable
+- If HTML → include full <!DOCTYPE html>
+
+Task:
+${text}
+`;
+}
   if(mode==="explore"){
     let wiki=await getWikiData(text);
     finalPrompt=`Use this data:\n${wiki}\n\nExplain clearly and give one source link at end do not provide html codes with link just provide links in end as "Source: link" DO NOT PROVIDE AMAZON.COM LINK IN SOURCE IN CASE OF AMAZON LEAVE SOURCE AREA EMPTY.\n${text}`;
@@ -302,6 +318,12 @@ if(isProductQuery){
 
   let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:finalPrompt})});
   let reply=(await res.json()).reply;
+  if(mode==="code"){
+  reply = reply
+    .replace(/```[\w]*/g,"")
+    .replace(/```/g,"")
+    .trim();
+}
 
   if(mode==="code"){createCodeBox(p,reply);return;}
 
@@ -363,8 +385,8 @@ if(amazonLink){
 
 /* CODE BOX */
 function createCodeBox(parent,code){
-  localStorage.setItem("lastCode",code);
-
+  
+  let originalCode = code;
   let box=document.createElement("div");
   box.className="codeBox";
 
@@ -373,7 +395,15 @@ function createCodeBox(parent,code){
 
   let title=document.createElement("div");
   title.className="codeTitle";
-  let codeName = code.split("\n")[0].slice(0,40) || "Code";
+  function detectCodeName(code){
+  if(code.includes("<html")) return "HTML File";
+  if(code.includes("function") || code.includes("=>")) return "JavaScript File";
+  if(code.includes("import") && code.includes("from")) return "Python File";
+  if(code.includes("#include")) return "C/C++ File";
+  return "Code";
+}
+
+let codeName = detectCodeName(code);
   title.innerHTML="&lt;/&gt; " + codeName;
   let btns=document.createElement("div");
   btns.className="codeBtns";
@@ -447,26 +477,33 @@ let int=setInterval(()=>{
 
     iframe.contentDocument.write(code);
 
-    back.onclick=()=>{
-      box.remove();
-      createCodeBox(parent,localStorage.getItem("lastCode"));
-    };
+   back.onclick=()=>{
+  box.innerHTML="";
+  createCodeBox(parent, originalCode);
+};
   };
 
  debug.onclick=async()=>{
 
-  pre.textContent="";
-  box.appendChild(loaderWrap);
+  loaderWrap.style.display="flex";
+  if(!box.contains(loaderWrap)) box.insertBefore(loaderWrap, pre);
 
   let res=await fetch("/api/chat",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({message:"Fix this code:\n"+code})
+    body:JSON.stringify({
+      message:`Fix this code. Return ONLY fixed code. No explanation:\n${code}`
+    })
   });
 
   let fixed=(await res.json()).reply;
 
-  code = fixed; // update code reference
+  fixed = fixed
+    .replace(/```[\w]*/g,"")
+    .replace(/```/g,"")
+    .trim();
+
+  code = fixed;
 
   let i=0,txt="";
 
@@ -476,7 +513,7 @@ let int=setInterval(()=>{
 
     if(i>=fixed.length){
       clearInterval(int);
-      loaderWrap.remove();
+      loaderWrap.style.display="none";
       hljs.highlightElement(pre);
     }
   },1);
