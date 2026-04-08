@@ -197,10 +197,19 @@ const sidePanel = document.getElementById("sidePanel");
 const chat = document.getElementById("chat");
 const messages = document.getElementById("messages");
 const msg = document.getElementById("msg");
+const sendBtn = document.getElementById("sendBtn");
+
+sendBtn.onclick = send;
 
 const profileName = document.getElementById("profileName");
 const profileEmail = document.getElementById("profileEmail");
 const profilePic = document.getElementById("profilePic");
+
+const menuProfile = document.getElementById("menuProfile");
+const newChatBtn = document.getElementById("newChatBtn");
+const codeModeBtn = document.getElementById("codeModeBtn");
+const exploreModeBtn = document.getElementById("exploreModeBtn");
+const voiceModeBtn = document.getElementById("voiceModeBtn");
 
 /* USER (UNCHANGED) */
 let user = JSON.parse(localStorage.getItem("quadronUser")) || {};
@@ -532,7 +541,7 @@ if(instant){
     top.innerHTML="";
     top.append(title, btns);
   };
-};
+  };
   };
 
  debug.onclick=async()=>{
