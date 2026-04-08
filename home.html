@@ -217,12 +217,6 @@ profileName.textContent = user.name || "Guest";
 profileEmail.textContent = user.email || "";
 profilePic.src = user.picture || "https://via.placeholder.com/40";
 
-/* GREETING */
-if(user.name && !localStorage.getItem("greeted")){
-  fastType(messages, "Quadron: Oh great, " + user.name + " is here.");
-  localStorage.setItem("greeted", true);
-}
-
 /* MENU */
 menuBtn.addEventListener("click", ()=>{
   sidePanel.classList.add("open");
@@ -296,6 +290,45 @@ function fastType(el,text){
   }
 
   typePart();
+}
+async function autoGreeting(){
+
+  // Run only once per tab session
+  if(sessionStorage.getItem("greeted")) return;
+
+  // Get real time from user system
+  let hour = new Date().getHours();
+  let timeText = "";
+
+  if(hour < 12) timeText = "morning";
+  else if(hour < 17) timeText = "afternoon";
+  else timeText = "evening";
+
+  let name = user.name || "Guest";
+
+  // Build sarcastic AI prompt
+  let prompt = `Write a short sarcastic greeting saying "Good ${timeText}" to ${name}. Keep it funny, slightly rude, and human-like. No extra explanation.`;
+
+  try{
+    let res = await fetch("/api/chat",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({message: prompt})
+    });
+
+    let reply = (await res.json()).reply;
+
+    let p = document.createElement("p");
+    messages.appendChild(p);
+
+    fastType(p, "Quadron: " + reply);
+
+    // Mark as greeted (ONLY for this session)
+    sessionStorage.setItem("greeted", true);
+
+  }catch(e){
+    console.error("Greeting failed", e);
+  }
 }
 function createSourceBox(url){
 
@@ -581,7 +614,7 @@ if(instant){
 }
 
 msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
-
+window.addEventListener("load", autoGreeting);
 </script>
 
 </body>
