@@ -28,6 +28,74 @@ function detectProductQuery(text) {
 </script>
 
 <style>
+/* PLUS BUTTON */
+#plusBtn{
+  width:35px;
+  height:35px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  cursor:pointer;
+  color:#fff;
+  border-radius:50%;
+  box-shadow:0 0 10px #fff;
+  transition:0.2s;
+}
+
+#plusBtn:hover{
+  box-shadow:0 0 25px #fff, 0 0 50px #fff;
+}
+
+/* FIX INPUT SHIFT */
+#inputArea{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:10px;
+  position:relative;
+}
+
+/* POPUP MENU */
+#plusMenu{
+  position:absolute;
+  bottom:60px;
+  left:0;
+  background:#111;
+  border:1px solid #fff;
+  border-radius:10px;
+  display:none;
+  flex-direction:column;
+  box-shadow:0 0 20px #fff;
+  z-index:1000;
+}
+
+.plusItem{
+  padding:10px;
+  cursor:pointer;
+  color:#fff;
+  text-shadow:0 0 10px #fff;
+}
+
+.plusItem:hover{
+  text-shadow:0 0 20px #fff, 0 0 40px #fff;
+}
+
+/* FILE PREVIEW */
+#filePreview{
+  margin-top:5px;
+}
+
+.fileBox{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 10px;
+  border:1px solid #fff;
+  border-radius:8px;
+  box-shadow:0 0 10px #fff;
+  color:#fff;
+}
 /* SAME UI - UNCHANGED */
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;transition:.3s;}
 .blur-bg{filter:blur(6px);}
@@ -178,9 +246,24 @@ a.link{
 <div id="chat">
   <div id="messages"></div>
   <div id="inputArea">
-    <input id="msg" placeholder="Type here.....">
-    <button id="sendBtn">Send</button>
-  </div>
+  <div id="plusBtn">+</div>
+  <input id="msg" placeholder="Type here.....">
+  <button id="sendBtn">Send</button>
+
+  <!-- Hidden file input -->
+  <input type="file" id="fileInput" style="display:none;">
+</div>
+
+<!-- POPUP MENU -->
+<div id="plusMenu">
+  <div class="plusItem" id="addFileBtn">📎 Add Files & Documents</div>
+  <div class="plusItem" id="codeModeQuick">Code /</div>
+  <div class="plusItem" id="exploreModeQuick">Explore</div>
+  <div class="plusItem" id="voiceModeQuick">Voice Mode</div>
+</div>
+
+<!-- FILE PREVIEW -->
+<div id="filePreview"></div>
 </div>
 
 <div class="footer">
@@ -210,6 +293,18 @@ const newChatBtn = document.getElementById("newChatBtn");
 const codeModeBtn = document.getElementById("codeModeBtn");
 const exploreModeBtn = document.getElementById("exploreModeBtn");
 const voiceModeBtn = document.getElementById("voiceModeBtn");
+const plusBtn = document.getElementById("plusBtn");
+const plusMenu = document.getElementById("plusMenu");
+const fileInput = document.getElementById("fileInput");
+const addFileBtn = document.getElementById("addFileBtn");
+const filePreview = document.getElementById("filePreview");
+
+const codeModeQuick = document.getElementById("codeModeQuick");
+const exploreModeQuick = document.getElementById("exploreModeQuick");
+const voiceModeQuick = document.getElementById("voiceModeQuick");
+
+let uploadedFileText = "";
+let uploadedFileName = "";
 
 /* USER (UNCHANGED) */
 let user = JSON.parse(localStorage.getItem("quadronUser")) || {};
@@ -251,6 +346,42 @@ newChatBtn.onclick=()=>menuAction(newChat);
 codeModeBtn.onclick=()=>menuAction(codeMode);
 exploreModeBtn.onclick=()=>menuAction(exploreMode);
 voiceModeBtn.onclick=()=>{closeMenu();voiceMode();};
+
+plusBtn.onclick = () => {
+  plusMenu.style.display = plusMenu.style.display === "flex" ? "none" : "flex";
+};
+addFileBtn.onclick = () => {
+
+  if(uploadedFileText){
+    alert("Only one file allowed per input.");
+    return;
+  }
+
+  fileInput.accept = ".txt,.pdf,.doc,.docx";
+  fileInput.click();
+};
+fileInput.onchange = async (e) => {
+
+  let file = e.target.files[0];
+  if(!file) return;
+
+  uploadedFileName = file.name;
+
+  filePreview.innerHTML = `
+    <div class="fileBox">📄 ${file.name}</div>
+  `;
+
+  if(file.type === "text/plain"){
+    uploadedFileText = await file.text();
+  }else{
+    uploadedFileText = "[Document uploaded: " + file.name + "]";
+  }
+
+  plusMenu.style.display = "none";
+};
+codeModeQuick.onclick = () => { plusMenu.style.display="none"; codeMode(); };
+exploreModeQuick.onclick = () => { plusMenu.style.display="none"; exploreMode(); };
+voiceModeQuick.onclick = () => { plusMenu.style.display="none"; voiceMode(); };
 
 /* TYPE */
 function fastType(el,text){
@@ -377,7 +508,21 @@ if(isProductQuery){
   let p=document.createElement("p");
   messages.appendChild(p);
 
-  let finalPrompt=text;
+  let finalPrompt = text;
+
+// Attach uploaded file content
+if(uploadedFileText){
+  finalPrompt = `
+User message:
+${text}
+
+Extra document provided by user:
+${uploadedFileText}
+
+Instructions:
+Use this document as context while answering.
+`;
+}
 
   if(mode==="code"){
   finalPrompt = `
@@ -439,6 +584,14 @@ if(mode==="explore"){
 },100);
 
     fastType(p,"Quadron: "+reply);
+
+// ✅ RESET FILE SYSTEM AFTER MESSAGE SENT
+uploadedFileText = "";
+uploadedFileName = "";
+filePreview.innerHTML = "";
+fileInput.value = "";
+
+}
 
 // ADD AMAZON BOX IF PRODUCT QUERY
 if(amazonLink){
