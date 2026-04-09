@@ -11,7 +11,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   
 <script>
-const webSearchBtn = document.getElementById("webSearchBtn");
+
 const webPopup = document.getElementById("webPopup");
 const webInput = document.getElementById("webInput");
 const webOkBtn = document.getElementById("webOkBtn");
@@ -73,20 +73,6 @@ function detectProductQuery(text) {
 <style>
 /* PLUS BUTTON */
 #plusBtn{
-  width:35px;
-  height:35px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:22px;
-  cursor:pointer;
-  color:#fff;
-  border-radius:50%;
-  box-shadow:0 0 10px #fff;
-  transition:0.2s;
-}
-
-#plusBtn{
   position:absolute;
   left:10px;
   top:50%;
@@ -98,6 +84,9 @@ function detectProductQuery(text) {
   border:none;
 }
 
+#plusBtn:hover{
+  text-shadow:0 0 10px #fff, 0 0 20px #fff;
+}
 /* glow ONLY text */
 #plusBtn:hover{
   text-shadow:0 0 8px #fff, 0 0 18px #fff;
@@ -395,6 +384,10 @@ a.link{
 </div>
 
 <script>
+const webSearchBtn = document.getElementById("webSearchBtn");
+const webPopup = document.getElementById("webPopup");
+const webInput = document.getElementById("webInput");
+const webOkBtn = document.getElementById("webOkBtn");
 
 /* SAFE ELEMENT REFERENCES */
 const menuBtn = document.getElementById("menuBtn");
@@ -563,7 +556,7 @@ function fastType(el,text){
 async function scrapeWebsite(url){
 
   try{
-    let res = await fetch("http://127.0.0.1:5000/api/scrape",{
+    let res = await fetch("https://your-backend-url/api/scrape",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({url})
@@ -593,6 +586,8 @@ async function scrapeFile(file){
       const typedarray = new Uint8Array(this.result);
 
       const pdf = await pdfjsLib.getDocument(typedarray).promise;
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
       let fullText = "";
 
@@ -685,9 +680,46 @@ async function getWikiData(query){
 
 /* SEND (API LOGIC UNCHANGED) */
 async function send(){
+
   let text = msg.value.trim();
-if(uploadedFileText || websiteData){
-  finalPrompt = `
+
+  if(!text){
+    alert("Type something first");
+    return;
+  }
+
+  let analysing = document.createElement("div");
+  analysing.className = "analysing";
+  analysing.innerHTML = "Analysing...".split("").map(l=>`<span>${l}</span>`).join("");
+  messages.appendChild(analysing);
+
+  let userMsg = document.createElement("div");
+  userMsg.className = "userText";
+  userMsg.innerHTML = `You: ${text}`;
+
+  // FILE TAG
+  if(uploadedFileName){
+    let fileTag = document.createElement("div");
+    fileTag.className = "fileBox";
+    fileTag.innerHTML = `<span style="color:white;">📎</span> ${uploadedFileName}`;
+    userMsg.appendChild(fileTag);
+  }
+
+  // WEBSITE TAG
+  if(websiteURL){
+    let siteTag = document.createElement("div");
+    siteTag.className = "fileBox";
+    siteTag.innerHTML = websiteURL;
+    userMsg.appendChild(siteTag);
+  }
+
+  messages.appendChild(userMsg);
+  msg.value = "";
+
+  let finalPrompt = text;
+
+  if(uploadedFileText || websiteData){
+    finalPrompt = `
 User message:
 ${text}
 
@@ -695,80 +727,8 @@ Extra data:
 ${uploadedFileText || ""}
 ${websiteData || ""}
 
-Use this context.
+Use this context while answering.
 `;
-}
-if(!text){
-  alert("Type something first");
-  return;
-}
-if(uploadedFileName){
-  let fileTag = document.createElement("div");
-  fileTag.className = "fileBox";
-  fileTag.innerHTML = `<span style="color:white;">📎</span> ${uploadedFileName}`;
-  userMsg.appendChild(fileTag);
-}
-
-if(websiteURL){
-  let siteTag = document.createElement("div");
-  siteTag.className = "fileBox";
-  siteTag.innerHTML = websiteURL;
-  userMsg.appendChild(siteTag);
-}
- let analysing = document.createElement("div");
-analysing.className = "analysing";
-analysing.innerHTML = "Analysing...".split("").map(l=>`<span>${l}</span>`).join("");
-messages.appendChild(analysing);
-  let text = msg.value.trim();
-  if(!text) return;
-
-  let isProductQuery = detectProductQuery(text);
-  let amazonLink = isProductQuery ? createAmazonSearchLink(text) : "";
-
-let userMsg = document.createElement("div");
-userMsg.className = "userText";
-userMsg.innerHTML = `You: ${text}`;
-
-if(uploadedFileName){
-  let fileTag = document.createElement("div");
-  fileTag.className = "fileBox";
-  fileTag.innerHTML = `<span style="color:white;">📎</span> ${uploadedFileName}`;
-  userMsg.appendChild(fileTag);
-}
-messages.appendChild(userMsg);  msg.value = "";
-
-  let p = document.createElement("p");
-  messages.appendChild(p);
-
-  let finalPrompt = text;
-
-  // FILE ATTACH
-  if(uploadedFileText){
-    finalPrompt = `
-User message:
-${text}
-
-Extra document provided by user:
-${uploadedFileText}
-
-Instructions:
-Use this document as context while answering.
-`;
-  }
-
-  // MODES
-  if(mode==="code"){
-    finalPrompt = `
-You are a code generator.
-Output ONLY code. No explanation.
-
-${text}
-`;
-  }
-
-  if(mode==="explore"){
-    let wiki = await getWikiData(text);
-    finalPrompt = `Use this:\n${wiki}\n\nExplain simply and give one source.\n${text}`;
   }
 
   let res = await fetch("/api/chat",{
@@ -780,13 +740,19 @@ ${text}
   let reply = (await res.json()).reply;
   analysing.remove();
 
-  if(mode==="code"){
-    reply = reply.replace(/```[\w]*/g,"").replace(/```/g,"").trim();
-    createCodeBox(p,reply);
-    return;
-  }
+  let p = document.createElement("p");
+  messages.appendChild(p);
 
   fastType(p,"Quadron: "+reply);
+
+  // RESET
+  uploadedFileText = "";
+  uploadedFileName = "";
+  websiteData = "";
+  websiteURL = "";
+  filePreview.innerHTML = "";
+  fileInput.value = "";
+}
 
   // AMAZON BOX
   if(amazonLink){
@@ -914,6 +880,25 @@ if(instant){
 
   box.appendChild(iframe);
   iframe.contentDocument.write(code);
+  webSearchBtn.onclick = ()=>{
+  plusMenu.style.display = "none";
+  webPopup.style.display = "block";
+};
+
+webOkBtn.onclick = ()=>{
+  let url = webInput.value.trim();
+
+  if(!url){
+    alert("Enter a valid URL");
+    return;
+  }
+
+  webPopup.style.display = "none";
+  websiteURL = url;
+
+  showWebsiteBox(url);
+  scrapeWebsite(url);
+};
 
   back.onclick=()=>{
     iframe.remove();
