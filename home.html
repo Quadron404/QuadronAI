@@ -51,30 +51,6 @@ function detectProductQuery(text) {
 
 <style>
 /* PLUS BUTTON */
-#plusBtn{
-  position:absolute;
-  left:10px;
-  top:50%;
-  transform:translateY(-50%);
-  width:24px;
-  height:24px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
-}
-
-#plusBtn svg{
-  filter: drop-shadow(0 0 4px white);
-  transition:0.2s;
-}
-
-/* MAX GLOW ONLY ON + */
-#plusBtn:hover svg{
-  filter: drop-shadow(0 0 10px white)
-          drop-shadow(0 0 20px white)
-          drop-shadow(0 0 35px white);
-}
 
 /* FIX INPUT SHIFT */
 #inputArea{
@@ -361,11 +337,10 @@ a.link{
 <!-- POPUP MENU -->
 <div id="plusMenu">
   <div class="plusItem" id="addFileBtn">📎 Add Files & Documents</div>
-  <div class="plusItem" id="webSearchBtn">🌐 Web Search</div>
   <div class="plusItem" id="codeModeQuick">Code /</div>
   <div class="plusItem" id="exploreModeQuick">Explore</div>
   <div class="plusItem" id="voiceModeQuick">Voice Mode</div>
-  <div class="plusItem" id="bgScrapeBtn">Background Scraping</div>
+ 
 </div>
 
 <!-- FILE PREVIEW -->
@@ -486,11 +461,13 @@ plusBtn.onclick = (e) => {
 
   plusMenu.style.display = "flex";
 
-  let rect = plusBtn.getBoundingClientRect();
+  const rect = plusBtn.getBoundingClientRect();
+  const menuHeight = plusMenu.offsetHeight;
 
-  // lock to input area, not screen
+  // position relative to viewport (perfect alignment)
+  plusMenu.style.position = "fixed";
   plusMenu.style.left = rect.left + "px";
-  plusMenu.style.top = (rect.top - plusMenu.offsetHeight - 8) + "px";
+  plusMenu.style.top = (rect.top - menuHeight - 8) + "px";
 };
   plusMenu.addEventListener("click", e => e.stopPropagation());
   document.addEventListener("click", ()=>{
@@ -801,11 +778,6 @@ if(mode === "code"){
 msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
 
 window.onload = () => {
-
-  const webSearchBtn = document.getElementById("webSearchBtn");
-  const webPopup = document.getElementById("webPopup");
-  const webInput = document.getElementById("webInput");
-  const webOkBtn = document.getElementById("webOkBtn");
 
   webSearchBtn.onclick = ()=>{
     plusMenu.style.display="none";
