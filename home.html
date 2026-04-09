@@ -563,7 +563,7 @@ function fastType(el,text){
 async function scrapeWebsite(url){
 
   try{
-    let res = await fetch("/api/scrape",{
+    let res = await fetch("http://127.0.0.1:5000/api/scrape",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({url})
