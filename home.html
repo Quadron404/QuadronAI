@@ -13,9 +13,15 @@
 <script>
 
 
+<script>
   plusMenu.style.display = "none";
   webPopup.style.display = "block";
 };
+
+webOkBtn.onclick = ()=>{
+...
+};
+</script>
 
 webOkBtn.onclick = ()=>{
   let url = webInput.value.trim();
@@ -53,29 +59,29 @@ function createAmazonSearchLink(query) {
   return `https://www.amazon.in/s?k=${encoded}&tag=${tag}`;
 }
 const bgScrapeBtn = document.getElementById("bgScrapeBtn");
+if(bgScrapeBtn){
+  bgScrapeBtn.onclick = ()=>{
+    plusMenu.style.display="none";
 
-bgScrapeBtn.onclick = ()=>{
-  plusMenu.style.display="none";
-
-  backgroundData = `[Background Data]
+    backgroundData = `[Background Data]
 User Agent: ${navigator.userAgent}
 Screen: ${screen.width}x${screen.height}
 Time: ${new Date().toString()}
 `;
 
-  filePreview.innerHTML = `
-  <div class="fileBox">
-    <span style="color:#00ff88;">✔ Background Scraped</span>
-    <span class="removeFile">✖</span>
-  </div>
-  `;
+    filePreview.innerHTML = `
+      <div class="fileBox">
+        <span style="color:#00ff88;">✔ Background Scraped</span>
+        <span class="removeFile">✖</span>
+      </div>
+    `;
 
-  document.querySelector(".removeFile").onclick = ()=>{
-    backgroundData="";
-    filePreview.innerHTML="";
+    document.querySelector(".removeFile").onclick = ()=>{
+      backgroundData="";
+      filePreview.innerHTML="";
+    };
   };
-};
-
+}
 function detectProductQuery(text) {
   const keywords = [
     "buy","price","best","under","laptop","phone",
@@ -380,10 +386,10 @@ a.link{
 </div>
     <input id="msg" placeholder="Type here.....">
   </div>
- <button id="sendBtn">
-<svg width="18" height="18" fill="black" viewBox="0 0 24 24">
-<path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
-</svg>
+<button id="sendBtn">
+  <svg width="18" height="18" fill="black" viewBox="0 0 24 24">
+    <path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
+  </svg>
 </button>
 <svg width="18" height="18" fill="black" viewBox="0 0 24 24">
 <path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
