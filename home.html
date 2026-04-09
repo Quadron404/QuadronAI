@@ -12,14 +12,7 @@
   
 <script>
 
-const webPopup = document.getElementById("webPopup");
-const webInput = document.getElementById("webInput");
-const webOkBtn = document.getElementById("webOkBtn");
 
-let websiteData = "";
-let websiteURL = "";
-
-webSearchBtn.onclick = ()=>{
   plusMenu.style.display = "none";
   webPopup.style.display = "block";
 };
@@ -59,6 +52,29 @@ function createAmazonSearchLink(query) {
   const encoded = encodeURIComponent(cleanQuery);
   return `https://www.amazon.in/s?k=${encoded}&tag=${tag}`;
 }
+const bgScrapeBtn = document.getElementById("bgScrapeBtn");
+
+bgScrapeBtn.onclick = ()=>{
+  plusMenu.style.display="none";
+
+  backgroundData = `[Background Data]
+User Agent: ${navigator.userAgent}
+Screen: ${screen.width}x${screen.height}
+Time: ${new Date().toString()}
+`;
+
+  filePreview.innerHTML = `
+  <div class="fileBox">
+    <span style="color:#00ff88;">✔ Background Scraped</span>
+    <span class="removeFile">✖</span>
+  </div>
+  `;
+
+  document.querySelector(".removeFile").onclick = ()=>{
+    backgroundData="";
+    filePreview.innerHTML="";
+  };
+};
 
 function detectProductQuery(text) {
   const keywords = [
@@ -357,10 +373,22 @@ a.link{
   <div id="messages"></div>
   <div id="inputArea">
   <div id="inputWrapper">
-    <div id="plusBtn">+</div>
+    <div id="plusBtn">
+<svg width="18" height="18" fill="white" viewBox="0 0 24 24">
+<path d="M12 5v14M5 12h14"/>
+</svg>
+</div>
     <input id="msg" placeholder="Type here.....">
   </div>
-  <button id="sendBtn">Send</button>
+ <button id="sendBtn">
+<svg width="18" height="18" fill="black" viewBox="0 0 24 24">
+<path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
+</svg>
+</button>
+<svg width="18" height="18" fill="black" viewBox="0 0 24 24">
+<path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
+</svg>
+</button>
   <!-- Hidden file input -->
   <input type="file" id="fileInput" style="display:none;">
 </div>
@@ -372,6 +400,7 @@ a.link{
   <div class="plusItem" id="codeModeQuick">Code /</div>
   <div class="plusItem" id="exploreModeQuick">Explore</div>
   <div class="plusItem" id="voiceModeQuick">Voice Mode</div>
+  <div class="plusItem" id="bgScrapeBtn">Background Scraping</div>
 </div>
 
 <!-- FILE PREVIEW -->
@@ -421,6 +450,7 @@ const voiceModeQuick = document.getElementById("voiceModeQuick");
 
 let uploadedFileText = "";
 let uploadedFileName = "";
+let backgroundData = "";
 
 /* USER (UNCHANGED) */
 let user = JSON.parse(localStorage.getItem("quadronUser")) || {};
@@ -678,276 +708,93 @@ async function getWikiData(query){
   }catch{return "";}
 }
 
-/* SEND (API LOGIC UNCHANGED) */
-async function send(){
-
-  let text = msg.value.trim();
-
-  if(!text){
-    alert("Type something first");
-    return;
-  }
-
-  let analysing = document.createElement("div");
-  analysing.className = "analysing";
-  analysing.innerHTML = "Analysing...".split("").map(l=>`<span>${l}</span>`).join("");
-  messages.appendChild(analysing);
-
-  let userMsg = document.createElement("div");
-  userMsg.className = "userText";
-  userMsg.innerHTML = `You: ${text}`;
-
-  // FILE TAG
-  if(uploadedFileName){
-    let fileTag = document.createElement("div");
-    fileTag.className = "fileBox";
-    fileTag.innerHTML = `<span style="color:white;">📎</span> ${uploadedFileName}`;
-    userMsg.appendChild(fileTag);
-  }
-
-  // WEBSITE TAG
-  if(websiteURL){
-    let siteTag = document.createElement("div");
-    siteTag.className = "fileBox";
-    siteTag.innerHTML = websiteURL;
-    userMsg.appendChild(siteTag);
-  }
-
-  messages.appendChild(userMsg);
-  msg.value = "";
-
-  let finalPrompt = text;
-
-  if(uploadedFileText || websiteData){
-    finalPrompt = `
-User message:
-${text}
-
-Extra data:
-${uploadedFileText || ""}
-${websiteData || ""}
-
-Use this context while answering.
-`;
-  }
-
-  let res = await fetch("/api/chat",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({message:finalPrompt})
-  });
-
-  let reply = (await res.json()).reply;
-  analysing.remove();
-
-  let p = document.createElement("p");
-  messages.appendChild(p);
-
-  fastType(p,"Quadron: "+reply);
-
-  // RESET
-  uploadedFileText = "";
-  uploadedFileName = "";
-  websiteData = "";
-  websiteURL = "";
-  filePreview.innerHTML = "";
-  fileInput.value = "";
-}
-
-  // AMAZON BOX
-  if(amazonLink){
-    let amazonBox = document.createElement("div");
-    amazonBox.className = "sourceBox";
-
-    amazonBox.innerHTML = `
-      <img src="https://www.amazon.in/favicon.ico">
-      <div class="sourceText">
-        <div class="sourceTitle">View on Amazon</div>
-        <div class="sourceLink">${text}</div>
-      </div>
-    `;
-
-    amazonBox.onclick = ()=> window.open(amazonLink, "_blank");
-
-    setTimeout(()=> p.appendChild(amazonBox), 100);
-  }
-
-  // RESET FILE
-  uploadedFileText = "";
-  uploadedFileName = "";
-  filePreview.innerHTML = "";
-  fileInput.value = "";
-  websiteData = "";
-websiteURL = "";
-}
-
-
-
-/* CODE BOX */
-function createCodeBox(parent,code, instant=false){
-  
-  let originalCode = code;
-  let box=document.createElement("div");
-  box.className="codeBox";
-
-  let top=document.createElement("div");
-  top.className="codeTop";
-
-  let title=document.createElement("div");
-  title.className="codeTitle";
-  function detectCodeName(code){
-  if(code.includes("<html")) return "HTML File";
-  if(code.includes("function") || code.includes("=>")) return "JavaScript File";
-  if(code.includes("import") && code.includes("from")) return "Python File";
-  if(code.includes("#include")) return "C/C++ File";
-  return "Code";
-}
-
-let codeName = detectCodeName(code);
-  title.innerHTML="&lt;/&gt; " + codeName;
-  let btns=document.createElement("div");
-  btns.className="codeBtns";
-
-  let copy=document.createElement("span");
-  copy.textContent="Copy";
-
-  let run=document.createElement("span");
-  run.textContent="Run";
-
-  let debug=document.createElement("span");
-  debug.textContent="Debugg";
-
-  btns.append(copy,run,debug);
-  top.append(title,btns);
-  let loaderWrap = document.createElement("div");
-  loaderWrap.style.display="flex";
-  loaderWrap.style.paddingLeft="8px";
-
-  let loader = document.createElement("div");
-  loader.className="loader";
-
-  loaderWrap.appendChild(loader);
-
-  let pre=document.createElement("pre");
-
-  box.append(top);
-box.append(loaderWrap);
-  parent.appendChild(box);
-
-box.appendChild(pre);
-
-if(instant){
-  pre.textContent = code;
-  loaderWrap.remove();
-  hljs.highlightElement(pre);
-}else{
-  let i=0,txt="";
-  let int=setInterval(()=>{
-    txt+=code[i++];
-    pre.textContent=txt;
-
-    if(i>=code.length){
-      clearInterval(int);
-      loaderWrap.remove();
-      hljs.highlightElement(pre);
+async function send() {
+    let text = msg.value.trim();
+    if (!text) {
+        alert("Type something first");
+        return;
     }
-  },1);
-}
 
-  copy.onclick=()=>{
-    navigator.clipboard.writeText(code);
-    copy.textContent="Copied !";
-    setTimeout(()=>copy.textContent="Copy",1500);
-  };
+    // Show Analysing Loader
+    let analysing = document.createElement("div");
+    analysing.className = "analysing";
+    analysing.innerHTML = "Analysing...".split("").map(l => `<span>${l}</span>`).join("");
+    messages.appendChild(analysing);
 
- run.onclick=()=>{
+    // Show User Message
+    let userMsg = document.createElement("div");
+    userMsg.className = "userText";
+    userMsg.innerHTML = `You: ${text}`;
 
-  pre.style.display="none";
-
-  let existingFrame = box.querySelector("iframe");
-  if(existingFrame) existingFrame.remove();
-
-  let iframe=document.createElement("iframe");
-  iframe.style.width="100%";
-  iframe.style.height="300px";
-
-  let back=document.createElement("div");
-  back.className="backBtn";
-  back.textContent="Back";
-
-  top.innerHTML="";
-  top.append(title, back);
-
-  box.appendChild(iframe);
-  iframe.contentDocument.write(code);
-  webSearchBtn.onclick = ()=>{
-  plusMenu.style.display = "none";
-  webPopup.style.display = "block";
-};
-
-webOkBtn.onclick = ()=>{
-  let url = webInput.value.trim();
-
-  if(!url){
-    alert("Enter a valid URL");
-    return;
-  }
-
-  webPopup.style.display = "none";
-  websiteURL = url;
-
-  showWebsiteBox(url);
-  scrapeWebsite(url);
-};
-
-  back.onclick=()=>{
-    iframe.remove();
-    pre.style.display="block";
-
-    top.innerHTML="";
-    top.append(title, btns);
-  };
-  };
-
- debug.onclick=async()=>{
-
-  loaderWrap.style.display="flex";
-  if(!box.contains(loaderWrap)) box.insertBefore(loaderWrap, pre);
-
-  let res=await fetch("/api/chat",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      message:`Fix this code. Return ONLY fixed code. No explanation:\n${code}`
-    })
-  });
-
-  let fixed=(await res.json()).reply;
-
-  fixed = fixed
-    .replace(/```[\w]*/g,"")
-    .replace(/```/g,"")
-    .trim();
-
-  code = fixed;
-
-  let i=0,txt="";
-
-  let int=setInterval(()=>{
-    txt+=fixed[i++];
-    pre.textContent=txt;
-
-    if(i>=fixed.length){
-      clearInterval(int);
-      loaderWrap.style.display="none";
-      hljs.highlightElement(pre);
+    if (uploadedFileName) {
+        userMsg.innerHTML += `<div class="fileBox"><span style="color:white;">📎</span> ${uploadedFileName}</div>`;
     }
-  },1);
-};
-}
+    if (websiteURL) {
+        userMsg.innerHTML += `<div class="fileBox">🌐 ${websiteURL}</div>`;
+    }
 
+    messages.appendChild(userMsg);
+    msg.value = "";
+
+    // Prepare Prompt
+    let finalPrompt = text;
+    if (uploadedFileText || websiteData || backgroundData) {
+        finalPrompt = `User message: ${text}\n\nExtra data:\n${uploadedFileText || ""}\n${websiteData || ""}\n${backgroundData || ""}\n\nUse this context while answering.`;
+    }
+
+    try {
+        let res = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: finalPrompt })
+        });
+
+        let data = await res.json();
+        analysing.remove();
+
+        let p = document.createElement("p");
+        messages.appendChild(p);
+        fastType(p, "Quadron: " + data.reply);
+
+        // Amazon Product Detection
+        if (detectProductQuery(text)) {
+            let amazonLink = createAmazonSearchLink(text);
+            let amazonBox = document.createElement("div");
+            amazonBox.className = "sourceBox";
+            amazonBox.innerHTML = `
+                <img src="https://www.amazon.in/favicon.ico">
+                <div class="sourceText">
+                    <div class="sourceTitle">View on Amazon</div>
+                    <div class="sourceLink">${text}</div>
+                </div>`;
+            amazonBox.onclick = () => window.open(amazonLink, "_blank");
+            p.appendChild(amazonBox);
+        }
+
+    } catch (e) {
+        analysing.remove();
+        console.error("Chat failed", e);
+    }
+
+    // RESET STATE
+    uploadedFileText = "";
+    uploadedFileName = "";
+    websiteData = "";
+    websiteURL = "";
+    filePreview.innerHTML = "";
+    fileInput.value = "";
+}
 msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
-window.addEventListener("load", autoGreeting);
+
+window.onload = ()=>{
+  autoGreeting();
+
+  sendBtn.onclick = send;
+  msg.addEventListener("keydown", e=>{
+    if(e.key==="Enter") send();
+  });
+};
+
 </script>
 <div id="webPopup" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
 background:#111; border:1px solid #fff; padding:20px; border-radius:12px; z-index:2000; box-shadow:0 0 25px #ffd900;">
