@@ -144,6 +144,72 @@ a.link{
   color:#aaa;
   font-size:12px;
 }
+/* PLUS BUTTON */
+#plusBtn{
+  width:40px;
+  height:40px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  border:1px solid #fff;
+  color:#fff;
+  cursor:pointer;
+  box-shadow:0 0 10px #fff, 0 0 25px #fff;
+}
+
+/* PLUS MENU */
+#plusMenu{
+  position:absolute;
+  bottom:70px;
+  left:20px;
+  background:#111;
+  border:1px solid #fff;
+  border-radius:10px;
+  display:none;
+  flex-direction:column;
+  padding:5px;
+  box-shadow:0 0 20px #fff;
+  z-index:100;
+}
+
+.plusItem{
+  padding:10px;
+  color:#fff;
+  cursor:pointer;
+  border-radius:8px;
+}
+
+.plusItem:hover{
+  background:#222;
+}
+
+/* FILE PREVIEW */
+#filePreview{
+  margin-top:5px;
+}
+
+.fileBox{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px;
+  border:1px solid #fff;
+  border-radius:10px;
+  background:transparent;
+  box-shadow:0 0 10px #fff;
+  max-width:300px;
+}
+
+.fileBox img{
+  width:20px;
+  height:20px;
+}
+
+.fileName{
+  color:#fff;
+  font-size:13px;
+}
 </style>
 </head>
 
@@ -213,6 +279,15 @@ const chat = document.getElementById("chat");
 const messages = document.getElementById("messages");
 const msg = document.getElementById("msg");
 const sendBtn = document.getElementById("sendBtn");
+/* NEW ELEMENT REFERENCES */
+const plusBtn = document.getElementById("plusBtn");
+const plusMenu = document.getElementById("plusMenu");
+const addFileBtn = document.getElementById("addFileBtn");
+const fileInput = document.getElementById("fileInput");
+const filePreview = document.getElementById("filePreview");
+
+let attachedFile = null;
+let extractedText = "";
 
 sendBtn.onclick = send;
 
@@ -378,6 +453,9 @@ async function getWikiData(query){
 /* SEND (API LOGIC UNCHANGED) */
 async function send(){
   let text=msg.value.trim();
+  let text=msg.value.trim();
+
+if(!text && !attachedFile) return;
   let isProductQuery = detectProductQuery(text);
 let amazonLink = "";
 
@@ -386,14 +464,37 @@ if(isProductQuery){
 }
   if(!text)return;
 
-  messages.innerHTML+=`<p class="userText">You: ${text}</p>`;
-  msg.value="";
+ messages.innerHTML += `<p class="userText">You: ${text || ""}</p>`;
 
+if(attachedFile){
+  messages.innerHTML += `
+    <div class="fileBox">
+      <img src="https://www.google.com/s2/favicons?domain=file">
+      <div class="fileName">${attachedFile.name}</div>
+    </div>
+  `;
+}
   let p=document.createElement("p");
   messages.appendChild(p);
 
-  let finalPrompt=text;
+  let finalPrompt = text;
 
+if(attachedFile){
+  finalPrompt += `
+
+User has attached a file: ${attachedFile.name}
+Extracted content:
+${extractedText}
+`;
+}
+let analysing = document.createElement("p");
+analysing.className = "aiText";
+analysing.textContent = "Quadron: Analysing....";
+messages.appendChild(analysing);
+
+await new Promise(res => setTimeout(res, 4500));
+
+analysing.remove();
   if(mode==="code"){
   finalPrompt = `
 You are a code generator.
@@ -411,6 +512,11 @@ Rules:
 Task:
 ${text}
 `;
+  attachedFile = null;
+extractedText = "";
+filePreview.innerHTML = "";
+fileInput.value = "";
+
 }
   if(mode==="explore"){
     let wiki=await getWikiData(text);
@@ -630,6 +736,43 @@ if(instant){
 
 msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
 window.addEventListener("load", autoGreeting);
+plusBtn.onclick = ()=>{
+  plusMenu.style.display = plusMenu.style.display === "flex" ? "none" : "flex";
+};
+document.getElementById("codeModeQuick").onclick = ()=>codeMode();
+document.getElementById("exploreModeQuick").onclick = ()=>exploreMode();
+document.getElementById("voiceModeQuick").onclick = ()=>voiceMode();
+addFileBtn.onclick = ()=>{
+  fileInput.click();
+};
+fileInput.onchange = async (e)=>{
+  let file = e.target.files[0];
+  if(!file) return;
+
+  attachedFile = file;
+
+  // icon via favicon API
+  let ext = file.name.split('.').pop();
+
+  filePreview.innerHTML = `
+    <div class="fileBox">
+      <img src="https://www.google.com/s2/favicons?domain=${ext}">
+      <div class="fileName">${file.name}</div>
+    </div>
+  `;
+
+  // TEXT EXTRACTION (POWERFUL BASE)
+  try{
+    if(file.type.includes("text") || file.name.endsWith(".txt") || file.name.endsWith(".json") || file.name.endsWith(".js") || file.name.endsWith(".html")){
+      extractedText = await file.text();
+    }
+    else{
+      extractedText = "[Non-text file attached: " + file.name + "]";
+    }
+  }catch{
+    extractedText = "[Could not extract file]";
+  }
+};
 </script>
 
 </body>
