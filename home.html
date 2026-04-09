@@ -38,30 +38,7 @@ function createAmazonSearchLink(query) {
   const encoded = encodeURIComponent(cleanQuery);
   return `https://www.amazon.in/s?k=${encoded}&tag=${tag}`;
 }
-const bgScrapeBtn = document.getElementById("bgScrapeBtn");
-if(bgScrapeBtn){
-  bgScrapeBtn.onclick = ()=>{
-    plusMenu.style.display="none";
 
-    backgroundData = `[Background Data]
-User Agent: ${navigator.userAgent}
-Screen: ${screen.width}x${screen.height}
-Time: ${new Date().toString()}
-`;
-
-    filePreview.innerHTML = `
-      <div class="fileBox">
-        <span style="color:#00ff88;">✔ Background Scraped</span>
-        <span class="removeFile">✖</span>
-      </div>
-    `;
-
-    document.querySelector(".removeFile").onclick = ()=>{
-      backgroundData="";
-      filePreview.innerHTML="";
-    };
-  };
-}
 function detectProductQuery(text) {
   const keywords = [
     "buy","price","best","under","laptop","phone",
@@ -76,13 +53,14 @@ function detectProductQuery(text) {
 /* PLUS BUTTON */
 #plusMenu{
   position:absolute;
-  bottom:50px;
-  left:0;
-}
-
-/* glow ONLY text */
-#plusBtn:hover{
-  text-shadow:0 0 8px #fff, 0 0 18px #fff;
+  bottom:55px;
+  left:10px;
+  background:#111;
+  border:1px solid #fff;
+  border-radius:10px;
+  display:none;
+  flex-direction:column;
+  z-index:1000;
 }
 
 /* FIX INPUT SHIFT */
@@ -227,8 +205,12 @@ button:hover{box-shadow:0 0 35px #ffd900;}
 }
 
 /* glow ONLY on icon */
+#plusBtn svg{
+  pointer-events:none;
+}
+
 #plusBtn:hover{
-  text-shadow:0 0 10px #fff, 0 0 20px #fff;
+  filter:drop-shadow(0 0 8px white) drop-shadow(0 0 15px white);
 }
 
 /* CODE BOX ADDITIONS ONLY */
@@ -357,11 +339,7 @@ a.link{
 </div>
     <input id="msg" placeholder="Type here.....">
   </div>
-<button id="sendBtn">
-  <svg width="18" height="18" fill="black" viewBox="0 0 24 24">
-    <path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
-  </svg>
-</button>
+<button id="sendBtn">Send</button>
   <!-- Hidden file input -->
   <input type="file" id="fileInput" style="display:none;">
 </div>
@@ -466,9 +444,13 @@ codeModeBtn.onclick=()=>menuAction(codeMode);
 exploreModeBtn.onclick=()=>menuAction(exploreMode);
 voiceModeBtn.onclick=()=>{closeMenu();voiceMode();};
 
-plusBtn.onclick = () => {
+plusBtn.onclick = (e) => {
+  e.stopPropagation();
   plusMenu.style.display = plusMenu.style.display === "flex" ? "none" : "flex";
 };
+  document.addEventListener("click", ()=>{
+  plusMenu.style.display="none";
+});
 addFileBtn.onclick = () => {
 
   if(uploadedFileText){
@@ -487,14 +469,14 @@ fileInput.onchange = async (e) => {
   uploadedFileName = file.name;
 
   // detect icon
-  let icon = "📄";
-  if(file.name.endsWith(".pdf")) icon = "📕";
-  if(file.name.endsWith(".doc") || file.name.endsWith(".docx")) icon = "📘";
-  if(file.name.endsWith(".txt")) icon = "📄";
+ let icon = "https://cdn-icons-png.flaticon.com/512/337/337946.png"; // default
 
+if(file.name.endsWith(".pdf")) icon = "https://cdn-icons-png.flaticon.com/512/337/337946.png";
+if(file.name.endsWith(".doc") || file.name.endsWith(".docx")) icon = "https://cdn-icons-png.flaticon.com/512/337/337932.png";
+if(file.name.endsWith(".txt")) icon = "https://cdn-icons-png.flaticon.com/512/3022/3022256.png";
   filePreview.innerHTML = `
     <div class="fileBox">
-      <span>${icon} ${file.name}</span>
+      <img src="${icon}" width="16"> <span>${file.name}</span>
       <span class="removeFile">✖</span>
     </div>
   `;
@@ -508,8 +490,10 @@ fileInput.onchange = async (e) => {
   };
 
   // 🔥 START SCRAPING IN BACKGROUND
- await scrapeFile(file); // important
-
+ await new Promise(resolve=>{
+  scrapeFile(file);
+  setTimeout(resolve,1000); // wait for pdf/text load
+});
   plusMenu.style.display = "none";
 };
  
@@ -559,7 +543,7 @@ function fastType(el,text){
 async function scrapeWebsite(url){
 
   try{
-    let res = await fetch("https://your-backend-url/api/scrape",{
+    let res = await fetch("http://localhost:5000/api/scrape",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({url})
@@ -600,6 +584,7 @@ async function scrapeFile(file){
 
         let strings = content.items.map(item => item.str);
         fullText += strings.join(" ") + "\n";
+        uploadedFileText = `[PDF Document: ${file.name}]\n` + fullText;
       }
 
       uploadedFileText = `[PDF Document: ${file.name}]\n` + fullText;
@@ -669,10 +654,7 @@ function createSourceBox(url){
   box.onclick = ()=>{
     window.open(url, "_blank");
   };
-  webSearchBtn.onclick = ()=>{
-  plusMenu.style.display = "none";
-  webPopup.style.display = "block";
-};
+  
 
   return box;
 }
@@ -689,10 +671,10 @@ async function send() {
   let old = document.querySelector(".analysing");
 if(old) old.remove();
     let text = msg.value.trim();
-    if (!text) {
-        alert("Type something first");
-        return;
-    }
+   if (!text && !uploadedFileText && !websiteData && !backgroundData) {
+    alert("Type something first");
+    return;
+}
 
     // Show Analysing Loader
     let analysing = document.createElement("div");
@@ -766,6 +748,32 @@ if(old) old.remove();
 msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
 
 window.onload = ()=>{
+  document.getElementById("bgScrapeBtn").onclick = ()=>{
+  plusMenu.style.display="none";
+
+  backgroundData = `[Background Data]
+User Agent: ${navigator.userAgent}
+Screen: ${screen.width}x${screen.height}
+Time: ${new Date().toString()}
+`;
+
+  filePreview.innerHTML = `
+    <div class="fileBox">
+      <span>Background Scraped</span>
+      <span class="removeFile">✖</span>
+    </div>
+  `;
+
+  document.querySelector(".removeFile").onclick = ()=>{
+    backgroundData="";
+    filePreview.innerHTML="";
+  };
+};
+
+webSearchBtn.onclick = ()=>{
+  plusMenu.style.display="none";
+  webPopup.style.display="block";
+};
   autoGreeting();
 
   sendBtn.onclick = send;
