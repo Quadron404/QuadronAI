@@ -9,7 +9,7 @@ HOST = "0.0.0.0"
 PORT = 5000
 
 
-# 🔹 SIMPLE HTML TEXT EXTRACTOR
+# 🔹 CLEAN TEXT EXTRACTOR
 class TextExtractor(HTMLParser):
     def __init__(self):
         super().__init__()
@@ -19,6 +19,10 @@ class TextExtractor(HTMLParser):
     def handle_starttag(self, tag, attrs):
         if tag in ("script", "style", "noscript"):
             self.skip = True
+
+        # Add spacing for readability
+        if tag in ("p", "div", "br", "li", "h1", "h2", "h3"):
+            self.text.append("\n")
 
     def handle_endtag(self, tag):
         if tag in ("script", "style", "noscript"):
@@ -51,14 +55,18 @@ class Handler(BaseHTTPRequestHandler):
 
         try:
             data = json.loads(body)
-            url = data.get("url", "")
+            url = data.get("url", "").strip()
+
+            if not url.startswith("http"):
+                url = "https://" + url
 
             if not url:
                 raise Exception("No URL provided")
 
-            # 🔹 FETCH WEBSITE
+            # 🔹 STRONG HEADERS (IMPORTANT)
             req = Request(url, headers={
-                "User-Agent": "Mozilla/5.0"
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                "Accept-Language": "en-US,en;q=0.9"
             })
 
             response = urlopen(req, timeout=10)
@@ -70,19 +78,22 @@ class Handler(BaseHTTPRequestHandler):
 
             text = " ".join(parser.text)
 
-            # 🔹 LIMIT SIZE (VERY IMPORTANT)
-            text = text[:5000]
+            # 🔹 CLEAN EXTRA SPACES
+            text = " ".join(text.split())
+
+            # 🔹 LIMIT SIZE (important for AI)
+            text = text[:4000]
 
             result = {
-                "text": f"[Website: {url}]\n{text}"
+                "text": f"{text}"
             }
 
         except URLError:
-            result = {"text": "Error: Could not reach website"}
+            result = {"text": "Error: Website unreachable"}
         except Exception as e:
             result = {"text": f"Error: {str(e)}"}
 
-        # 🔹 SEND RESPONSE
+        # 🔹 RESPONSE
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
         self.send_header("Access-Control-Allow-Origin", "*")
@@ -93,5 +104,5 @@ class Handler(BaseHTTPRequestHandler):
 
 # 🔹 RUN SERVER
 if __name__ == "__main__":
-    print(f"Server running on http://{HOST}:{PORT}")
+    print(f"Scraper running on http://{HOST}:{PORT}")
     HTTPServer((HOST, PORT), Handler).serve_forever()
