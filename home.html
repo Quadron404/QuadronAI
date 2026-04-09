@@ -51,16 +51,29 @@ function detectProductQuery(text) {
 
 <style>
 /* PLUS BUTTON */
-#plusMenu{
+#plusBtn{
   position:absolute;
-  bottom:55px;
   left:10px;
-  background:#111;
-  border:1px solid #fff;
-  border-radius:10px;
-  display:none;
-  flex-direction:column;
-  z-index:1000;
+  top:50%;
+  transform:translateY(-50%);
+  width:24px;
+  height:24px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+
+#plusBtn svg{
+  filter: drop-shadow(0 0 4px white);
+  transition:0.2s;
+}
+
+/* MAX GLOW ONLY ON + */
+#plusBtn:hover svg{
+  filter: drop-shadow(0 0 10px white)
+          drop-shadow(0 0 20px white)
+          drop-shadow(0 0 35px white);
 }
 
 /* FIX INPUT SHIFT */
@@ -418,6 +431,29 @@ menuBtn.addEventListener("click", ()=>{
 });
 overlay.onclick = closeMenu;
 
+function showCodeBox(code){
+
+  let box = document.createElement("div");
+  box.className = "codeBox";
+
+  box.innerHTML = `
+    <div class="codeTop">
+      <span class="codeTitle">Code</span>
+      <div class="codeBtns">
+        <span onclick="navigator.clipboard.writeText(this.parentElement.parentElement.nextElementSibling.innerText)">Copy</span>
+      </div>
+    </div>
+    <pre><code>${code.replace(/</g,"&lt;")}</code></pre>
+  `;
+
+  messages.appendChild(box);
+
+  // highlight
+  box.querySelectorAll("pre code").forEach(el=>{
+    hljs.highlightElement(el);
+  });
+}
+
 function closeMenu(){
   sidePanel.classList.remove("open");
   overlay.style.display="none";
@@ -448,15 +484,15 @@ voiceModeBtn.onclick=()=>{closeMenu();voiceMode();};
 plusBtn.onclick = (e) => {
   e.stopPropagation();
 
-  // Show first so height is calculated
   plusMenu.style.display = "flex";
 
   let rect = plusBtn.getBoundingClientRect();
 
-  // OPEN UPWARDS (like ChatGPT)
+  // lock to input area, not screen
   plusMenu.style.left = rect.left + "px";
-  plusMenu.style.top = (rect.top - plusMenu.offsetHeight - 10) + "px";
+  plusMenu.style.top = (rect.top - plusMenu.offsetHeight - 8) + "px";
 };
+  plusMenu.addEventListener("click", e => e.stopPropagation());
   document.addEventListener("click", ()=>{
   plusMenu.style.display="none";
 });
@@ -708,6 +744,10 @@ if(old) old.remove();
 
     // Prepare Prompt
     let finalPrompt = text;
+
+if(mode === "code"){
+  finalPrompt = `ONLY RETURN CODE. NO EXPLANATION.\n\n${text}`;
+}
     if (uploadedFileText || websiteData || backgroundData) {
         finalPrompt = `User message: ${text}\n\nExtra data:\n${uploadedFileText || ""}\n${websiteData || ""}\n${backgroundData || ""}\n\nUse this context while answering.`;
     }
@@ -724,7 +764,11 @@ if(old) old.remove();
 
         let p = document.createElement("p");
         messages.appendChild(p);
-        fastType(p, "Quadron: " + data.reply);
+        if(mode === "code"){
+  showCodeBox(data.reply);
+}else{
+  fastType(p, "Quadron: " + data.reply);
+}
 
         // Amazon Product Detection
         if (detectProductQuery(text)) {
@@ -756,15 +800,12 @@ if(old) old.remove();
 }
 msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
 
-window.onload = ()=>{
-  let webSearchBtn, webPopup, webInput, webOkBtn;
-
 window.onload = () => {
 
-  webSearchBtn = document.getElementById("webSearchBtn");
-  webPopup = document.getElementById("webPopup");
-  webInput = document.getElementById("webInput");
-  webOkBtn = document.getElementById("webOkBtn");
+  const webSearchBtn = document.getElementById("webSearchBtn");
+  const webPopup = document.getElementById("webPopup");
+  const webInput = document.getElementById("webInput");
+  const webOkBtn = document.getElementById("webOkBtn");
 
   webSearchBtn.onclick = ()=>{
     plusMenu.style.display="none";
@@ -782,37 +823,29 @@ window.onload = () => {
     webPopup.style.display = "none";
   };
 
-  autoGreeting();
-};
   document.getElementById("bgScrapeBtn").onclick = ()=>{
-  plusMenu.style.display="none";
+    plusMenu.style.display="none";
 
-  backgroundData = `[Background Data]
+    backgroundData = `[Background Data]
 User Agent: ${navigator.userAgent}
 Screen: ${screen.width}x${screen.height}
 Time: ${new Date().toString()}
 `;
 
-  filePreview.innerHTML = `
-    <div class="fileBox">
-      <span>Background Scraped</span>
-      <span class="removeFile">✖</span>
-    </div>
-  `;
+    filePreview.innerHTML = `
+      <div class="fileBox">
+        <span>Background Scraped</span>
+        <span class="removeFile">✖</span>
+      </div>
+    `;
 
-  document.querySelector(".removeFile").onclick = ()=>{
-    backgroundData="";
-    filePreview.innerHTML="";
+    document.querySelector(".removeFile").onclick = ()=>{
+      backgroundData="";
+      filePreview.innerHTML="";
+    };
   };
-};
 
-webSearchBtn.onclick = ()=>{
-  plusMenu.style.display="none";
-  webPopup.style.display="block";
-};
   autoGreeting();
-
-  
 };
 webOkBtn.onclick = async ()=>{
   let url = webInput.value.trim();
