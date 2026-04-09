@@ -7,8 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/monokai-sublime.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  
 <script>
 function createAmazonSearchLink(query) {
   const tag = "psr0a-21";
@@ -433,18 +434,11 @@ fileInput.onchange = async (e) => {
   };
 
   // 🔥 START SCRAPING IN BACKGROUND
-  scrapeFile(file);
+ await scrapeFile(file); // important
 
   plusMenu.style.display = "none";
 };
-  if(file.type === "text/plain"){
-    uploadedFileText = await file.text();
-  }else{
-    uploadedFileText = "[Document uploaded: " + file.name + "]";
-  }
-
-  plusMenu.style.display = "none";
-};
+ 
 codeModeQuick.onclick = () => { plusMenu.style.display="none"; codeMode(); };
 exploreModeQuick.onclick = () => { plusMenu.style.display="none"; exploreMode(); };
 voiceModeQuick.onclick = () => { plusMenu.style.display="none"; voiceMode(); };
@@ -490,12 +484,41 @@ function fastType(el,text){
 }
 async function scrapeFile(file){
 
-  // simulate delay + real text read
+  // TXT
   if(file.type === "text/plain"){
     uploadedFileText = await file.text();
-  }else{
-    uploadedFileText = "[User uploaded document: " + file.name + "]";
+    return;
   }
+
+  // PDF (REAL SCRAPING)
+  if(file.type === "application/pdf"){
+
+    const reader = new FileReader();
+
+    reader.onload = async function(){
+      const typedarray = new Uint8Array(this.result);
+
+      const pdf = await pdfjsLib.getDocument(typedarray).promise;
+
+      let fullText = "";
+
+      for(let i = 1; i <= pdf.numPages; i++){
+        let page = await pdf.getPage(i);
+        let content = await page.getTextContent();
+
+        let strings = content.items.map(item => item.str);
+        fullText += strings.join(" ") + "\n";
+      }
+
+      uploadedFileText = `[PDF Document: ${file.name}]\n` + fullText;
+    };
+
+    reader.readAsArrayBuffer(file);
+    return;
+  }
+
+  // OTHER FILES
+  uploadedFileText = "[User uploaded document: " + file.name + "]";
 }
 async function autoGreeting(){
 
@@ -588,7 +611,6 @@ if(uploadedFileName){
   fileTag.innerHTML = `📎 ${uploadedFileName}`;
   userMsg.appendChild(fileTag);
 }
-analysing.remove();
 messages.appendChild(userMsg);  msg.value = "";
 
   let p = document.createElement("p");
@@ -632,6 +654,7 @@ ${text}
   });
 
   let reply = (await res.json()).reply;
+  analysing.remove();
 
   if(mode==="code"){
     reply = reply.replace(/```[\w]*/g,"").replace(/```/g,"").trim();
