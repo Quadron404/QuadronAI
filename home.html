@@ -446,6 +446,12 @@ voiceModeBtn.onclick=()=>{closeMenu();voiceMode();};
 
 plusBtn.onclick = (e) => {
   e.stopPropagation();
+
+  let rect = plusBtn.getBoundingClientRect();
+
+  plusMenu.style.left = rect.left + "px";
+  plusMenu.style.top = (rect.top - plusMenu.offsetHeight - 10) + "px";
+
   plusMenu.style.display = plusMenu.style.display === "flex" ? "none" : "flex";
 };
   document.addEventListener("click", ()=>{
@@ -490,10 +496,7 @@ if(file.name.endsWith(".txt")) icon = "https://cdn-icons-png.flaticon.com/512/30
   };
 
   // 🔥 START SCRAPING IN BACKGROUND
- await new Promise(resolve=>{
-  scrapeFile(file);
-  setTimeout(resolve,1000); // wait for pdf/text load
-});
+await scrapeFile(file);
   plusMenu.style.display = "none";
 };
  
@@ -556,48 +559,51 @@ async function scrapeWebsite(url){
     websiteData = "[Failed to fetch website data]";
   }
 }
-async function scrapeFile(file){
+function scrapeFile(file){
+  return new Promise(async (resolve)=>{
 
-  // TXT
-  if(file.type === "text/plain"){
-    uploadedFileText = await file.text();
-    return;
-  }
+    // TXT
+    if(file.type === "text/plain"){
+      uploadedFileText = await file.text();
+      return resolve();
+    }
 
-  // PDF (REAL SCRAPING)
-  if(file.type === "application/pdf"){
+    // PDF
+    if(file.type === "application/pdf"){
+      const reader = new FileReader();
 
-    const reader = new FileReader();
+      reader.onload = async function(){
+        const typedarray = new Uint8Array(this.result);
 
-    reader.onload = async function(){
-      const typedarray = new Uint8Array(this.result);
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
-      const pdf = await pdfjsLib.getDocument(typedarray).promise;
-      pdfjsLib.GlobalWorkerOptions.workerSrc =
-  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+        const pdf = await pdfjsLib.getDocument(typedarray).promise;
 
-      let fullText = "";
+        let fullText = "";
 
-      for(let i = 1; i <= pdf.numPages; i++){
-        let page = await pdf.getPage(i);
-        let content = await page.getTextContent();
+        for(let i = 1; i <= pdf.numPages; i++){
+          let page = await pdf.getPage(i);
+          let content = await page.getTextContent();
+          let strings = content.items.map(item => item.str);
+          fullText += strings.join(" ") + "\n";
+        }
 
-        let strings = content.items.map(item => item.str);
-        fullText += strings.join(" ") + "\n";
         uploadedFileText = `[PDF Document: ${file.name}]\n` + fullText;
-      }
+        resolve();
+      };
 
-      uploadedFileText = `[PDF Document: ${file.name}]\n` + fullText;
-    };
+      reader.readAsArrayBuffer(file);
+      return;
+    }
 
-    reader.readAsArrayBuffer(file);
-    return;
-  }
-
-  // OTHER FILES
-  uploadedFileText = "[User uploaded document: " + file.name + "]";
+    // OTHER
+    uploadedFileText = "[User uploaded document: " + file.name + "]";
+    resolve();
+  });
 }
 async function autoGreeting(){
+  if(messages.children.length > 0) return;
 
   // Run only once per tab session
   if(sessionStorage.getItem("greeted")) return;
@@ -781,7 +787,16 @@ webSearchBtn.onclick = ()=>{
     if(e.key==="Enter") send();
   });
 };
+webOkBtn.onclick = async ()=>{
+  let url = webInput.value.trim();
+  if(!url) return;
 
+  await scrapeWebsite(url);
+  websiteURL = url;
+  showWebsiteBox(url);
+
+  webPopup.style.display = "none";
+};
 </script>
 <div id="webPopup" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
 background:#111; border:1px solid #fff; padding:20px; border-radius:12px; z-index:2000; box-shadow:0 0 25px #ffd900;">
