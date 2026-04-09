@@ -56,9 +56,8 @@ function detectProductQuery(text) {
 #inputArea{
   display:flex;
   align-items:center;
-  gap:8px;
+  gap:10px;
   margin-top:10px;
-  position:relative;
 }
 
 /* POPUP MENU */
@@ -185,6 +184,7 @@ button:hover{box-shadow:0 0 35px #ffd900;}
 #inputWrapper{
   position:relative;
   flex:1;
+  display:flex;
 }
 
 #msg{
@@ -194,6 +194,9 @@ button:hover{box-shadow:0 0 35px #ffd900;}
 #msg{
   width:100%;
   padding-left:40px; /* space for + */
+}
+#sendBtn{
+  flex-shrink:0;
 }
 
 /* PLUS INSIDE INPUT */
@@ -346,6 +349,11 @@ a.link{
   <div id="inputWrapper">
     
     <!-- PLUS -->
+<div id="inputArea">
+
+  <div id="inputWrapper">
+
+    <!-- PLUS -->
     <div id="plusBtn">
       <svg width="18" height="18" viewBox="0 0 24 24">
         <path d="M12 5v14M5 12h14"
@@ -355,19 +363,17 @@ a.link{
       </svg>
     </div>
 
-    <!-- INPUT BACK -->
+    <!-- INPUT -->
     <input id="msg" placeholder="Type here.....">
 
   </div>
 
-  <!-- SEND BUTTON -->
+  <!-- SEND BUTTON (ONLY ONE) -->
   <button id="sendBtn">Send</button>
 
+  <!-- FILE INPUT -->
   <input type="file" id="fileInput" style="display:none;">
-</div>
-<button id="sendBtn">Send</button>
-  <!-- Hidden file input -->
-  <input type="file" id="fileInput" style="display:none;">
+
 </div>
 
 <!-- POPUP MENU -->
@@ -529,40 +535,21 @@ addFileBtn.onclick = () => {
   fileInput.click();
 };
 fileInput.onchange = async (e) => {
-  filePreview.innerHTML = `
-  <div class="fileBox">
-    <img src="${icon}" width="18">
-    <span>${file.name}</span>
-    <span class="removeFile">✖</span>
-  </div>
-`;
-
   let file = e.target.files[0];
   if(!file) return;
 
   uploadedFileName = file.name;
 
-  // detect icon
-function getFileIcon(fileName){
-  let ext = fileName.split(".").pop().toLowerCase();
+  let icon = getFileIcon(file.name);
 
-  const icons = {
-    pdf: "https://cdn-icons-png.flaticon.com/512/337/337946.png",
-    doc: "https://cdn-icons-png.flaticon.com/512/337/337932.png",
-    docx: "https://cdn-icons-png.flaticon.com/512/337/337932.png",
-    txt: "https://cdn-icons-png.flaticon.com/512/3022/3022256.png",
-    xls: "https://cdn-icons-png.flaticon.com/512/732/732220.png",
-    xlsx: "https://cdn-icons-png.flaticon.com/512/732/732220.png",
-    ppt: "https://cdn-icons-png.flaticon.com/512/732/732224.png",
-    pptx: "https://cdn-icons-png.flaticon.com/512/732/732224.png",
-    zip: "https://cdn-icons-png.flaticon.com/512/2306/2306185.png"
-  };
+  filePreview.innerHTML = `
+    <div class="fileBox">
+      <img src="${icon}" width="18">
+      <span>${file.name}</span>
+      <span class="removeFile">✖</span>
+    </div>
+  `;
 
-  return icons[ext] || "https://cdn-icons-png.flaticon.com/512/565/565547.png";
-}
-let icon = getFileIcon(file.name);
-
-  // REMOVE BUTTON
   document.querySelector(".removeFile").onclick = ()=>{
     uploadedFileText = "";
     uploadedFileName = "";
@@ -570,8 +557,7 @@ let icon = getFileIcon(file.name);
     fileInput.value = "";
   };
 
-  // 🔥 START SCRAPING IN BACKGROUND
-await scrapeFile(file);
+  await scrapeFile(file);
   plusMenu.style.display = "none";
 };
  
