@@ -11,6 +11,48 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   
 <script>
+const webSearchBtn = document.getElementById("webSearchBtn");
+const webPopup = document.getElementById("webPopup");
+const webInput = document.getElementById("webInput");
+const webOkBtn = document.getElementById("webOkBtn");
+
+let websiteData = "";
+let websiteURL = "";
+
+webSearchBtn.onclick = ()=>{
+  plusMenu.style.display = "none";
+  webPopup.style.display = "block";
+};
+
+webOkBtn.onclick = ()=>{
+  let url = webInput.value.trim();
+  if(!url) return alert("Enter a valid URL");
+
+  webPopup.style.display = "none";
+  websiteURL = url;
+
+  showWebsiteBox(url);
+
+  scrapeWebsite(url);
+};
+function showWebsiteBox(url){
+
+  let domain = (new URL(url)).hostname;
+
+  filePreview.innerHTML = `
+    <div class="fileBox">
+      <img src="https://www.google.com/s2/favicons?domain=${domain}">
+      <span>${domain}</span>
+      <span class="removeFile">✖</span>
+    </div>
+  `;
+
+  document.querySelector(".removeFile").onclick = ()=>{
+    websiteData = "";
+    websiteURL = "";
+    filePreview.innerHTML = "";
+  };
+}
 function createAmazonSearchLink(query) {
   const tag = "psr0a-21";
   const cleanQuery = query.replace(/undefined/g, "").trim();
@@ -44,8 +86,21 @@ function detectProductQuery(text) {
   transition:0.2s;
 }
 
+#plusBtn{
+  position:absolute;
+  left:10px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:20px;
+  cursor:pointer;
+  color:#fff;
+  background:none;
+  border:none;
+}
+
+/* glow ONLY text */
 #plusBtn:hover{
-  box-shadow:0 0 25px #fff, 0 0 50px #fff;
+  text-shadow:0 0 8px #fff, 0 0 18px #fff;
 }
 
 /* FIX INPUT SHIFT */
@@ -246,15 +301,37 @@ a.link{
 }
 .analysing{
   font-size:12px;
-  opacity:0.6;
   color:#fff;
-  animation:glowMove 1.5s linear infinite;
+  display:inline-block;
 }
 
-@keyframes glowMove{
-  0%{text-shadow:0 0 5px #fff;}
-  50%{text-shadow:0 0 20px #fff;}
-  100%{text-shadow:0 0 5px #fff;}
+.analysing span{
+  opacity:0.3;
+  animation:waveGlow 1.5s infinite;
+}
+
+.analysing span:nth-child(1){animation-delay:0s;}
+.analysing span:nth-child(2){animation-delay:0.1s;}
+.analysing span:nth-child(3){animation-delay:0.2s;}
+.analysing span:nth-child(4){animation-delay:0.3s;}
+.analysing span:nth-child(5){animation-delay:0.4s;}
+.analysing span:nth-child(6){animation-delay:0.5s;}
+.analysing span:nth-child(7){animation-delay:0.6s;}
+.analysing span:nth-child(8){animation-delay:0.7s;}
+.analysing span:nth-child(9){animation-delay:0.8s;}
+.analysing span:nth-child(10){animation-delay:0.9s;}
+
+@keyframes waveGlow{
+  0%{opacity:0.3; text-shadow:none;}
+  50%{opacity:1; text-shadow:0 0 10px #fff;}
+  100%{opacity:0.3;}
+}
+.plusItem{
+  color:#fff;
+}
+
+.plusItem::before{
+  color:#fff !important;
 }
 </style>
 </head>
@@ -302,6 +379,7 @@ a.link{
 <!-- POPUP MENU -->
 <div id="plusMenu">
   <div class="plusItem" id="addFileBtn">📎 Add Files & Documents</div>
+  <div class="plusItem" id="webSearchBtn">🌐 Web Search</div>
   <div class="plusItem" id="codeModeQuick">Code /</div>
   <div class="plusItem" id="exploreModeQuick">Explore</div>
   <div class="plusItem" id="voiceModeQuick">Voice Mode</div>
@@ -482,6 +560,22 @@ function fastType(el,text){
 
   typePart();
 }
+async function scrapeWebsite(url){
+
+  try{
+    let res = await fetch("/api/scrape",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({url})
+    });
+
+    let data = await res.json();
+    websiteData = `[Website: ${url}]\n` + data.text;
+
+  }catch{
+    websiteData = "[Failed to fetch website data]";
+  }
+}
 async function scrapeFile(file){
 
   // TXT
@@ -591,9 +685,39 @@ async function getWikiData(query){
 
 /* SEND (API LOGIC UNCHANGED) */
 async function send(){
-  let analysing = document.createElement("div");
+  let text = msg.value.trim();
+if(uploadedFileText || websiteData){
+  finalPrompt = `
+User message:
+${text}
+
+Extra data:
+${uploadedFileText || ""}
+${websiteData || ""}
+
+Use this context.
+`;
+}
+if(!text){
+  alert("Type something first");
+  return;
+}
+if(uploadedFileName){
+  let fileTag = document.createElement("div");
+  fileTag.className = "fileBox";
+  fileTag.innerHTML = `<span style="color:white;">📎</span> ${uploadedFileName}`;
+  userMsg.appendChild(fileTag);
+}
+
+if(websiteURL){
+  let siteTag = document.createElement("div");
+  siteTag.className = "fileBox";
+  siteTag.innerHTML = websiteURL;
+  userMsg.appendChild(siteTag);
+}
+ let analysing = document.createElement("div");
 analysing.className = "analysing";
-analysing.textContent = "Analysing...";
+analysing.innerHTML = "Analysing...".split("").map(l=>`<span>${l}</span>`).join("");
 messages.appendChild(analysing);
   let text = msg.value.trim();
   if(!text) return;
@@ -608,7 +732,7 @@ userMsg.innerHTML = `You: ${text}`;
 if(uploadedFileName){
   let fileTag = document.createElement("div");
   fileTag.className = "fileBox";
-  fileTag.innerHTML = `📎 ${uploadedFileName}`;
+  fileTag.innerHTML = `<span style="color:white;">📎</span> ${uploadedFileName}`;
   userMsg.appendChild(fileTag);
 }
 messages.appendChild(userMsg);  msg.value = "";
@@ -687,6 +811,8 @@ ${text}
   uploadedFileName = "";
   filePreview.innerHTML = "";
   fileInput.value = "";
+  websiteData = "";
+websiteURL = "";
 }
 
 
@@ -838,6 +964,14 @@ if(instant){
 msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
 window.addEventListener("load", autoGreeting);
 </script>
+<div id="webPopup" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+background:#111; border:1px solid #fff; padding:20px; border-radius:12px; z-index:2000; box-shadow:0 0 25px #ffd900;">
+  
+  <input id="webInput" placeholder="Enter website link..."
+  style="width:100%; padding:10px; margin-bottom:10px; background:black; color:#ffd900; border:1px solid #ffd900; border-radius:8px;">
+
+  <button id="webOkBtn">OK</button>
+</div>
 
 </body>
 </html>
