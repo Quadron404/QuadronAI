@@ -89,6 +89,7 @@ function detectProductQuery(text) {
   padding:10px;
   cursor:pointer;
   color:#fff;
+  filter: grayscale(1) brightness(2); /* makes emojis white */
   text-shadow:0 0 10px #fff;
 }
 
@@ -447,12 +448,14 @@ voiceModeBtn.onclick=()=>{closeMenu();voiceMode();};
 plusBtn.onclick = (e) => {
   e.stopPropagation();
 
+  // Show first so height is calculated
+  plusMenu.style.display = "flex";
+
   let rect = plusBtn.getBoundingClientRect();
 
+  // OPEN UPWARDS (like ChatGPT)
   plusMenu.style.left = rect.left + "px";
   plusMenu.style.top = (rect.top - plusMenu.offsetHeight - 10) + "px";
-
-  plusMenu.style.display = plusMenu.style.display === "flex" ? "none" : "flex";
 };
   document.addEventListener("click", ()=>{
   plusMenu.style.display="none";
@@ -754,6 +757,33 @@ if(old) old.remove();
 msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
 
 window.onload = ()=>{
+  let webSearchBtn, webPopup, webInput, webOkBtn;
+
+window.onload = () => {
+
+  webSearchBtn = document.getElementById("webSearchBtn");
+  webPopup = document.getElementById("webPopup");
+  webInput = document.getElementById("webInput");
+  webOkBtn = document.getElementById("webOkBtn");
+
+  webSearchBtn.onclick = ()=>{
+    plusMenu.style.display="none";
+    webPopup.style.display="block";
+  };
+
+  webOkBtn.onclick = async ()=>{
+    let url = webInput.value.trim();
+    if(!url) return;
+
+    await scrapeWebsite(url);
+    websiteURL = url;
+    showWebsiteBox(url);
+
+    webPopup.style.display = "none";
+  };
+
+  autoGreeting();
+};
   document.getElementById("bgScrapeBtn").onclick = ()=>{
   plusMenu.style.display="none";
 
