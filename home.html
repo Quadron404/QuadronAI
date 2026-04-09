@@ -576,34 +576,7 @@ ${text}
   fileInput.value = "";
 }
 
-// ADD AMAZON BOX IF PRODUCT QUERY
-if(amazonLink){
 
-  let amazonBox = document.createElement("div");
-  amazonBox.className = "sourceBox";
-
-  amazonBox.innerHTML = `
-    <img src="https://www.amazon.in/favicon.ico">
-    <div class="sourceText">
-      <div class="sourceTitle">View on Amazon</div>
-      <div class="sourceLink">${text}</div>
-    </div>
-  `;
-
-  amazonBox.onclick = ()=>{
-    window.open(amazonLink, "_blank");
-  };
-
-  setTimeout(()=>{
-    p.appendChild(amazonBox);
-  }, 100);
-}
-
-    return;
-  }
-}
-  fastType(p,"Quadron: "+reply);
-}
 
 /* CODE BOX */
 function createCodeBox(parent,code, instant=false){
