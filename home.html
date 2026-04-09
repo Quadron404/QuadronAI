@@ -782,10 +782,7 @@ webSearchBtn.onclick = ()=>{
 };
   autoGreeting();
 
-  sendBtn.onclick = send;
-  msg.addEventListener("keydown", e=>{
-    if(e.key==="Enter") send();
-  });
+  
 };
 webOkBtn.onclick = async ()=>{
   let url = webInput.value.trim();
