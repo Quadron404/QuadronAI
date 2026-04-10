@@ -75,7 +75,7 @@ header div:first-child{font-weight:bold;text-shadow:0 0 15px #ffd900;}
 .menuFooter span{color:#ffd900;text-shadow:0 0 10px #ffd900;}
 #chat{max-width:800px;margin:auto;padding:10px;}
 #messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;border-radius:12px;box-shadow:0 0 20px #ffd900;}
-#inputArea{display:flex;gap:8px;margin-top:10px;}
+#inputArea{display:flex;gap:8px;margin-top:10px;position:relative;}
 input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
 input::placeholder{color:rgba(255,255,255,0.3);}
 button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;border-radius:20px;box-shadow:0 0 15px #ffd900;transition:.2s;}
@@ -452,7 +452,7 @@ async function getWikiData(query){
 
 /* SEND (API LOGIC UNCHANGED) */
 async function send(){
-  let text=msg.value.trim();
+ 
   let text=msg.value.trim();
 
 if(!text && !attachedFile) return;
@@ -462,7 +462,7 @@ let amazonLink = "";
 if(isProductQuery){
   amazonLink = createAmazonSearchLink(text);
 }
-  if(!text)return;
+  
 
  messages.innerHTML += `<p class="userText">You: ${text || ""}</p>`;
 
