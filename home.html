@@ -146,7 +146,22 @@ a.link{
 }
 /* PLUS BUTTON */
 #plusBtn{
-  position:relative; /* anchor parent */
+  position:relative;
+  font-size:22px;
+  color:#fff;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:35px;
+  height:35px;
+  border-radius:50%;
+  transition:0.2s;
+  text-shadow:0 0 8px #fff, 0 0 20px #fff;
+}
+
+#plusBtn:hover{
+  text-shadow:0 0 15px #fff, 0 0 35px #fff, 0 0 60px #fff;
 }
 
 #plusMenu{
@@ -233,8 +248,9 @@ a.link{
 
 <div id="chat">
   <div id="messages"></div>
-  <div id="inputArea">
-  <div id="plusBtn">
+ <div id="inputArea">
+  <div id="plusBtn">+</div>
+
   <input id="msg" placeholder="Type here.....">
   <button id="sendBtn">Send</button>
 
@@ -243,7 +259,9 @@ a.link{
 </div>
 
 <!-- POPUP MENU -->
-<div id="plusMenu">
+<div id="plusBtn">
+  +
+  <div id="plusMenu">
     <div class="plusItem" id="addFileBtn">📎 Add Files & Documents</div>
     <div class="plusItem" id="codeModeQuick">Code /</div>
     <div class="plusItem" id="exploreModeQuick">Explore</div>
