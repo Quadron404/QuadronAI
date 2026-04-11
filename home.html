@@ -217,7 +217,18 @@ req.onsuccess = e => {
 function saveChat(id, data){
   let tx = db.transaction("chats", "readwrite");
   let store = tx.objectStore("chats");
-  store.put({ id, ...data });
+
+  let getReq = store.get(id);
+
+  getReq.onsuccess = () => {
+    let existing = getReq.result || {};
+
+    store.put({
+      id,
+      title: data.title || existing.title || "New Chat",
+      messages: data.messages || existing.messages || []
+    });
+  };
 }
 function loadChatList(){
   let history = document.getElementById("chatHistory");
