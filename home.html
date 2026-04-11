@@ -9,8 +9,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/monokai-sublime.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5530750184850974" crossorigin="anonymous"></script>
-
 <script>
 function createAmazonSearchLink(query) {
   const tag = "psr0a-21";
@@ -130,6 +128,7 @@ button:hover{box-shadow:0 0 35px #ffd900;}
   border-color:#ffd900;
 }
 
+/* CODE BOX ADDITIONS ONLY */
 .codeBox{background:#000;border:1px solid #ffd900;border-radius:10px;margin-top:10px;overflow:hidden;}
 .codeTop{display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #ffd900;}
 .codeTitle{color:#fff;text-shadow:0 0 10px #fff;}
@@ -215,10 +214,16 @@ a.link{
 <div id="chat">
   <div id="messages"></div>
   <div id="inputArea">
+
   <input id="msg" placeholder="Type here.....">
   <button id="sendBtn">Send</button>
+
+  <!-- Hidden file input -->
   <input type="file" id="fileInput" style="display:none;">
 </div>
+
+
+<!-- FILE PREVIEW -->
 <div id="filePreview"></div>
 </div>
 
@@ -243,13 +248,15 @@ req.onsuccess = e => {
   db = e.target.result;
   loadChatList();
 };
-
 function saveChat(id, data){
   let tx = db.transaction("chats", "readwrite");
   let store = tx.objectStore("chats");
+
   let getReq = store.get(id);
+
   getReq.onsuccess = () => {
     let existing = getReq.result || {};
+
     store.put({
       id,
       title: data.title || existing.title || "New Chat",
@@ -257,12 +264,13 @@ function saveChat(id, data){
     });
   };
 }
-
 function loadChatList(){
   let history = document.getElementById("chatHistory");
   history.innerHTML = "";
+
   let tx = db.transaction("chats", "readonly");
   let store = tx.objectStore("chats");
+
   store.openCursor().onsuccess = e => {
     let cursor = e.target.result;
     if(cursor){
@@ -271,44 +279,51 @@ function loadChatList(){
       div.style.cursor = "pointer";
       div.style.padding = "6px";
       div.style.borderBottom = "1px solid #333";
-      let chatId = cursor.value.id;
-      div.onclick = () => {
-        let tx = db.transaction("chats", "readonly");
-        let store = tx.objectStore("chats");
-        let req = store.get(chatId);
-        req.onsuccess = () => { if(req.result) loadChat(req.result); };
-      };
+
+let chatId = cursor.value.id;
+
+div.onclick = () => {
+  let tx = db.transaction("chats", "readonly");
+  let store = tx.objectStore("chats");
+  let req = store.get(chatId);
+
+  req.onsuccess = () => {
+    if(req.result) loadChat(req.result);
+  };
+};
       history.appendChild(div);
       cursor.continue();
     }
   };
 }
-
 function loadChat(chat){
   currentChatId = chat.id;
   isFirstMessage = false;
   currentMessages = Array.isArray(chat.messages) ? chat.messages : [];
   messages.innerHTML = "";
   closeMenu();
-  (chat.messages || []).forEach(m=>{
-    if(m.role === "user"){
-      let p = document.createElement("p");
-      p.className = "userText";
-      p.textContent = "You: " + m.content;
-      messages.appendChild(p);
+
+(chat.messages || []).forEach(m=>{
+  if(m.role === "user"){
+    let p = document.createElement("p");
+    p.className = "userText";
+    p.textContent = "You: " + m.content;
+    messages.appendChild(p);
+  }else{
+    let p = document.createElement("p");
+    messages.appendChild(p);
+
+    if(m.type === "code"){
+      createCodeBox(p, m.content, true);
     }else{
-      let p = document.createElement("p");
-      messages.appendChild(p);
-      if(m.type === "code"){
-        createCodeBox(p, m.content, true);
-      }else{
-        p.className = "aiText";
-        p.textContent = "Quadron: " + m.content;
-      }
+      p.className = "aiText";
+      p.textContent = "Quadron: " + m.content;
     }
-  });
+  }
+});
 }
 
+/* SAFE ELEMENT REFERENCES */
 const menuBtn = document.getElementById("menuBtn");
 const overlay = document.getElementById("overlay");
 const sidePanel = document.getElementById("sidePanel");
@@ -316,22 +331,26 @@ const chat = document.getElementById("chat");
 const messages = document.getElementById("messages");
 const msg = document.getElementById("msg");
 const sendBtn = document.getElementById("sendBtn");
+
 sendBtn.onclick = send;
 
 const profileName = document.getElementById("profileName");
 const profileEmail = document.getElementById("profileEmail");
 const profilePic = document.getElementById("profilePic");
+
 const menuProfile = document.getElementById("menuProfile");
 const newChatBtn = document.getElementById("newChatBtn");
 const codeModeBtn = document.getElementById("codeModeBtn");
 const exploreModeBtn = document.getElementById("exploreModeBtn");
 const voiceModeBtn = document.getElementById("voiceModeBtn");
 
+/* USER (UNCHANGED) */
 let user = JSON.parse(localStorage.getItem("quadronUser")) || {};
 profileName.textContent = user.name || "Guest";
 profileEmail.textContent = user.email || "";
 profilePic.src = user.picture || "https://via.placeholder.com/40";
 
+/* MENU */
 menuBtn.addEventListener("click", ()=>{
   sidePanel.classList.add("open");
   overlay.style.display="block";
@@ -350,35 +369,53 @@ function menuAction(fn){
   if(fn) fn();
 }
 
+/* MODES */
 let mode="normal";
 function resetChat(){messages.innerHTML="";}
-function newChat(){ mode="normal"; resetChat(); currentChatId = null; isFirstMessage = true; }
+
+function newChat(){
+  mode="normal";
+  resetChat();
+  currentChatId = null;
+  isFirstMessage = true;
+}
 function codeMode(){mode="code";resetChat();fastType(messages,"Describe What You Want To Code");}
 function exploreMode(){mode="explore";resetChat();fastType(messages,"Explore The Universe");}
 function voiceMode(){window.location.href="voice.html";}
 
+/* MENU BINDINGS (FORCE CLOSE) */
 menuProfile.onclick=()=>{closeMenu();window.location.href="profile.html";}
 newChatBtn.onclick=()=>menuAction(newChat);
 codeModeBtn.onclick=()=>menuAction(codeMode);
 exploreModeBtn.onclick=()=>menuAction(exploreMode);
 voiceModeBtn.onclick=()=>{closeMenu();voiceMode();};
 
+/* TYPE */
 function fastType(el,text){
   let span=document.createElement("span");
   span.className="aiText";
   el.appendChild(span);
+
+  // Split text into parts (text + links)
   let parts = text.split(/(<a.*?>.*?<\/a>)/g);
+
   let i = 0;
+
   function typePart(){
     if(i >= parts.length) return;
+
     let part = parts[i];
+
+    // If it's a link → render instantly
     if(part.startsWith("<a")){
       span.innerHTML += part;
       i++;
       typePart();
     }else{
+      // Fast typing for normal text
       let j = 0;
-      let speed = 2;
+      let speed = 2; // VERY FAST
+
       let int = setInterval(()=>{
         span.innerHTML += part[j++];
         if(j >= part.length){
@@ -389,55 +426,56 @@ function fastType(el,text){
       }, speed);
     }
   }
+
   typePart();
 }
-
-// ADSENSE INJECTION FUNCTION
-function injectAd() {
-  const adContainer = document.createElement("div");
-  adContainer.style.margin = "20px 0";
-  adContainer.innerHTML = `
-    <ins class="adsbygoogle"
-         style="display:block"
-         data-ad-client="ca-pub-5530750184850974"
-         data-ad-slot="2349387814"
-         data-ad-format="auto"
-         data-full-width-responsive="true"></ins>
-  `;
-  messages.appendChild(adContainer);
-  try {
-    (adsbygoogle = window.adsbygoogle || []).push({});
-  } catch (e) {
-    console.error("AdSense Error: ", e);
-  }
-}
-
 async function autoGreeting(){
+
+  // Run only once per tab session
   if(sessionStorage.getItem("greeted")) return;
+
+  // Get real time from user system
   let hour = new Date().getHours();
-  let timeText = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
+  let timeText = "";
+
+  if(hour < 12) timeText = "morning";
+  else if(hour < 17) timeText = "afternoon";
+  else timeText = "evening";
+
   let name = user.name || "Guest";
+
+  // Build sarcastic AI prompt
   let prompt = `Write a short sarcastic greeting saying "Good ${timeText}" to ${name}. Keep it funny, slightly rude, and human-like. No extra explanation.`;
+
   try{
     let res = await fetch("/api/chat",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({message: prompt})
     });
+
     let reply = (await res.json()).reply;
+
     let p = document.createElement("p");
     messages.appendChild(p);
-    fastType(p, "Quadron: " + reply);
-    sessionStorage.setItem("greeted", true);
-    // Optional: Inject ad after greeting
-    setTimeout(injectAd, 1500);
-  }catch(e){ console.error("Greeting failed", e); }
-}
 
+    fastType(p, "Quadron: " + reply);
+    updateChat("ai",reply);
+
+    // Mark as greeted (ONLY for this session)
+    sessionStorage.setItem("greeted", true);
+
+  }catch(e){
+    console.error("Greeting failed", e);
+  }
+}
 function createSourceBox(url){
+
   let domain = (new URL(url)).hostname;
+
   let box = document.createElement("div");
   box.className = "sourceBox";
+
   box.innerHTML = `
     <img src="https://www.google.com/s2/favicons?domain=${domain}" />
     <div class="sourceText">
@@ -445,10 +483,14 @@ function createSourceBox(url){
       <div class="sourceLink">${url}</div>
     </div>
   `;
-  box.onclick = ()=>{ window.open(url, "_blank"); };
+
+  box.onclick = ()=>{
+    window.open(url, "_blank");
+  };
+
   return box;
 }
-
+/* WIKI FIXED (ONLY SYNTAX FIX) */
 async function getWikiData(query){
   try{
     let res=await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
@@ -457,145 +499,345 @@ async function getWikiData(query){
   }catch{return "";}
 }
 
+/* SEND (API LOGIC UNCHANGED) */
 async function send(){
   let text=msg.value.trim();
   let isProductQuery = detectProductQuery(text);
-  let amazonLink = isProductQuery ? createAmazonSearchLink(text) : "";
+let amazonLink = "";
+
+if(isProductQuery){
+  amazonLink = createAmazonSearchLink(text);
+}
   if(!text)return;
-  if(isFirstMessage){
-    currentChatId = "chat_" + Date.now();
-    saveChat(currentChatId,{ title: "New Chat", messages: [] });
-    fetch("/api/chat",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({ message: "Write a 3 or 4 word title only, nothing else: " + text })
+  // FIRST MESSAGE LOGIC
+if(isFirstMessage){
+
+  currentChatId = "chat_" + Date.now();
+
+  // CREATE CHAT IMMEDIATELY (IMPORTANT FIX)
+saveChat(currentChatId,{
+  title: "New Chat",
+  messages: []
+});
+
+  // SECOND API CALL (TITLE)
+  fetch("/api/chat",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      message: "Write a 3 or 4 word title only, nothing else: " + text
     })
-    .then(res=>res.json())
-    .then(data=>{
-      let title = data.reply.trim();
-      saveChat(currentChatId,{ title: title, messages: [] });
-      loadChatList();
+  })
+  .then(res=>res.json())
+  .then(data=>{
+    let title = data.reply.trim();
+
+    saveChat(currentChatId,{
+      title: title,
+      messages: []
     });
-    isFirstMessage = false;
-  }
+
+    loadChatList();
+  });
+
+  isFirstMessage = false;
+}
+
   messages.innerHTML+=`<p class="userText">You: ${text}</p>`;
   currentMessages.push({ role: "user", content: text });
   msg.value="";
+
   let p=document.createElement("p");
   messages.appendChild(p);
+
   let finalPrompt=text;
+
   if(mode==="code"){
-    finalPrompt = `You are a code generator. Rules: Output ONLY complete working code, No explanations, No markdown, Directly runnable. Task: ${text}`;
-  }
+  finalPrompt = `
+You are a code generator.
+
+Rules:
+- Output ONLY complete working code
+- No explanations
+- No comments unless inside code
+- No markdown (no \`\`\`)
+- No "Here is code"
+- No text before or after
+- Code must be directly runnable
+- If HTML → include full <!DOCTYPE html>
+
+Task:
+${text}
+`;
+}
   if(mode==="explore"){
     let wiki=await getWikiData(text);
-    finalPrompt=`Use this data:\n${wiki}\n\nExplain clearly and give one source link at end. DO NOT PROVIDE AMAZON.COM LINK IN SOURCE.\n${text}`;
+    finalPrompt=`Use this data:\n${wiki}\n\nExplain clearly and give one source link at end do not provide html codes with link just provide links in end as "Source: link" DO NOT PROVIDE AMAZON.COM LINK IN SOURCE IN CASE OF AMAZON LEAVE SOURCE AREA EMPTY.\n${text}`;
   }
+
   let history = currentMessages.slice(-6).map(m => `${m.role}: ${m.content}`).join("\n");
-  let res=await fetch("/api/chat",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({ message: `Conversation so far:\n${history}\n\nUser: ${finalPrompt}` })
-  });
+
+let res=await fetch("/api/chat",{
+  method:"POST",
+  headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({
+    message: `Conversation so far:\n${history}\n\nUser: ${finalPrompt}`
+  })
+});
   let reply=(await res.json()).reply;
   if(mode==="code"){
-    reply = reply.replace(/```[\w]*/g,"").replace(/```/g,"").trim();
-    createCodeBox(p,reply);
-    currentMessages.push({ role: "ai", content: reply, type: "code" });
-    saveChat(currentChatId, { title: "Chat", messages: currentMessages });
-    injectAd(); // Inject Ad after Code response
-    return;
-  }
-  if(mode==="explore"){
-    let sourceMatch = reply.match(/Source:\s*([^\s]+)/i);
-    if(sourceMatch){
-      let url = sourceMatch[1].replace(/undefined+$/i, "");
-      if(!url.startsWith("http")) url = "https://" + url;
-      reply = reply.replace(/Source:\s*[^\s]+/i, "");
-      let box = createSourceBox(url);
-      fastType(p,"Quadron: "+reply);
-      currentMessages.push({ role: "ai", content: reply });
-      saveChat(currentChatId, { title: "Chat", messages: currentMessages });
-      if(amazonLink){
-        let amazonBox = document.createElement("div");
-        amazonBox.className = "sourceBox";
-        amazonBox.innerHTML = `<img src="https://www.amazon.in/favicon.ico"><div class="sourceText"><div class="sourceTitle">View on Amazon</div><div class="sourceLink">${text}</div></div>`;
-        amazonBox.onclick = ()=>{ window.open(amazonLink, "_blank"); };
-        setTimeout(()=>{ p.appendChild(amazonBox); }, 100);
-      }
-      injectAd(); // Inject Ad after Explore response
-      return;
-    }
-  }
-  fastType(p,"Quadron: "+reply);
-  currentMessages.push({ role: "ai", content: reply });
-  saveChat(currentChatId, { title: "Chat", messages: currentMessages });
-  injectAd(); // Inject Ad after Normal response
+  reply = reply
+    .replace(/```[\w]*/g,"")
+    .replace(/```/g,"")
+    .trim();
 }
 
+ if(mode==="code"){
+  createCodeBox(p,reply);
+  currentMessages.push({ role: "ai", content: reply, type: "code" });
+
+  saveChat(currentChatId, {
+    title: "Chat",
+    messages: currentMessages
+  });
+
+  return;
+}
+if(mode==="explore"){
+
+  let sourceMatch = reply.match(/Source:\s*([^\s]+)/i);
+
+  if(sourceMatch){
+
+    let url = sourceMatch[1];
+
+    // Clean undefined from end
+    url = url.replace(/undefined+$/i, "");
+
+    // Add https if missing
+    if(!url.startsWith("http")){
+      url = "https://" + url;
+    }
+
+    // Remove Source text from reply
+    reply = reply.replace(/Source:\s*[^\s]+/i, "");
+
+    // Create source box
+    let box = createSourceBox(url);
+    fastType(p,"Quadron: "+reply);
+    currentMessages.push({ role: "ai", content: reply });
+
+let existingTitle = "New Chat";
+
+let tx = db.transaction("chats", "readonly");
+let store = tx.objectStore("chats");
+let reqTitle = store.get(currentChatId);
+
+reqTitle.onsuccess = () => {
+  if(reqTitle.result && reqTitle.result.title){
+    existingTitle = reqTitle.result.title;
+  }
+
+  saveChat(currentChatId, {
+    title: existingTitle,
+    messages: currentMessages
+  });
+};
+
+// ADD AMAZON BOX IF PRODUCT QUERY
+if(amazonLink){
+
+  let amazonBox = document.createElement("div");
+  amazonBox.className = "sourceBox";
+
+  amazonBox.innerHTML = `
+    <img src="https://www.amazon.in/favicon.ico">
+    <div class="sourceText">
+      <div class="sourceTitle">View on Amazon</div>
+      <div class="sourceLink">${text}</div>
+    </div>
+  `;
+
+  amazonBox.onclick = ()=>{
+    window.open(amazonLink, "_blank");
+  };
+
+  setTimeout(()=>{
+    p.appendChild(amazonBox);
+  }, 100);
+}
+
+    return;
+  }
+}
+  fastType(p,"Quadron: "+reply);
+currentMessages.push({ role: "ai", content: reply });
+
+let existingTitle = "New Chat";
+
+let tx = db.transaction("chats", "readonly");
+let store = tx.objectStore("chats");
+let reqTitle = store.get(currentChatId);
+
+reqTitle.onsuccess = () => {
+  if(reqTitle.result && reqTitle.result.title){
+    existingTitle = reqTitle.result.title;
+  }
+
+  saveChat(currentChatId, {
+    title: existingTitle,
+    messages: currentMessages
+  });
+};
+}
+
+/* CODE BOX */
 function createCodeBox(parent,code, instant=false){
+  
+  let originalCode = code;
   let box=document.createElement("div");
   box.className="codeBox";
+
   let top=document.createElement("div");
   top.className="codeTop";
+
   let title=document.createElement("div");
   title.className="codeTitle";
   function detectCodeName(code){
-    if(code.includes("<html")) return "HTML File";
-    if(code.includes("function") || code.includes("=>")) return "JavaScript File";
-    if(code.includes("import") && code.includes("from")) return "Python File";
-    if(code.includes("#include")) return "C/C++ File";
-    return "Code";
-  }
-  title.innerHTML="&lt;/&gt; " + detectCodeName(code);
+  if(code.includes("<html")) return "HTML File";
+  if(code.includes("function") || code.includes("=>")) return "JavaScript File";
+  if(code.includes("import") && code.includes("from")) return "Python File";
+  if(code.includes("#include")) return "C/C++ File";
+  return "Code";
+}
+
+let codeName = detectCodeName(code);
+  title.innerHTML="&lt;/&gt; " + codeName;
   let btns=document.createElement("div");
   btns.className="codeBtns";
-  let copy=document.createElement("span"); copy.textContent="Copy";
-  let run=document.createElement("span"); run.textContent="Run";
-  let debug=document.createElement("span"); debug.textContent="Debugg";
+
+  let copy=document.createElement("span");
+  copy.textContent="Copy";
+
+  let run=document.createElement("span");
+  run.textContent="Run";
+
+  let debug=document.createElement("span");
+  debug.textContent="Debugg";
+
   btns.append(copy,run,debug);
   top.append(title,btns);
   let loaderWrap = document.createElement("div");
-  loaderWrap.style.display="flex"; loaderWrap.style.paddingLeft="8px";
-  let loader = document.createElement("div"); loader.className="loader";
+  loaderWrap.style.display="flex";
+  loaderWrap.style.paddingLeft="8px";
+
+  let loader = document.createElement("div");
+  loader.className="loader";
+
   loaderWrap.appendChild(loader);
+
   let pre=document.createElement("pre");
-  box.append(top); box.append(loaderWrap); parent.appendChild(box); box.appendChild(pre);
-  if(instant){
-    pre.textContent = code; loaderWrap.remove(); hljs.highlightElement(pre);
-  }else{
-    let i=0,txt="";
-    let int=setInterval(()=>{
-      txt+=code[i++]; pre.textContent=txt;
-      if(i>=code.length){ clearInterval(int); loaderWrap.remove(); hljs.highlightElement(pre); }
-    },1);
-  }
-  copy.onclick=()=>{ navigator.clipboard.writeText(code); copy.textContent="Copied !"; setTimeout(()=>copy.textContent="Copy",1500); };
-  run.onclick=()=>{
-    pre.style.display="none";
-    let existingFrame = box.querySelector("iframe"); if(existingFrame) existingFrame.remove();
-    let iframe=document.createElement("iframe"); iframe.style.width="100%"; iframe.style.height="300px";
-    let back=document.createElement("div"); back.className="backBtn"; back.textContent="Back";
-    top.innerHTML=""; top.append(title, back);
-    box.appendChild(iframe); iframe.contentDocument.write(code);
-    back.onclick=()=>{ iframe.remove(); pre.style.display="block"; top.innerHTML=""; top.append(title, btns); };
+
+  box.append(top);
+box.append(loaderWrap);
+  parent.appendChild(box);
+
+box.appendChild(pre);
+
+if(instant){
+  pre.textContent = code;
+  loaderWrap.remove();
+  hljs.highlightElement(pre);
+}else{
+  let i=0,txt="";
+  let int=setInterval(()=>{
+    txt+=code[i++];
+    pre.textContent=txt;
+
+    if(i>=code.length){
+      clearInterval(int);
+      loaderWrap.remove();
+      hljs.highlightElement(pre);
+    }
+  },1);
+}
+
+  copy.onclick=()=>{
+    navigator.clipboard.writeText(code);
+    copy.textContent="Copied !";
+    setTimeout(()=>copy.textContent="Copy",1500);
   };
-  debug.onclick=async()=>{
-    loaderWrap.style.display="flex"; if(!box.contains(loaderWrap)) box.insertBefore(loaderWrap, pre);
-    let res=await fetch("/api/chat",{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ message:`Fix this code. Return ONLY fixed code. No explanation:\n${code}` }) });
-    let fixed=(await res.json()).reply;
-    fixed = fixed.replace(/```[\w]*/g,"").replace(/```/g,"").trim();
-    code = fixed;
-    let i=0,txt="";
-    let int=setInterval(()=>{
-      txt+=fixed[i++]; pre.textContent=txt;
-      if(i>=fixed.length){ clearInterval(int); loaderWrap.style.display="none"; hljs.highlightElement(pre); }
-    },1);
+
+ run.onclick=()=>{
+
+  pre.style.display="none";
+
+  let existingFrame = box.querySelector("iframe");
+  if(existingFrame) existingFrame.remove();
+
+  let iframe=document.createElement("iframe");
+  iframe.style.width="100%";
+  iframe.style.height="300px";
+
+  let back=document.createElement("div");
+  back.className="backBtn";
+  back.textContent="Back";
+
+  top.innerHTML="";
+  top.append(title, back);
+
+  box.appendChild(iframe);
+  iframe.contentDocument.write(code);
+
+  back.onclick=()=>{
+    iframe.remove();
+    pre.style.display="block";
+
+    top.innerHTML="";
+    top.append(title, btns);
   };
+  };
+
+ debug.onclick=async()=>{
+
+  loaderWrap.style.display="flex";
+  if(!box.contains(loaderWrap)) box.insertBefore(loaderWrap, pre);
+
+  let res=await fetch("/api/chat",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      message:`Fix this code. Return ONLY fixed code. No explanation:\n${code}`
+    })
+  });
+
+  let fixed=(await res.json()).reply;
+
+  fixed = fixed
+    .replace(/```[\w]*/g,"")
+    .replace(/```/g,"")
+    .trim();
+
+  code = fixed;
+
+  let i=0,txt="";
+
+  let int=setInterval(()=>{
+    txt+=fixed[i++];
+    pre.textContent=txt;
+
+    if(i>=fixed.length){
+      clearInterval(int);
+      loaderWrap.style.display="none";
+      hljs.highlightElement(pre);
+    }
+  },1);
+};
 }
 
 msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
 window.addEventListener("load", autoGreeting);
 </script>
+
 </body>
 </html>
