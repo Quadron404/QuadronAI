@@ -420,6 +420,7 @@ async function autoGreeting(){
     messages.appendChild(p);
 
     fastType(p, "Quadron: " + reply);
+    updateChat("ai",reply);
 
     // Mark as greeted (ONLY for this session)
     sessionStorage.setItem("greeted", true);
