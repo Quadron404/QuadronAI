@@ -271,13 +271,16 @@ function updateChat(role, content){
   let req = store.get(currentChatId);
 
   req.onsuccess = () => {
-   let chat = req.result;
-if(!chat) return;
+  let chat = req.result;
+
+if(!chat){
+  chat = { id: currentChatId, title: "Chat", messages: [] };
+}
 
 if(!chat.messages) chat.messages = [];
 
 chat.messages.push({ role, content });
-    store.put(chat);
+store.put(chat);
   };
 }
 /* SAFE ELEMENT REFERENCES */
@@ -557,10 +560,7 @@ if(mode==="explore"){
 
     // Create source box
     let box = createSourceBox(url);
-    setTimeout(()=>{
-  p.appendChild(box);
-},100);
-
+   updateChat("user", text);
     fastType(p,"Quadron: "+reply);
     updateChat("ai", reply);
 
