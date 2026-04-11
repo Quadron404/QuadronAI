@@ -259,8 +259,11 @@ function loadChat(chat){
   closeMenu();
 
   (chat.messages || []).forEach(m=>{
-    messages.innerHTML += `<p class="${m.role==="user"?"userText":"aiText"}">${m.role==="user"?"You":"Quadron"}: ${m.content}</p>`;
-  });
+  let p = document.createElement("p");
+  p.className = m.role==="user" ? "userText" : "aiText";
+  p.textContent = (m.role==="user" ? "You: " : "Quadron: ") + m.content;
+  messages.appendChild(p);
+});
 }
 function updateChat(role, content){
   if(!currentChatId) return;
