@@ -235,7 +235,15 @@ function loadChatList(){
       div.style.padding = "6px";
       div.style.borderBottom = "1px solid #333";
 
-      div.onclick = () => loadChat(cursor.value);
+      div.onclick = () => {
+  let tx = db.transaction("chats", "readonly");
+  let store = tx.objectStore("chats");
+  let req = store.get(cursor.value.id);
+
+  req.onsuccess = () => {
+    loadChat(req.result);
+  };
+};
 
       history.appendChild(div);
       cursor.continue();
