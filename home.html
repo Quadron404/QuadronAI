@@ -274,18 +274,42 @@ function updateChat(role, content){
   let req = store.get(currentChatId);
 
   req.onsuccess = () => {
-  let chat = req.result;
+    let chat = req.result;
 
-if(!chat){
-  chat = { id: currentChatId, title: "Chat", messages: [] };
-}
+    // 🔥 CRITICAL FIX: force create chat if missing
+    if(!chat){
+      chat = {
+        id: currentChatId,
+        title: "New Chat",
+        messages: []
+      };
+    }
 
-if(!chat.messages) chat.messages = [];
+    // 🔥 ensure messages array exists
+    if(!Array.isArray(chat.messages)){
+      chat.messages = [];
+    }
 
-chat.messages.push({ role, content });
-store.put(chat);
+    // 🔥 prevent undefined messages
+    if(content && content !== "undefined"){
+      chat.messages.push({ role, content });
+    }
+
+    store.put(chat);
+  };
+
+  // 🔥 HANDLE FAILURE CASE (THIS WAS MISSING)
+  req.onerror = () => {
+    console.error("DB read failed, recreating chat");
+
+    store.put({
+      id: currentChatId,
+      title: "New Chat",
+      messages: [{ role, content }]
+    });
   };
 }
+
 /* SAFE ELEMENT REFERENCES */
 const menuBtn = document.getElementById("menuBtn");
 const overlay = document.getElementById("overlay");
