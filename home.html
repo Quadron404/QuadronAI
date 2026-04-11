@@ -170,6 +170,8 @@ a.link{
   <div class="menuItem" id="exploreModeBtn">Explore</div>
   <div class="menuItem" id="voiceModeBtn">Voice Mode</div>
 
+  <div id="chatHistory" style="margin-top:15px;overflow:auto;max-height:300px;"></div>
+
   <div class="menuFooter">
     Developed by <span>Rawat Systems</span>
   </div>
@@ -197,7 +199,75 @@ a.link{
 </div>
 
 <script>
+let currentChatId = null;
+let isFirstMessage = true;
+let db;
 
+let req = indexedDB.open("quadronDB", 1);
+
+req.onupgradeneeded = e => {
+  db = e.target.result;
+  db.createObjectStore("chats", { keyPath: "id" });
+};
+
+req.onsuccess = e => {
+  db = e.target.result;
+  loadChatList();
+};
+function saveChat(id, data){
+  let tx = db.transaction("chats", "readwrite");
+  let store = tx.objectStore("chats");
+  store.put({ id, ...data });
+}
+function loadChatList(){
+  let history = document.getElementById("chatHistory");
+  history.innerHTML = "";
+
+  let tx = db.transaction("chats", "readonly");
+  let store = tx.objectStore("chats");
+
+  store.openCursor().onsuccess = e => {
+    let cursor = e.target.result;
+    if(cursor){
+      let div = document.createElement("div");
+      div.textContent = cursor.value.title;
+      div.style.cursor = "pointer";
+      div.style.padding = "6px";
+      div.style.borderBottom = "1px solid #333";
+
+      div.onclick = () => loadChat(cursor.value);
+
+      history.appendChild(div);
+      cursor.continue();
+    }
+  };
+}
+function loadChat(chat){
+  currentChatId = chat.id;
+  isFirstMessage = false;
+
+  messages.innerHTML = "";
+
+  chat.messages.forEach(m=>{
+    messages.innerHTML += `<p class="${m.role==="user"?"userText":"aiText"}">${m.role==="user"?"You":"Quadron"}: ${m.content}</p>`;
+  });
+}
+function updateChat(role, content){
+  if(!currentChatId) return;
+
+  let tx = db.transaction("chats", "readwrite");
+  let store = tx.objectStore("chats");
+
+  let req = store.get(currentChatId);
+
+  req.onsuccess = () => {
+    let chat = req.result;
+    if(!chat) return;
+
+    chat.messages.push({ role, content });
+    store.put(chat);
+  };
+}
 /* SAFE ELEMENT REFERENCES */
 const menuBtn = document.getElementById("menuBtn");
 const overlay = document.getElementById("overlay");
@@ -248,7 +318,12 @@ function menuAction(fn){
 let mode="normal";
 function resetChat(){messages.innerHTML="";}
 
-function newChat(){mode="normal";resetChat();}
+function newChat(){
+  mode="normal";
+  resetChat();
+  currentChatId = null;
+  isFirstMessage = true;
+}
 function codeMode(){mode="code";resetChat();fastType(messages,"Describe What You Want To Code");}
 function exploreMode(){mode="explore";resetChat();fastType(messages,"Explore The Universe");}
 function voiceMode(){window.location.href="voice.html";}
@@ -378,8 +453,36 @@ if(isProductQuery){
   amazonLink = createAmazonSearchLink(text);
 }
   if(!text)return;
+  // FIRST MESSAGE LOGIC
+if(isFirstMessage){
+
+  currentChatId = "chat_" + Date.now();
+
+  // SECOND API CALL (TITLE)
+  fetch("/api/chat",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      message: "Write a 3 or 4 word title only, nothing else: " + text
+    })
+  })
+  .then(res=>res.json())
+  .then(data=>{
+    let title = data.reply.trim();
+
+    saveChat(currentChatId,{
+      title: title,
+      messages: []
+    });
+
+    loadChatList();
+  });
+
+  isFirstMessage = false;
+}
 
   messages.innerHTML+=`<p class="userText">You: ${text}</p>`;
+  updateChat("user", text);
   msg.value="";
 
   let p=document.createElement("p");
@@ -447,6 +550,7 @@ if(mode==="explore"){
 },100);
 
     fastType(p,"Quadron: "+reply);
+    updateChat("ai", reply);
 
 // ADD AMAZON BOX IF PRODUCT QUERY
 if(amazonLink){
