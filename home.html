@@ -254,7 +254,7 @@ div.onclick = () => {
 function loadChat(chat){
   currentChatId = chat.id;
   isFirstMessage = false;
-  currentMessages = chat.messages || [];
+  currentMessages = Array.isArray(chat.messages) ? chat.messages : [];
   messages.innerHTML = "";
   closeMenu();
 
@@ -553,6 +553,11 @@ if(mode==="explore"){
     fastType(p,"Quadron: "+reply);
     currentMessages.push({ role: "ai", content: reply });
 
+saveChat(currentChatId, {
+  title: "Chat",
+  messages: currentMessages
+});
+
 // ADD AMAZON BOX IF PRODUCT QUERY
 if(amazonLink){
 
@@ -580,7 +585,9 @@ if(amazonLink){
   }
 }
   fastType(p,"Quadron: "+reply);
-  saveChat(currentChatId, {
+currentMessages.push({ role: "ai", content: reply });
+
+saveChat(currentChatId, {
   title: "Chat",
   messages: currentMessages
 });
