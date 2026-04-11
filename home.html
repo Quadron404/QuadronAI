@@ -497,7 +497,7 @@ if(isFirstMessage){
 }
 
   messages.innerHTML+=`<p class="userText">You: ${text}</p>`;
-  setTimeout(()=>updateChat("user", text), 100);
+  updateChat("user", text);
   msg.value="";
 
   let p=document.createElement("p");
@@ -560,7 +560,6 @@ if(mode==="explore"){
 
     // Create source box
     let box = createSourceBox(url);
-   updateChat("user", text);
     fastType(p,"Quadron: "+reply);
     updateChat("ai", reply);
 
