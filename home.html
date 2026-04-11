@@ -473,6 +473,12 @@ if(isFirstMessage){
 
   currentChatId = "chat_" + Date.now();
 
+  // CREATE CHAT IMMEDIATELY (IMPORTANT FIX)
+  saveChat(currentChatId,{
+    title: "New Chat",
+    messages: []
+  });
+
   // SECOND API CALL (TITLE)
   fetch("/api/chat",{
     method:"POST",
