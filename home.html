@@ -482,7 +482,7 @@ if(isFirstMessage){
 }
 
   messages.innerHTML+=`<p class="userText">You: ${text}</p>`;
-  updateChat("user", text);
+  setTimeout(()=>updateChat("user", text), 100);
   msg.value="";
 
   let p=document.createElement("p");
