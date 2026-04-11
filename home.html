@@ -202,7 +202,7 @@ a.link{
 let currentChatId = null;
 let isFirstMessage = true;
 let db;
-
+let currentMessages = [];
 let req = indexedDB.open("quadronDB", 1);
 
 req.onupgradeneeded = e => {
@@ -254,7 +254,7 @@ div.onclick = () => {
 function loadChat(chat){
   currentChatId = chat.id;
   isFirstMessage = false;
-
+  currentMessages = chat.messages || [];
   messages.innerHTML = "";
   closeMenu();
 
@@ -264,50 +264,6 @@ function loadChat(chat){
   p.textContent = (m.role==="user" ? "You: " : "Quadron: ") + m.content;
   messages.appendChild(p);
 });
-}
-function updateChat(role, content){
-  if(!currentChatId) return;
-
-  let tx = db.transaction("chats", "readwrite");
-  let store = tx.objectStore("chats");
-
-  let req = store.get(currentChatId);
-
-  req.onsuccess = () => {
-    let chat = req.result;
-
-    // 🔥 CRITICAL FIX: force create chat if missing
-    if(!chat){
-      chat = {
-        id: currentChatId,
-        title: "New Chat",
-        messages: []
-      };
-    }
-
-    // 🔥 ensure messages array exists
-    if(!Array.isArray(chat.messages)){
-      chat.messages = [];
-    }
-
-    // 🔥 prevent undefined messages
-    if(content && content !== "undefined"){
-      chat.messages.push({ role, content });
-    }
-
-    store.put(chat);
-  };
-
-  // 🔥 HANDLE FAILURE CASE (THIS WAS MISSING)
-  req.onerror = () => {
-    console.error("DB read failed, recreating chat");
-
-    store.put({
-      id: currentChatId,
-      title: "New Chat",
-      messages: [{ role, content }]
-    });
-  };
 }
 
 /* SAFE ELEMENT REFERENCES */
@@ -531,7 +487,7 @@ saveChat(currentChatId,{
 }
 
   messages.innerHTML+=`<p class="userText">You: ${text}</p>`;
-  updateChat("user", text);
+  currentMessages.push({ role: "user", content: text });
   msg.value="";
 
   let p=document.createElement("p");
@@ -595,7 +551,7 @@ if(mode==="explore"){
     // Create source box
     let box = createSourceBox(url);
     fastType(p,"Quadron: "+reply);
-    updateChat("ai", reply);
+    currentMessages.push({ role: "ai", content: reply });
 
 // ADD AMAZON BOX IF PRODUCT QUERY
 if(amazonLink){
@@ -624,6 +580,10 @@ if(amazonLink){
   }
 }
   fastType(p,"Quadron: "+reply);
+  saveChat(currentChatId, {
+  title: "Chat",
+  messages: currentMessages
+});
 }
 
 /* CODE BOX */
