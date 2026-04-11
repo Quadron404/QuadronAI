@@ -255,8 +255,9 @@ function loadChat(chat){
   isFirstMessage = false;
 
   messages.innerHTML = "";
+  closeMenu();
 
-  chat.messages.forEach(m=>{
+  (chat.messages || []).forEach(m=>{
     messages.innerHTML += `<p class="${m.role==="user"?"userText":"aiText"}">${m.role==="user"?"You":"Quadron"}: ${m.content}</p>`;
   });
 }
@@ -269,10 +270,12 @@ function updateChat(role, content){
   let req = store.get(currentChatId);
 
   req.onsuccess = () => {
-    let chat = req.result;
-    if(!chat) return;
+   let chat = req.result;
+if(!chat) return;
 
-    chat.messages.push({ role, content });
+if(!chat.messages) chat.messages = [];
+
+chat.messages.push({ role, content });
     store.put(chat);
   };
 }
