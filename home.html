@@ -478,18 +478,10 @@ if(isFirstMessage){
   currentChatId = "chat_" + Date.now();
 
   // CREATE CHAT IMMEDIATELY (IMPORTANT FIX)
-  let tx = db.transaction("chats", "readwrite");
-let store = tx.objectStore("chats");
-
-let req2 = store.get(currentChatId);
-
-req2.onsuccess = () => {
-  let chat = req2.result;
-  if(!chat) return;
-
-  chat.title = title;
-  store.put(chat);
-};
+saveChat(currentChatId,{
+  title: "New Chat",
+  messages: []
+});
 
   // SECOND API CALL (TITLE)
   fetch("/api/chat",{
