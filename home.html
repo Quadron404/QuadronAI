@@ -258,11 +258,23 @@ function loadChat(chat){
   messages.innerHTML = "";
   closeMenu();
 
-  (chat.messages || []).forEach(m=>{
-  let p = document.createElement("p");
-  p.className = m.role==="user" ? "userText" : "aiText";
-  p.textContent = (m.role==="user" ? "You: " : "Quadron: ") + m.content;
-  messages.appendChild(p);
+(chat.messages || []).forEach(m=>{
+  if(m.role === "user"){
+    let p = document.createElement("p");
+    p.className = "userText";
+    p.textContent = "You: " + m.content;
+    messages.appendChild(p);
+  }else{
+    let p = document.createElement("p");
+    messages.appendChild(p);
+
+    if(m.type === "code"){
+      createCodeBox(p, m.content, true);
+    }else{
+      p.className = "aiText";
+      p.textContent = "Quadron: " + m.content;
+    }
+  }
 });
 }
 
@@ -537,7 +549,7 @@ let res=await fetch("/api/chat",{
 
  if(mode==="code"){
   createCodeBox(p,reply);
-  currentMessages.push({ role: "ai", content: reply });
+  currentMessages.push({ role: "ai", content: reply, type: "code" });
 
   saveChat(currentChatId, {
     title: "Chat",
@@ -570,7 +582,7 @@ if(mode==="explore"){
     fastType(p,"Quadron: "+reply);
     currentMessages.push({ role: "ai", content: reply });
 
-let existingTitle = "Chat";
+let existingTitle = "New Chat";
 
 let tx = db.transaction("chats", "readonly");
 let store = tx.objectStore("chats");
@@ -616,7 +628,7 @@ if(amazonLink){
   fastType(p,"Quadron: "+reply);
 currentMessages.push({ role: "ai", content: reply });
 
-let existingTitle = "Chat";
+let existingTitle = "New Chat";
 
 let tx = db.transaction("chats", "readonly");
 let store = tx.objectStore("chats");
