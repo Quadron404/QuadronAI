@@ -518,7 +518,15 @@ ${text}
     finalPrompt=`Use this data:\n${wiki}\n\nExplain clearly and give one source link at end do not provide html codes with link just provide links in end as "Source: link" DO NOT PROVIDE AMAZON.COM LINK IN SOURCE IN CASE OF AMAZON LEAVE SOURCE AREA EMPTY.\n${text}`;
   }
 
-  let res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:finalPrompt})});
+  let history = currentMessages.slice(-6).map(m => `${m.role}: ${m.content}`).join("\n");
+
+let res=await fetch("/api/chat",{
+  method:"POST",
+  headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({
+    message: `Conversation so far:\n${history}\n\nUser: ${finalPrompt}`
+  })
+});
   let reply=(await res.json()).reply;
   if(mode==="code"){
   reply = reply
@@ -527,8 +535,17 @@ ${text}
     .trim();
 }
 
-  if(mode==="code"){createCodeBox(p,reply);return;}
+ if(mode==="code"){
+  createCodeBox(p,reply);
+  currentMessages.push({ role: "ai", content: reply });
 
+  saveChat(currentChatId, {
+    title: "Chat",
+    messages: currentMessages
+  });
+
+  return;
+}
 if(mode==="explore"){
 
   let sourceMatch = reply.match(/Source:\s*([^\s]+)/i);
@@ -553,10 +570,22 @@ if(mode==="explore"){
     fastType(p,"Quadron: "+reply);
     currentMessages.push({ role: "ai", content: reply });
 
-saveChat(currentChatId, {
-  title: "Chat",
-  messages: currentMessages
-});
+let existingTitle = "Chat";
+
+let tx = db.transaction("chats", "readonly");
+let store = tx.objectStore("chats");
+let reqTitle = store.get(currentChatId);
+
+reqTitle.onsuccess = () => {
+  if(reqTitle.result && reqTitle.result.title){
+    existingTitle = reqTitle.result.title;
+  }
+
+  saveChat(currentChatId, {
+    title: existingTitle,
+    messages: currentMessages
+  });
+};
 
 // ADD AMAZON BOX IF PRODUCT QUERY
 if(amazonLink){
@@ -587,10 +616,22 @@ if(amazonLink){
   fastType(p,"Quadron: "+reply);
 currentMessages.push({ role: "ai", content: reply });
 
-saveChat(currentChatId, {
-  title: "Chat",
-  messages: currentMessages
-});
+let existingTitle = "Chat";
+
+let tx = db.transaction("chats", "readonly");
+let store = tx.objectStore("chats");
+let reqTitle = store.get(currentChatId);
+
+reqTitle.onsuccess = () => {
+  if(reqTitle.result && reqTitle.result.title){
+    existingTitle = reqTitle.result.title;
+  }
+
+  saveChat(currentChatId, {
+    title: existingTitle,
+    messages: currentMessages
+  });
+};
 }
 
 /* CODE BOX */
