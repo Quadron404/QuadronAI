@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<script src="https://quge5.com/88/tag.min.js" data-zone="228883" async data-cfasync="false"></script>
+<script src="https://quge5.com/88/tag.min.js" data-zone="228887" async data-cfasync="false"></script>
 
 <meta charset="UTF-8">
 <title>Quadron AI</title>
@@ -11,28 +11,69 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/monokai-sublime.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 
+<script>
+function createAmazonSearchLink(query) {
+  const tag = "psr0a-21";
+  const cleanQuery = query.replace(/undefined/g, "").trim(); [cite: 2]
+  const encoded = encodeURIComponent(cleanQuery);
+  return `https://www.amazon.in/s?k=${encoded}&tag=${tag}`; [cite: 3]
+}
+
+function detectProductQuery(text) {
+  const keywords = ["buy","price","best","under","laptop","phone","amazon","flipkart","deal","cheap","top","gaming"];
+  text = text.toLowerCase(); [cite: 4]
+  return keywords.some(k => text.includes(k));
+}
+</script>
+
 <style>
-/* UI STYLES - STABILIZED */
-body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;transition:.3s; overflow-x: hidden;}
+body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;transition:.3s;}
 .blur-bg{filter:blur(6px);}
-header{display:flex;justify-content:space-between;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 15px #ffd900; position: sticky; top: 0; z-index: 100;}
+header{display:flex;justify-content:space-between;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 15px #ffd900;}
 header div:first-child{font-weight:bold;text-shadow:0 0 15px #ffd900;}
 #menuBtn{cursor:pointer;font-size:24px;}
 #overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;z-index:500;}
 #sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;display:flex;flex-direction:column;}
 #sidePanel.open{transform:translateX(0);}
-#menuProfile{display:flex;gap:10px;padding:10px;border-bottom:1px solid #333;}
-#menuProfile img{width:40px;height:40px;border-radius:50%;border:2px solid #ffd900;}
-#profileName{font-weight:bold;color:#ffd900;}
-#chat{max-width:800px;margin:auto;padding:10px; display: flex; flex-direction: column;}
-#messages{height:65vh;overflow-y:auto;background:#111;padding:15px;border:1px solid #ffd900;border-radius:12px;box-shadow:0 0 20px #ffd900; margin-bottom: 10px;}
-#inputArea{display:flex;gap:8px;}
-input{flex:1;padding:12px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px; outline: none;}
-button{padding:10px 20px;background:#ffd900;color:#000;border:none;cursor:pointer;border-radius:20px;font-weight: bold;}
-.userText{color:#ffd900; margin-bottom: 10px; font-weight: bold;}
-.aiText{color:#fff; margin-bottom: 15px; line-height: 1.4;}
-.sourceBox {display: block; margin: 15px 0; padding: 15px; border: 1px solid #ffd900; border-radius: 12px; background: rgba(255, 217, 0, 0.05); text-align: center;}
-.sourceTitle {font-size: 10px; letter-spacing: 1px; color: #ffd900; margin-bottom: 10px; opacity: 0.8;}
+#menuProfile{display:flex;gap:10px;padding:10px;border-bottom:1px solid #333;cursor:pointer;}
+#menuProfile img{width:40px;height:40px;border-radius:50%;border:2px solid #ffd900;box-shadow:0 0 10px #ffd900;transition:0.2s;} [cite: 5]
+#profileName{font-weight:bold;color:#ffd900;text-shadow:0 0 10px #ffd900;transition:0.2s;} [cite: 6]
+#profileEmail{color:#ffd900;text-shadow:0 0 8px #ffd900;transition:0.2s;}
+.menuItem{padding:10px;cursor:pointer;margin-top:8px;font-weight:bold;color:#fff;text-shadow:0 0 8px #fff, 0 0 15px #fff;transition:0.2s;} [cite: 7]
+.menuItem:hover{text-shadow:0 0 15px #fff, 0 0 30px #fff, 0 0 50px #fff;} [cite: 8]
+#chatHistory div {padding: 6px;cursor: pointer;color: #ffd900;font-weight: bold;text-shadow: 0 0 6px #ffd900, 0 0 12px #ffd900;transition: 0.3s;} [cite: 9]
+#chatHistory div:hover {color: #ffd900;text-shadow: 0 0 10px #ffd900, 0 0 20px #ffd900, 0 0 40px #ffd900, 0 0 70px #ffd900;} [cite: 10, 11]
+#chatHistory .menuItem {color: #ffd900;text-shadow: 0 0 6px #ffd900;} [cite: 12]
+#chatHistory .menuItem:hover {color: #ffd900;text-shadow: 0 0 10px #ffd900, 0 0 20px #ffd900, 0 0 40px #ffd900, 0 0 70px #ffd900;} [cite: 13]
+.menuFooter{margin-top:auto;text-align:center;font-size:12px;color:#fff;text-shadow:0 0 10px #fff;}
+.menuFooter span{color:#ffd900;text-shadow:0 0 10px #ffd900;}
+#chat{max-width:800px;margin:auto;padding:10px;}
+#messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;border-radius:12px;box-shadow:0 0 20px #ffd900;}
+#inputArea{display:flex;gap:8px;margin-top:10px;}
+input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
+input::placeholder{color:rgba(255,255,255,0.3);}
+button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;border-radius:20px;box-shadow:0 0 15px #ffd900;transition:.2s;}
+button:hover{box-shadow:0 0 35px #ffd900;}
+.userText{color:#ffd900;text-shadow:0 0 10px #ffd900;}
+.aiText{color:#fff;text-shadow:0 0 10px #fff;}
+.footer{text-align:center;font-size:12px;margin:10px;color:#fff;text-shadow:0 0 10px #fff;}
+.footer a{color:#ffd900;text-shadow:0 0 15px #ffd900;text-decoration:none;}
+#menuProfile:hover #profileName,#menuProfile:hover #profileEmail{text-shadow:0 0 20px #ffd900, 0 0 40px #ffd900;} [cite: 14]
+#menuProfile:hover img{box-shadow:0 0 20px #ffd900, 0 0 40px #ffd900;border-color:#ffd900;} [cite: 15]
+.codeBox{background:#000;border:1px solid #ffd900;border-radius:10px;margin-top:10px;overflow:hidden;}
+.codeTop{display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #ffd900;}
+.codeTitle{color:#fff;text-shadow:0 0 10px #fff;}
+.codeBtns span{margin-left:10px;cursor:pointer;color:#fff;text-shadow:0 0 10px #fff;}
+.backBtn{color:#ffd900;text-shadow:0 0 10px #ffd900;cursor:pointer;}
+.loader{width:20px;height:20px;border:3px solid #fff;border-top:3px solid transparent;border-radius:50%;animation:spin 1s linear infinite;margin:5px;}
+@keyframes spin{100%{transform:rotate(360deg);}}
+a.link{color:#ffd900;text-shadow:0 0 10px #ffd900, 0 0 20px #ffd900;text-decoration:none;} [cite: 16]
+.sourceBox{display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px;border:1px solid #fff;border-radius:10px;cursor:pointer;transition:0.2s;box-shadow:0 0 10px #fff;} [cite: 17]
+.sourceBox:hover{box-shadow:0 0 25px #fff;}
+.sourceBox img{width:20px;height:20px;}
+.sourceText{display:flex;flex-direction:column;} [cite: 18]
+.sourceTitle{color:#fff;font-size:14px;text-shadow:0 0 5px #fff;}
+.sourceLink{color:#aaa;font-size:12px;} [cite: 19]
 </style>
 </head>
 
@@ -47,155 +88,259 @@ button{padding:10px 20px;background:#ffd900;color:#000;border:none;cursor:pointe
 
 <div id="sidePanel">
   <div id="menuProfile">
-    <img id="profilePic" src="https://via.placeholder.com/40">
+    <img id="profilePic">
     <div>
-      <div id="profileName">Guest</div>
-      <div id="profileEmail"></div>
+      <div id="profileName"></div>
+      <div id="profileEmail" style="font-size:12px;"></div>
     </div>
   </div>
   <div class="menuItem" id="newChatBtn">New Chat</div>
   <div class="menuItem" id="codeModeBtn">Code /</div>
   <div class="menuItem" id="exploreModeBtn">Explore</div>
+  <div class="menuItem" id="voiceModeBtn">Voice Mode</div>
   <div id="chatHistory" style="margin-top:15px;overflow:auto;max-height:300px;"></div>
+  <div class="menuFooter">Developed by <span>Rawat Systems</span></div>
 </div>
 
 <div id="chat">
   <div id="messages"></div>
   <div id="inputArea">
-    <input id="msg" placeholder="Type here....." autocomplete="off">
+    <input id="msg" placeholder="Type here.....">
     <button id="sendBtn">Send</button>
+    <input type="file" id="fileInput" style="display:none;"> [cite: 20]
   </div>
+  <div id="filePreview"></div>
+</div>
+
+<div class="footer">
+  Quadron AI can make mistakes, by using it you accept our <a href="terms.html">Terms & Conditions</a>
 </div>
 
 <script>
-let aiReplyCount = 0;
 let currentChatId = null;
-let isFirstMessage = true;
+let isFirstMessage = true; [cite: 21]
+let db;
 let currentMessages = [];
+let req = indexedDB.open("quadronDB", 1); [cite: 22]
+req.onupgradeneeded = e => {
+  db = e.target.result;
+  db.createObjectStore("chats", { keyPath: "id" });
+}; [cite: 23]
+req.onsuccess = e => {
+  db = e.target.result;
+  loadChatList();
+};
+function saveChat(id, data){
+  let tx = db.transaction("chats", "readwrite");
+  let store = tx.objectStore("chats"); [cite: 24]
+  let getReq = store.get(id);
+  getReq.onsuccess = () => {
+    let existing = getReq.result || {}; [cite: 25]
+    store.put({
+      id,
+      title: data.title || existing.title || "New Chat",
+      messages: data.messages || existing.messages || []
+    }); [cite: 26]
+  };
+}
+function loadChatList(){
+  let history = document.getElementById("chatHistory");
+  history.innerHTML = "";
+  let tx = db.transaction("chats", "readonly");
+  let store = tx.objectStore("chats");
+  store.openCursor().onsuccess = e => { [cite: 27]
+    let cursor = e.target.result; [cite: 28]
+    if(cursor){
+      let div = document.createElement("div");
+      div.textContent = cursor.value.title;
+      div.style.cursor = "pointer";
+      div.style.padding = "6px";
+      div.style.borderBottom = "1px solid #333"; [cite: 29]
+      let chatId = cursor.value.id;
+      div.onclick = () => {
+        let tx = db.transaction("chats", "readonly");
+        let store = tx.objectStore("chats"); [cite: 30]
+        let req = store.get(chatId);
+        req.onsuccess = () => { if(req.result) loadChat(req.result); };
+      }; [cite: 31]
+      history.appendChild(div);
+      cursor.continue();
+    }
+  };
+}
+function loadChat(chat){
+  currentChatId = chat.id;
+  isFirstMessage = false;
+  currentMessages = Array.isArray(chat.messages) ? chat.messages : []; [cite: 32]
+  messages.innerHTML = "";
+  closeMenu();
+  (chat.messages || []).forEach(m=>{
+    let p = document.createElement("p");
+    if(m.role === "user"){
+      p.className = "userText";
+      p.textContent = "You: " + m.content;
+      messages.appendChild(p);
+    }else{
+      messages.appendChild(p);
+      if(m.type === "code") createCodeBox(p, m.content, true);
+      else { p.className = "aiText"; p.textContent = "Quadron: " + m.content; }
+    }
+  }); [cite: 33]
+}
 
+const menuBtn = document.getElementById("menuBtn");
+const overlay = document.getElementById("overlay");
+const sidePanel = document.getElementById("sidePanel");
+const chat = document.getElementById("chat"); [cite: 34]
 const messages = document.getElementById("messages");
 const msg = document.getElementById("msg");
 const sendBtn = document.getElementById("sendBtn");
+sendBtn.onclick = send;
+const profileName = document.getElementById("profileName"); [cite: 35]
+const profileEmail = document.getElementById("profileEmail");
+const profilePic = document.getElementById("profilePic");
+const menuProfile = document.getElementById("menuProfile");
+const newChatBtn = document.getElementById("newChatBtn");
+const codeModeBtn = document.getElementById("codeModeBtn"); [cite: 36]
+const exploreModeBtn = document.getElementById("exploreModeBtn");
+const voiceModeBtn = document.getElementById("voiceModeBtn");
 
-// --- UTILITY FUNCTIONS ---
-function fastType(el, text) {
-  let span = document.createElement("span");
-  span.className = "aiText";
-  el.appendChild(span);
-  let j = 0;
-  let interval = setInterval(() => {
-    span.innerHTML += text[j++];
-    if (j >= text.length) {
-      clearInterval(interval);
-      messages.scrollTop = messages.scrollHeight;
-    }
-  }, 15);
-}
+let user = JSON.parse(localStorage.getItem("quadronUser")) || {}; [cite: 37]
+profileName.textContent = user.name || "Guest";
+profileEmail.textContent = user.email || "";
+profilePic.src = user.picture || "https://via.placeholder.com/40"; [cite: 38]
 
-// --- MULTITAG AD FUNCTION ---
-function insertChatAd() {
-  const adId = "ad_" + Date.now();
-  const adContainer = document.createElement("div");
-  adContainer.className = "sourceBox";
-  adContainer.innerHTML = `
-    <div class="sourceTitle">SPONSORED CONTENT</div>
-    <div id="${adId}" style="min-height:50px; width:100%;"></div>
-  `;
-  messages.appendChild(adContainer);
-
-  // Force-injecting the Multitag script into the specific div
-  const s = document.createElement("script");
-  s.src = "https://quge5.com/88/tag.min.js";
-  s.dataset.zone = "228883";
-  s.dataset.cfasync = "false";
-  s.async = true;
-  
-  document.getElementById(adId).appendChild(s);
-  
-  // Note: If the box stays empty, the Multitag chose to trigger a 
-  // Popunder (background) instead of a visible banner.
-  messages.scrollTop = messages.scrollHeight;
-}
-
-// --- CORE CHAT FUNCTIONS ---
-async function autoGreeting() {
-  if(sessionStorage.getItem("greeted")) return;
-  try {
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({message: "Say a quick sarcastic hello"})
-    });
-    const data = await res.json();
-    const p = document.createElement("p");
-    messages.appendChild(p);
-    fastType(p, "Quadron: " + data.reply);
-    sessionStorage.setItem("greeted", "true");
-  } catch(e) { console.error("Greeting failed"); }
-}
-
-async function send() {
-  const text = msg.value.trim();
-  if(!text) return;
-
-  // Add User Message
-  const uP = document.createElement("p");
-  uP.className = "userText";
-  uP.textContent = "You: " + text;
-  messages.appendChild(uP);
-  msg.value = "";
-
-  // Prepare AI Response Placeholder
-  const aiP = document.createElement("p");
-  messages.appendChild(aiP);
-  messages.scrollTop = messages.scrollHeight;
-
-  try {
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ message: text })
-    });
-    const data = await res.json();
-    fastType(aiP, "Quadron: " + data.reply);
-    
-    aiReplyCount++;
-    // Check for Ad trigger every 3 replies
-    if(aiReplyCount % 3 === 0) {
-      setTimeout(insertChatAd, 1000);
-    }
-  } catch(e) { 
-    aiP.textContent = "Quadron: Connection lost. Try again."; 
-  }
-}
-
-// --- EVENT LISTENERS ---
-document.addEventListener("DOMContentLoaded", () => {
-  // Fix for Send Button
-  sendBtn.onclick = (e) => {
-    e.preventDefault();
-    send();
-  };
-
-  // Enter Key Fix
-  msg.addEventListener("keypress", (e) => {
-    if(e.key === "Enter") send();
-  });
-
-  // Sidebar Logic
-  document.getElementById("menuBtn").onclick = () => {
-    document.getElementById("sidePanel").classList.add("open");
-    document.getElementById("overlay").style.display = "block";
-  };
-  
-  document.getElementById("overlay").onclick = () => {
-    document.getElementById("sidePanel").classList.remove("open");
-    document.getElementById("overlay").style.display = "none";
-  };
-
-  autoGreeting();
+menuBtn.addEventListener("click", ()=>{
+  sidePanel.classList.add("open");
+  overlay.style.display="block";
+  chat.classList.add("blur-bg");
 });
-</script>
+overlay.onclick = closeMenu;
+function closeMenu(){
+  sidePanel.classList.remove("open");
+  overlay.style.display="none";
+  chat.classList.remove("blur-bg"); [cite: 39]
+}
+function menuAction(fn){ closeMenu(); if(fn) fn(); }
 
-</body>
-</html>
+let mode="normal";
+function resetChat(){messages.innerHTML="";}
+function newChat(){ mode="normal"; resetChat(); currentChatId = null; isFirstMessage = true; } [cite: 40]
+function codeMode(){mode="code";resetChat();fastType(messages,"Describe What You Want To Code");}
+function exploreMode(){mode="explore";resetChat();fastType(messages,"Explore The Universe");}
+function voiceMode(){window.location.href="voice.html";}
+
+menuProfile.onclick=()=>{closeMenu();window.location.href="profile.html";}
+newChatBtn.onclick=()=>menuAction(newChat);
+codeModeBtn.onclick=()=>menuAction(codeMode); [cite: 41]
+exploreModeBtn.onclick=()=>menuAction(exploreMode);
+voiceModeBtn.onclick=()=>{closeMenu();voiceMode();};
+
+function fastType(el,text){
+  let span=document.createElement("span");
+  span.className="aiText";
+  el.appendChild(span); [cite: 42]
+  let parts = text.split(/(<a.*?>.*?<\/a>)/g);
+  let i = 0; [cite: 43]
+  function typePart(){
+    if(i >= parts.length) return;
+    let part = parts[i]; [cite: 44]
+    if(part.startsWith("<a")){
+      span.innerHTML += part; [cite: 45]
+      i++;
+      typePart();
+    }else{
+      let j = 0; [cite: 46]
+      let int = setInterval(()=>{
+        span.innerHTML += part[j++];
+        if(j >= part.length){
+          clearInterval(int);
+          i++;
+          typePart();
+        }
+      }, 2);
+    } [cite: 47]
+  }
+  typePart();
+}
+
+async function autoGreeting(){
+  if(sessionStorage.getItem("greeted")) return; [cite: 48]
+  let hour = new Date().getHours();
+  let timeText = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening"; [cite: 49, 50]
+  let prompt = `Write a short sarcastic greeting saying "Good ${timeText}" to ${user.name || "Guest"}. Keep it funny, slightly rude, and human-like. No extra explanation.`; [cite: 51, 52]
+  try{
+    let res = await fetch("/api/chat",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({message: prompt})
+    }); [cite: 53]
+    let reply = (await res.json()).reply;
+    let p = document.createElement("p");
+    messages.appendChild(p);
+    fastType(p, "Quadron: " + reply);
+    sessionStorage.setItem("greeted", true); [cite: 54]
+  }catch(e){ console.error("Greeting failed", e); } [cite: 55]
+}
+
+function createSourceBox(url){
+  let domain = (new URL(url)).hostname;
+  let box = document.createElement("div");
+  box.className = "sourceBox"; [cite: 56]
+  box.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=${domain}" /><div class="sourceText"><div class="sourceTitle">${domain}</div><div class="sourceLink">${url}</div></div>`; [cite: 57]
+  box.onclick = ()=>{ window.open(url, "_blank"); };
+  return box; [cite: 58]
+}
+
+async function getWikiData(query){
+  try{
+    let res=await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
+    let data=await res.json(); [cite: 59]
+    return data.extract || "";
+  }catch{return "";}
+}
+
+async function send(){
+  let text=msg.value.trim();
+  let isProductQuery = detectProductQuery(text); [cite: 60]
+  let amazonLink = isProductQuery ? createAmazonSearchLink(text) : "";
+  if(!text)return; [cite: 61]
+  if(isFirstMessage){
+    currentChatId = "chat_" + Date.now(); [cite: 62]
+    saveChat(currentChatId,{title: "New Chat", messages: []}); [cite: 63]
+    fetch("/api/chat",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({message: "Write a 3 or 4 word title only, nothing else: " + text})
+    })
+    .then(res=>res.json())
+    .then(data=>{
+      let title = data.reply.trim();
+      saveChat(currentChatId,{title: title, messages: []});
+      loadChatList();
+    }); [cite: 64]
+    isFirstMessage = false;
+  }
+  messages.innerHTML+=`<p class="userText">You: ${text}</p>`;
+  currentMessages.push({ role: "user", content: text });
+  msg.value="";
+  let p=document.createElement("p");
+  messages.appendChild(p);
+  let finalPrompt=text; [cite: 65]
+  if(mode==="code"){
+    finalPrompt = `You are a code generator. Rules: Output ONLY complete working code, No explanations, No markdown. Task: ${text}`; [cite: 66]
+  }
+  if(mode==="explore"){
+    let wiki=await getWikiData(text);
+    finalPrompt=`Use this data:\n${wiki}\n\nExplain clearly and give one source link at end. DO NOT PROVIDE AMAZON.COM LINK IN SOURCE. ${text}`; [cite: 67]
+  }
+  let history = currentMessages.slice(-6).map(m => `${m.role}: ${m.content}`).join("\n");
+  let res=await fetch("/api/chat",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({message: `Conversation so far:\n${history}\n\nUser: ${finalPrompt}`})
+  }); [cite: 68]
+  let reply=(await res.json()).reply;
+  if(mode==="code") reply = reply.replace(/
+http://googleusercontent.com/immersive_entry_chip/0
+http://googleusercontent.com/immersive_entry_chip/1
