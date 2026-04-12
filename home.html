@@ -147,26 +147,42 @@ a.link{
   text-shadow:0 0 10px #ffd900, 0 0 20px #ffd900;
   text-decoration:none;
 }
-.sourceBox{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  margin-top:10px;
-  padding:10px;
-  border:1px solid #fff;
-  border-radius:10px;
-  cursor:pointer;
-  transition:0.2s;
-  box-shadow:0 0 10px #fff;
+.sourceBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #ffd900;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.2s;
+  box-shadow: 0 0 10px #ffd900;
 }
 
-.sourceBox:hover{
-  box-shadow:0 0 25px #fff;
+.sourceBox:hover {
+  box-shadow: 0 0 25px #ffd900;
 }
 
-.sourceBox img{
-  width:20px;
-  height:20px;
+.sourceBox img {
+  width: 20px;
+  height: 20px;
+}
+
+.sourceText {
+  display: flex;
+  flex-direction: column;
+}
+
+.sourceTitle {
+  color: #fff;
+  font-size: 14px;
+  text-shadow: 0 0 5px #ffd900;
+}
+
+.sourceLink {
+  color: #aaa;
+  font-size: 12px;
 }
 
 .sourceText{
@@ -514,12 +530,13 @@ async function getWikiData(query){
     return data.extract || "";
   }catch{return "";}
 }
-function insertChatAd(){
+function insertChatAd() {
   let ad = document.createElement("div");
   ad.className = "sourceBox";
   ad.style.border = "1px solid #ffd900";
   ad.style.marginTop = "10px";
 
+  // Ensure ad content is visible and styled
   ad.innerHTML = `
     <div class="sourceText">
       <div class="sourceTitle">Sponsored</div>
@@ -527,7 +544,11 @@ function insertChatAd(){
     </div>
   `;
 
+  // Append it inside the chat area (messages container)
   messages.appendChild(ad);
+
+  // Scroll the chat to the bottom to ensure new content is visible
+  messages.scrollTop = messages.scrollHeight;
 }
 /* SEND (API LOGIC UNCHANGED) */
 async function send(){
