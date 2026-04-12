@@ -107,19 +107,20 @@ let currentChatId = null;
 let isFirstMessage = true;
 let db;
 let currentMessages = [];
-let req = indexedDB.open("quadronDB", 1);
 
+// Initialize Database
+let req = indexedDB.open("quadronDB", 1);
 req.onupgradeneeded = e => {
   db = e.target.result;
   db.createObjectStore("chats", { keyPath: "id" });
 };
-
 req.onsuccess = e => {
   db = e.target.result;
   loadChatList();
 };
 
 function saveChat(id, data){
+  if(!db) return;
   let tx = db.transaction("chats", "readwrite");
   let store = tx.objectStore("chats");
   let getReq = store.get(id);
@@ -200,17 +201,6 @@ function closeMenu(){
   document.getElementById("chat").classList.remove("blur-bg");
 }
 
-let mode="normal";
-function resetChat(){messages.innerHTML="";}
-function newChat(){ mode="normal"; resetChat(); currentChatId = null; isFirstMessage = true; closeMenu();}
-function codeMode(){ mode="code"; resetChat(); fastType(messages,"Describe What You Want To Code"); closeMenu();}
-function exploreMode(){ mode="explore"; resetChat(); fastType(messages,"Explore The Universe"); closeMenu();}
-
-document.getElementById("newChatBtn").onclick = newChat;
-document.getElementById("codeModeBtn").onclick = codeMode;
-document.getElementById("exploreModeBtn").onclick = exploreMode;
-document.getElementById("voiceModeBtn").onclick = () => window.location.href="voice.html";
-
 function fastType(el,text){
   let span=document.createElement("span");
   span.className="aiText";
@@ -222,6 +212,27 @@ function fastType(el,text){
   }, 2);
 }
 
+// AD FIX: MULTITAG INJECTION
+function insertChatAd() {
+  const adId = "ad_" + Date.now();
+  let adContainer = document.createElement("div");
+  adContainer.className = "sourceBox"; 
+  adContainer.innerHTML = `
+    <div style="font-size: 10px; opacity: 0.6; color: #ffd900;">SPONSORED</div>
+    <div id="${adId}" style="width:100%; min-height:50px;"></div>
+  `;
+  messages.appendChild(adContainer);
+
+  let script = document.createElement("script");
+  script.src = "https://quge5.com/88/tag.min.js";
+  script.dataset.zone = "228883";
+  script.dataset.cfasync = "false";
+  script.async = true;
+  document.getElementById(adId).appendChild(script);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+// GREETING FIX
 async function autoGreeting(){
   if(sessionStorage.getItem("greeted")) return;
   let hour = new Date().getHours();
@@ -232,70 +243,46 @@ async function autoGreeting(){
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({message: `Say Good ${timeText} sarcastically to ${user.name || "Guest"}`})
     });
-    let reply = (await res.json()).reply;
+    let data = await res.json();
     let p = document.createElement("p");
     messages.appendChild(p);
-    fastType(p,"Quadron: "+reply);
-    sessionStorage.setItem("greeted", true);
-  } catch(e) {}
+    fastType(p,"Quadron: " + data.reply);
+    sessionStorage.setItem("greeted", "true");
+  } catch(e) { console.log("Greeting error"); }
 }
 
-/* MULTITAG SPONSORED BOX LOGIC */
-function insertChatAd() {
-  const adId = "multitag_" + Date.now();
-  let adContainer = document.createElement("div");
-  adContainer.className = "sourceBox"; 
-  
-  adContainer.innerHTML = `
-    <div style="font-size: 10px; opacity: 0.6; color: #ffd900; margin-bottom: 10px;">PROMOTED CONTENT</div>
-    <div id="${adId}" style="width: 100%; display: flex; justify-content: center; align-items: center;">
-      </div>
-  `;
-
-  messages.appendChild(adContainer);
-
-  // Re-invoking Multitag for the specific zone inside the box
-  let script = document.createElement("script");
-  script.src = "https://quge5.com/88/tag.min.js";
-  script.dataset.zone = "228883";
-  script.dataset.cfasync = "false";
-  script.async = true;
-  
-  document.getElementById(adId).appendChild(script);
-  messages.scrollTop = messages.scrollHeight;
-}
-
+// SEND BUTTON FIX
 async function send(){
-  let text=msg.value.trim();
+  let text = msg.value.trim();
   if(!text) return;
+  
   if(isFirstMessage){
     currentChatId = "chat_" + Date.now();
-    saveChat(currentChatId,{ title: "New Chat", messages: [] });
+    saveChat(currentChatId,{ title: text.substring(0,20), messages: [] });
     isFirstMessage = false;
   }
-  messages.innerHTML+=`<p class="userText">You: ${text}</p>`;
+  
+  messages.innerHTML += `<p class="userText">You: ${text}</p>`;
   currentMessages.push({ role: "user", content: text });
-  msg.value="";
-  let p=document.createElement("p");
+  msg.value = "";
+  
+  let p = document.createElement("p");
   messages.appendChild(p);
 
   try {
-    let res=await fetch("/api/chat",{
+    let res = await fetch("/api/chat",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({ message: text })
     });
-    let reply=(await res.json()).reply;
-    fastType(p,"Quadron: "+reply);
-    currentMessages.push({ role: "ai", content: reply });
+    let data = await res.json();
+    fastType(p,"Quadron: " + data.reply);
+    currentMessages.push({ role: "ai", content: data.reply });
     saveChat(currentChatId, { messages: currentMessages });
     
     aiReplyCount++;
-    // Show Multitag box every 3 AI responses
-    if(aiReplyCount % 3 === 0) {
-      setTimeout(() => insertChatAd(), 1200);
-    }
-  } catch(e) {}
+    if(aiReplyCount % 3 === 0) setTimeout(insertChatAd, 1500);
+  } catch(e) { console.log("Send error"); }
 }
 
 function createCodeBox(parent,code, instant=false){
@@ -308,8 +295,22 @@ function createCodeBox(parent,code, instant=false){
   if(!instant) hljs.highlightElement(pre);
 }
 
-msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
-window.addEventListener("load", autoGreeting);
+// ATTACH EVENTS AFTER LOAD
+document.addEventListener("DOMContentLoaded", () => {
+  sendBtn.onclick = send;
+  msg.onkeydown = e => { if(e.key === "Enter") send(); };
+  autoGreeting();
+  
+  document.getElementById("newChatBtn").onclick = () => {
+     messages.innerHTML=""; currentChatId = null; isFirstMessage = true; closeMenu();
+  };
+  document.getElementById("codeModeBtn").onclick = () => {
+     messages.innerHTML=""; fastType(messages,"Describe Your Code"); closeMenu();
+  };
+  document.getElementById("exploreModeBtn").onclick = () => {
+     messages.innerHTML=""; fastType(messages,"Explore Mode Activated"); closeMenu();
+  };
+});
 </script>
 
 </body>
