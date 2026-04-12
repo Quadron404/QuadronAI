@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
+<script>
+(function(s){
+  s.dataset.zone='10864876',
+  s.src='https://nap5k.com/tag.min.js'
+})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))
+</script>
 <meta charset="UTF-8">
 <title>Quadron AI</title>
 <link rel="icon" href="favicon.html">
@@ -233,6 +239,7 @@ a.link{
 </div>
 
 <script>
+let aiReplyCount = 0;
 let currentChatId = null;
 let isFirstMessage = true;
 let db;
@@ -459,7 +466,16 @@ async function autoGreeting(){
     let p = document.createElement("p");
     messages.appendChild(p);
 
-    fastType(p, "Quadron: " + reply);
+    fastType(p,"Quadron: "+reply);
+
+aiReplyCount++;
+
+// Show ad ONLY after every 3 AI replies
+if(aiReplyCount % 3 === 0){
+  setTimeout(()=>{
+    insertChatAd();
+  }, 500);
+}
     updateChat("ai",reply);
 
     // Mark as greeted (ONLY for this session)
@@ -498,7 +514,21 @@ async function getWikiData(query){
     return data.extract || "";
   }catch{return "";}
 }
+function insertChatAd(){
+  let ad = document.createElement("div");
+  ad.className = "sourceBox";
+  ad.style.border = "1px solid #ffd900";
+  ad.style.marginTop = "10px";
 
+  ad.innerHTML = `
+    <div class="sourceText">
+      <div class="sourceTitle">Sponsored</div>
+      <div class="sourceLink">Ad</div>
+    </div>
+  `;
+
+  messages.appendChild(ad);
+}
 /* SEND (API LOGIC UNCHANGED) */
 async function send(){
   let text=msg.value.trim();
@@ -625,6 +655,15 @@ if(mode==="explore"){
     // Create source box
     let box = createSourceBox(url);
     fastType(p,"Quadron: "+reply);
+
+aiReplyCount++;
+
+// Show ad ONLY after every 3 AI replies
+if(aiReplyCount % 3 === 0){
+  setTimeout(()=>{
+    insertChatAd();
+  }, 500);
+}
     currentMessages.push({ role: "ai", content: reply });
 
 let existingTitle = "New Chat";
@@ -671,6 +710,15 @@ if(amazonLink){
   }
 }
   fastType(p,"Quadron: "+reply);
+
+aiReplyCount++;
+
+// Show ad ONLY after every 3 AI replies
+if(aiReplyCount % 3 === 0){
+  setTimeout(()=>{
+    insertChatAd();
+  }, 500);
+}
 currentMessages.push({ role: "ai", content: reply });
 
 let existingTitle = "New Chat";
