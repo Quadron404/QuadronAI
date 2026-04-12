@@ -11,56 +11,28 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/monokai-sublime.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 
-<script>
-function createAmazonSearchLink(query) {
-  const tag = "psr0a-21";
-  const cleanQuery = query.replace(/undefined/g, "").trim();
-  const encoded = encodeURIComponent(cleanQuery);
-  return `https://www.amazon.in/s?k=${encoded}&tag=${tag}`;
-}
-
-function detectProductQuery(text) {
-  const keywords = ["buy","price","best","under","laptop","phone","amazon","flipkart","deal","cheap","top","gaming"];
-  text = text.toLowerCase();
-  return keywords.some(k => text.includes(k));
-}
-</script>
-
 <style>
-/* UI STYLES - UNCHANGED */
-body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;transition:.3s;}
+/* UI STYLES - STABILIZED */
+body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;transition:.3s; overflow-x: hidden;}
 .blur-bg{filter:blur(6px);}
-header{display:flex;justify-content:space-between;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 15px #ffd900;}
+header{display:flex;justify-content:space-between;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 15px #ffd900; position: sticky; top: 0; z-index: 100;}
 header div:first-child{font-weight:bold;text-shadow:0 0 15px #ffd900;}
 #menuBtn{cursor:pointer;font-size:24px;}
 #overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;z-index:500;}
 #sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;display:flex;flex-direction:column;}
 #sidePanel.open{transform:translateX(0);}
-#menuProfile{display:flex;gap:10px;padding:10px;border-bottom:1px solid #333;cursor:pointer;}
-#menuProfile img{width:40px;height:40px;border-radius:50%;border:2px solid #ffd900;box-shadow:0 0 10px #ffd900;transition:0.2s;}
-#profileName{font-weight:bold;color:#ffd900;text-shadow:0 0 10px #ffd900;}
-#profileEmail{color:#ffd900;font-size:12px;}
-.menuItem{padding:10px;cursor:pointer;margin-top:8px;font-weight:bold;color:#fff;text-shadow:0 0 8px #fff;}
-.menuItem:hover{text-shadow:0 0 15px #fff, 0 0 30px #fff;}
-#chatHistory div {padding: 6px;cursor: pointer;color: #ffd900;font-weight: bold;text-shadow: 0 0 6px #ffd900;border-bottom: 1px solid #333;}
-.menuFooter{margin-top:auto;text-align:center;font-size:12px;color:#fff;}
-.menuFooter span{color:#ffd900;}
-#chat{max-width:800px;margin:auto;padding:10px;}
-#messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;border-radius:12px;box-shadow:0 0 20px #ffd900;}
-#inputArea{display:flex;gap:8px;margin-top:10px;}
-input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
-button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;border-radius:20px;box-shadow:0 0 15px #ffd900;}
-.userText{color:#ffd900;text-shadow:0 0 10px #ffd900;}
-.aiText{color:#fff;text-shadow:0 0 10px #fff;}
-.footer{text-align:center;font-size:12px;margin:10px;color:#fff;}
-.footer a{color:#ffd900;text-decoration:none;}
-.codeBox{background:#000;border:1px solid #ffd900;border-radius:10px;margin-top:10px;overflow:hidden;}
-.codeTop{display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #ffd900;}
-.codeTitle{color:#fff;}
-.codeBtns span{margin-left:10px;cursor:pointer;color:#fff;}
-.loader{width:20px;height:20px;border:3px solid #fff;border-top:3px solid transparent;border-radius:50%;animation:spin 1s linear infinite;margin:5px;}
-@keyframes spin{100%{transform:rotate(360deg);}}
-.sourceBox {display: flex;flex-direction: column;align-items: center;gap: 8px;margin-top: 10px;padding: 15px;border: 1px solid #ffd900;border-radius: 12px;box-shadow: 0 0 15px #ffd900; background: #000; min-height: 100px;}
+#menuProfile{display:flex;gap:10px;padding:10px;border-bottom:1px solid #333;}
+#menuProfile img{width:40px;height:40px;border-radius:50%;border:2px solid #ffd900;}
+#profileName{font-weight:bold;color:#ffd900;}
+#chat{max-width:800px;margin:auto;padding:10px; display: flex; flex-direction: column;}
+#messages{height:65vh;overflow-y:auto;background:#111;padding:15px;border:1px solid #ffd900;border-radius:12px;box-shadow:0 0 20px #ffd900; margin-bottom: 10px;}
+#inputArea{display:flex;gap:8px;}
+input{flex:1;padding:12px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px; outline: none;}
+button{padding:10px 20px;background:#ffd900;color:#000;border:none;cursor:pointer;border-radius:20px;font-weight: bold;}
+.userText{color:#ffd900; margin-bottom: 10px; font-weight: bold;}
+.aiText{color:#fff; margin-bottom: 15px; line-height: 1.4;}
+.sourceBox {display: block; margin: 15px 0; padding: 15px; border: 1px solid #ffd900; border-radius: 12px; background: rgba(255, 217, 0, 0.05); text-align: center;}
+.sourceTitle {font-size: 10px; letter-spacing: 1px; color: #ffd900; margin-bottom: 10px; opacity: 0.8;}
 </style>
 </head>
 
@@ -75,241 +47,153 @@ button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;bor
 
 <div id="sidePanel">
   <div id="menuProfile">
-    <img id="profilePic">
+    <img id="profilePic" src="https://via.placeholder.com/40">
     <div>
-      <div id="profileName"></div>
+      <div id="profileName">Guest</div>
       <div id="profileEmail"></div>
     </div>
   </div>
   <div class="menuItem" id="newChatBtn">New Chat</div>
   <div class="menuItem" id="codeModeBtn">Code /</div>
   <div class="menuItem" id="exploreModeBtn">Explore</div>
-  <div class="menuItem" id="voiceModeBtn">Voice Mode</div>
   <div id="chatHistory" style="margin-top:15px;overflow:auto;max-height:300px;"></div>
-  <div class="menuFooter">Developed by <span>Rawat Systems</span></div>
 </div>
 
 <div id="chat">
   <div id="messages"></div>
   <div id="inputArea">
-    <input id="msg" placeholder="Type here.....">
+    <input id="msg" placeholder="Type here....." autocomplete="off">
     <button id="sendBtn">Send</button>
   </div>
-</div>
-
-<div class="footer">
-  Quadron AI can make mistakes, by using it you accept our <a href="terms.html">Terms & Conditions</a>
 </div>
 
 <script>
 let aiReplyCount = 0;
 let currentChatId = null;
 let isFirstMessage = true;
-let db;
 let currentMessages = [];
 
-// Initialize Database
-let req = indexedDB.open("quadronDB", 1);
-req.onupgradeneeded = e => {
-  db = e.target.result;
-  db.createObjectStore("chats", { keyPath: "id" });
-};
-req.onsuccess = e => {
-  db = e.target.result;
-  loadChatList();
-};
-
-function saveChat(id, data){
-  if(!db) return;
-  let tx = db.transaction("chats", "readwrite");
-  let store = tx.objectStore("chats");
-  let getReq = store.get(id);
-  getReq.onsuccess = () => {
-    let existing = getReq.result || {};
-    store.put({
-      id,
-      title: data.title || existing.title || "New Chat",
-      messages: data.messages || existing.messages || []
-    });
-  };
-}
-
-function loadChatList(){
-  let history = document.getElementById("chatHistory");
-  history.innerHTML = "";
-  let tx = db.transaction("chats", "readonly");
-  let store = tx.objectStore("chats");
-  store.openCursor().onsuccess = e => {
-    let cursor = e.target.result;
-    if(cursor){
-      let div = document.createElement("div");
-      div.textContent = cursor.value.title;
-      let chatId = cursor.value.id;
-      div.onclick = () => {
-        let tx2 = db.transaction("chats", "readonly");
-        let store2 = tx2.objectStore("chats");
-        let req2 = store2.get(chatId);
-        req2.onsuccess = () => { if(req2.result) loadChat(req2.result); };
-      };
-      history.appendChild(div);
-      cursor.continue();
-    }
-  };
-}
-
-function loadChat(chatData){
-  currentChatId = chatData.id;
-  isFirstMessage = false;
-  currentMessages = Array.isArray(chatData.messages) ? chatData.messages : [];
-  messages.innerHTML = "";
-  closeMenu();
-  currentMessages.forEach(m=>{
-    let p = document.createElement("p");
-    if(m.role === "user"){
-      p.className = "userText";
-      p.textContent = "You: " + m.content;
-      messages.appendChild(p);
-    } else {
-      messages.appendChild(p);
-      if(m.type === "code") createCodeBox(p, m.content, true);
-      else { p.className = "aiText"; p.textContent = "Quadron: " + m.content; }
-    }
-  });
-}
-
-const menuBtn = document.getElementById("menuBtn");
-const overlay = document.getElementById("overlay");
-const sidePanel = document.getElementById("sidePanel");
 const messages = document.getElementById("messages");
 const msg = document.getElementById("msg");
 const sendBtn = document.getElementById("sendBtn");
-const profileName = document.getElementById("profileName");
-const profileEmail = document.getElementById("profileEmail");
-const profilePic = document.getElementById("profilePic");
 
-let user = JSON.parse(localStorage.getItem("quadronUser")) || {};
-profileName.textContent = user.name || "Guest";
-profileEmail.textContent = user.email || "";
-profilePic.src = user.picture || "https://via.placeholder.com/40";
-
-menuBtn.onclick = () => { sidePanel.classList.add("open"); overlay.style.display="block"; document.getElementById("chat").classList.add("blur-bg"); };
-overlay.onclick = closeMenu;
-
-function closeMenu(){
-  sidePanel.classList.remove("open");
-  overlay.style.display="none";
-  document.getElementById("chat").classList.remove("blur-bg");
-}
-
-function fastType(el,text){
-  let span=document.createElement("span");
-  span.className="aiText";
+// --- UTILITY FUNCTIONS ---
+function fastType(el, text) {
+  let span = document.createElement("span");
+  span.className = "aiText";
   el.appendChild(span);
   let j = 0;
-  let int = setInterval(()=>{
+  let interval = setInterval(() => {
     span.innerHTML += text[j++];
-    if(j >= text.length) clearInterval(int);
-  }, 2);
+    if (j >= text.length) {
+      clearInterval(interval);
+      messages.scrollTop = messages.scrollHeight;
+    }
+  }, 15);
 }
 
-// AD FIX: MULTITAG INJECTION
+// --- MULTITAG AD FUNCTION ---
 function insertChatAd() {
   const adId = "ad_" + Date.now();
-  let adContainer = document.createElement("div");
-  adContainer.className = "sourceBox"; 
+  const adContainer = document.createElement("div");
+  adContainer.className = "sourceBox";
   adContainer.innerHTML = `
-    <div style="font-size: 10px; opacity: 0.6; color: #ffd900;">SPONSORED</div>
-    <div id="${adId}" style="width:100%; min-height:50px;"></div>
+    <div class="sourceTitle">SPONSORED CONTENT</div>
+    <div id="${adId}" style="min-height:50px; width:100%;"></div>
   `;
   messages.appendChild(adContainer);
 
-  let script = document.createElement("script");
-  script.src = "https://quge5.com/88/tag.min.js";
-  script.dataset.zone = "228883";
-  script.dataset.cfasync = "false";
-  script.async = true;
-  document.getElementById(adId).appendChild(script);
+  // Force-injecting the Multitag script into the specific div
+  const s = document.createElement("script");
+  s.src = "https://quge5.com/88/tag.min.js";
+  s.dataset.zone = "228883";
+  s.dataset.cfasync = "false";
+  s.async = true;
+  
+  document.getElementById(adId).appendChild(s);
+  
+  // Note: If the box stays empty, the Multitag chose to trigger a 
+  // Popunder (background) instead of a visible banner.
   messages.scrollTop = messages.scrollHeight;
 }
 
-// GREETING FIX
-async function autoGreeting(){
+// --- CORE CHAT FUNCTIONS ---
+async function autoGreeting() {
   if(sessionStorage.getItem("greeted")) return;
-  let hour = new Date().getHours();
-  let timeText = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
   try {
-    let res = await fetch("/api/chat",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({message: `Say Good ${timeText} sarcastically to ${user.name || "Guest"}`})
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({message: "Say a quick sarcastic hello"})
     });
-    let data = await res.json();
-    let p = document.createElement("p");
+    const data = await res.json();
+    const p = document.createElement("p");
     messages.appendChild(p);
-    fastType(p,"Quadron: " + data.reply);
+    fastType(p, "Quadron: " + data.reply);
     sessionStorage.setItem("greeted", "true");
-  } catch(e) { console.log("Greeting error"); }
+  } catch(e) { console.error("Greeting failed"); }
 }
 
-// SEND BUTTON FIX
-async function send(){
-  let text = msg.value.trim();
+async function send() {
+  const text = msg.value.trim();
   if(!text) return;
-  
-  if(isFirstMessage){
-    currentChatId = "chat_" + Date.now();
-    saveChat(currentChatId,{ title: text.substring(0,20), messages: [] });
-    isFirstMessage = false;
-  }
-  
-  messages.innerHTML += `<p class="userText">You: ${text}</p>`;
-  currentMessages.push({ role: "user", content: text });
+
+  // Add User Message
+  const uP = document.createElement("p");
+  uP.className = "userText";
+  uP.textContent = "You: " + text;
+  messages.appendChild(uP);
   msg.value = "";
-  
-  let p = document.createElement("p");
-  messages.appendChild(p);
+
+  // Prepare AI Response Placeholder
+  const aiP = document.createElement("p");
+  messages.appendChild(aiP);
+  messages.scrollTop = messages.scrollHeight;
 
   try {
-    let res = await fetch("/api/chat",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({ message: text })
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ message: text })
     });
-    let data = await res.json();
-    fastType(p,"Quadron: " + data.reply);
-    currentMessages.push({ role: "ai", content: data.reply });
-    saveChat(currentChatId, { messages: currentMessages });
+    const data = await res.json();
+    fastType(aiP, "Quadron: " + data.reply);
     
     aiReplyCount++;
-    if(aiReplyCount % 3 === 0) setTimeout(insertChatAd, 1500);
-  } catch(e) { console.log("Send error"); }
+    // Check for Ad trigger every 3 replies
+    if(aiReplyCount % 3 === 0) {
+      setTimeout(insertChatAd, 1000);
+    }
+  } catch(e) { 
+    aiP.textContent = "Quadron: Connection lost. Try again."; 
+  }
 }
 
-function createCodeBox(parent,code, instant=false){
-  let box=document.createElement("div");
-  box.className="codeBox";
-  let pre=document.createElement("pre");
-  pre.textContent = code;
-  box.appendChild(pre);
-  parent.appendChild(box);
-  if(!instant) hljs.highlightElement(pre);
-}
-
-// ATTACH EVENTS AFTER LOAD
+// --- EVENT LISTENERS ---
 document.addEventListener("DOMContentLoaded", () => {
-  sendBtn.onclick = send;
-  msg.onkeydown = e => { if(e.key === "Enter") send(); };
-  autoGreeting();
+  // Fix for Send Button
+  sendBtn.onclick = (e) => {
+    e.preventDefault();
+    send();
+  };
+
+  // Enter Key Fix
+  msg.addEventListener("keypress", (e) => {
+    if(e.key === "Enter") send();
+  });
+
+  // Sidebar Logic
+  document.getElementById("menuBtn").onclick = () => {
+    document.getElementById("sidePanel").classList.add("open");
+    document.getElementById("overlay").style.display = "block";
+  };
   
-  document.getElementById("newChatBtn").onclick = () => {
-     messages.innerHTML=""; currentChatId = null; isFirstMessage = true; closeMenu();
+  document.getElementById("overlay").onclick = () => {
+    document.getElementById("sidePanel").classList.remove("open");
+    document.getElementById("overlay").style.display = "none";
   };
-  document.getElementById("codeModeBtn").onclick = () => {
-     messages.innerHTML=""; fastType(messages,"Describe Your Code"); closeMenu();
-  };
-  document.getElementById("exploreModeBtn").onclick = () => {
-     messages.innerHTML=""; fastType(messages,"Explore Mode Activated"); closeMenu();
-  };
+
+  autoGreeting();
 });
 </script>
 
