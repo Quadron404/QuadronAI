@@ -531,23 +531,35 @@ async function getWikiData(query){
   }catch{return "";}
 }
 function insertChatAd() {
-  let ad = document.createElement("div");
-  ad.className = "sourceBox";
-  ad.style.border = "1px solid #ffd900";
-  ad.style.marginTop = "10px";
+  // 1. Create the container
+  let adContainer = document.createElement("div");
+  adContainer.className = "sourceBox"; 
+  adContainer.style.width = "100%"; // Ensures it doesn't push to the right
+  adContainer.style.boxSizing = "border-box";
+  adContainer.style.display = "block"; 
 
-  // Ensure ad content is visible and styled
-  ad.innerHTML = `
+  // 2. Add the UI Labels and the actual Ad Tag
+  adContainer.innerHTML = `
     <div class="sourceText">
-      <div class="sourceTitle">Sponsored</div>
-      <div class="sourceLink">Ad</div>
+      <div class="sourceTitle" style="font-size: 10px; opacity: 0.6;">SPONSORED</div>
+      <div class="ad-slot" data-zone="10864876" style="min-height: 50px; width: 100%;">
+         <script>
+            // This re-triggers the ad script for this specific new box
+            (function(window, document) {
+                var s = document.createElement('script');
+                s.src = 'https://nap5k.com/tag.min.js';
+                s.dataset.zone = '10864876';
+                document.currentScript.parentNode.appendChild(s);
+            })(window, document);
+         </script>
+      </div>
     </div>
   `;
 
-  // Append it inside the chat area (messages container)
-  messages.appendChild(ad);
+  // 3. Put it in the chat
+  messages.appendChild(adContainer);
 
-  // Scroll the chat to the bottom to ensure new content is visible
+  // 4. Force scroll to bottom so the user sees it
   messages.scrollTop = messages.scrollHeight;
 }
 /* SEND (API LOGIC UNCHANGED) */
