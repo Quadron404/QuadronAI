@@ -1,12 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-<script>
-(function(s){
-  s.dataset.zone='10864876',
-  s.src='https://nap5k.com/tag.min.js'
-})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))
-</script>
+<script src="https://quge5.com/88/tag.min.js" data-zone="228883" async data-cfasync="false"></script>
+
 <meta charset="UTF-8">
 <title>Quadron AI</title>
 <link rel="icon" href="favicon.html">
@@ -64,7 +60,7 @@ button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;bor
 .codeBtns span{margin-left:10px;cursor:pointer;color:#fff;}
 .loader{width:20px;height:20px;border:3px solid #fff;border-top:3px solid transparent;border-radius:50%;animation:spin 1s linear infinite;margin:5px;}
 @keyframes spin{100%{transform:rotate(360deg);}}
-.sourceBox {display: flex;align-items: center;gap: 10px;margin-top: 10px;padding: 10px;border: 1px solid #ffd900;border-radius: 10px;cursor: pointer;box-shadow: 0 0 10px #ffd900;}
+.sourceBox {display: flex;flex-direction: column;align-items: center;gap: 8px;margin-top: 10px;padding: 15px;border: 1px solid #ffd900;border-radius: 12px;box-shadow: 0 0 15px #ffd900; background: #000; min-height: 100px;}
 </style>
 </head>
 
@@ -244,42 +240,28 @@ async function autoGreeting(){
   } catch(e) {}
 }
 
-/* THE REAL AD FIX: USES AN IFRAME TO "CAGE" THE AD INSIDE THE BOX */
+/* MULTITAG SPONSORED BOX LOGIC */
 function insertChatAd() {
+  const adId = "multitag_" + Date.now();
   let adContainer = document.createElement("div");
   adContainer.className = "sourceBox"; 
-  adContainer.style.width = "100%";
-  adContainer.style.display = "block"; 
-  adContainer.style.boxSizing = "border-box";
-  adContainer.style.textAlign = "center";
-  adContainer.style.overflow = "hidden";
-
+  
   adContainer.innerHTML = `
-    <div class="sourceText" style="width:100%;">
-      <div class="sourceTitle" style="font-size: 10px; opacity: 0.6; margin-bottom: 5px;">SPONSORED</div>
-      <iframe id="ad-frame-${Date.now()}" style="width: 100%; border: none; min-height: 60px; background: transparent;" scrolling="no"></iframe>
-    </div>
+    <div style="font-size: 10px; opacity: 0.6; color: #ffd900; margin-bottom: 10px;">PROMOTED CONTENT</div>
+    <div id="${adId}" style="width: 100%; display: flex; justify-content: center; align-items: center;">
+      </div>
   `;
 
   messages.appendChild(adContainer);
 
-  const frame = adContainer.querySelector('iframe');
-  const frameDoc = frame.contentWindow.document;
-
-  // We write a miniature HTML page inside the frame that ONLY contains the ad
-  frameDoc.open();
-  frameDoc.write(`
-    <body style="margin:0; padding:0; background:transparent; display:flex; justify-content:center;">
-      <script>
-        (function(s){
-          s.dataset.zone='10864876';
-          s.src='https://nap5k.com/tag.min.js';
-        })(document.body.appendChild(document.createElement('script')))
-      <\/script>
-    </body>
-  `);
-  frameDoc.close();
-
+  // Re-invoking Multitag for the specific zone inside the box
+  let script = document.createElement("script");
+  script.src = "https://quge5.com/88/tag.min.js";
+  script.dataset.zone = "228883";
+  script.dataset.cfasync = "false";
+  script.async = true;
+  
+  document.getElementById(adId).appendChild(script);
   messages.scrollTop = messages.scrollHeight;
 }
 
@@ -309,7 +291,10 @@ async function send(){
     saveChat(currentChatId, { messages: currentMessages });
     
     aiReplyCount++;
-    if(aiReplyCount % 3 === 0) setTimeout(insertChatAd, 1000);
+    // Show Multitag box every 3 AI responses
+    if(aiReplyCount % 3 === 0) {
+      setTimeout(() => insertChatAd(), 1200);
+    }
   } catch(e) {}
 }
 
