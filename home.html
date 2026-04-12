@@ -244,18 +244,16 @@ async function autoGreeting(){
   } catch(e) {}
 }
 
-/* THE AD FIX - PREVENTS RIGHT-SIDE DRIFT & LOADS SCRIPT */
+/* FINAL AD FIX: FORCES SCRIPT INJECTION INSIDE SPONSORED BOX */
 function insertChatAd() {
-  // 1. Create a unique ID for this ad slot
   const uniqueId = "ad_" + Date.now();
-
-  // 2. Create the container with strict styling to prevent "Right-Side" drift
+  
   let adContainer = document.createElement("div");
   adContainer.className = "sourceBox"; 
   adContainer.style.width = "100%";
   adContainer.style.display = "block"; 
   adContainer.style.boxSizing = "border-box";
-  adContainer.style.textAlign = "center"; // Keeps it centered
+  adContainer.style.textAlign = "center";
   adContainer.style.overflow = "hidden";
 
   adContainer.innerHTML = `
@@ -265,18 +263,17 @@ function insertChatAd() {
     </div>
   `;
 
-  // 3. Append to messages first
   messages.appendChild(adContainer);
 
-  // 4. MANUALLY create the script tag to force it to load inside the specific div
-  let s = document.createElement('script');
-  s.src = 'https://nap5k.com/tag.min.js';
-  s.dataset.zone = '10864876';
+  // Manually create the script element to force a fresh execution inside the box
+  let adScript = document.createElement('script');
+  adScript.type = 'text/javascript';
+  adScript.src = 'https://nap5k.com/tag.min.js';
+  adScript.dataset.zone = '10864876';
   
-  // This part tells the script exactly where to put the ad
-  document.getElementById(uniqueId).appendChild(s);
+  // Inject into the newly created div
+  document.getElementById(uniqueId).appendChild(adScript);
 
-  // 5. Scroll to bottom
   messages.scrollTop = messages.scrollHeight;
 }
 
@@ -306,7 +303,7 @@ async function send(){
     saveChat(currentChatId, { messages: currentMessages });
     
     aiReplyCount++;
-    if(aiReplyCount % 3 === 0) setTimeout(insertChatAd, 800);
+    if(aiReplyCount % 3 === 0) setTimeout(insertChatAd, 1000);
   } catch(e) {}
 }
 
