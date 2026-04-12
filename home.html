@@ -244,10 +244,8 @@ async function autoGreeting(){
   } catch(e) {}
 }
 
-/* FINAL AD FIX: FORCES SCRIPT INJECTION INSIDE SPONSORED BOX */
+/* THE REAL AD FIX: USES AN IFRAME TO "CAGE" THE AD INSIDE THE BOX */
 function insertChatAd() {
-  const uniqueId = "ad_" + Date.now();
-  
   let adContainer = document.createElement("div");
   adContainer.className = "sourceBox"; 
   adContainer.style.width = "100%";
@@ -259,20 +257,28 @@ function insertChatAd() {
   adContainer.innerHTML = `
     <div class="sourceText" style="width:100%;">
       <div class="sourceTitle" style="font-size: 10px; opacity: 0.6; margin-bottom: 5px;">SPONSORED</div>
-      <div id="${uniqueId}" style="min-height: 50px; width: 100%; margin: 0 auto;"></div>
+      <iframe id="ad-frame-${Date.now()}" style="width: 100%; border: none; min-height: 60px; background: transparent;" scrolling="no"></iframe>
     </div>
   `;
 
   messages.appendChild(adContainer);
 
-  // Manually create the script element to force a fresh execution inside the box
-  let adScript = document.createElement('script');
-  adScript.type = 'text/javascript';
-  adScript.src = 'https://nap5k.com/tag.min.js';
-  adScript.dataset.zone = '10864876';
-  
-  // Inject into the newly created div
-  document.getElementById(uniqueId).appendChild(adScript);
+  const frame = adContainer.querySelector('iframe');
+  const frameDoc = frame.contentWindow.document;
+
+  // We write a miniature HTML page inside the frame that ONLY contains the ad
+  frameDoc.open();
+  frameDoc.write(`
+    <body style="margin:0; padding:0; background:transparent; display:flex; justify-content:center;">
+      <script>
+        (function(s){
+          s.dataset.zone='10864876';
+          s.src='https://nap5k.com/tag.min.js';
+        })(document.body.appendChild(document.createElement('script')))
+      <\/script>
+    </body>
+  `);
+  frameDoc.close();
 
   messages.scrollTop = messages.scrollHeight;
 }
