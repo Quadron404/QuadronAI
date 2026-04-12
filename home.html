@@ -246,19 +246,37 @@ async function autoGreeting(){
 
 /* THE AD FIX - PREVENTS RIGHT-SIDE DRIFT & LOADS SCRIPT */
 function insertChatAd() {
+  // 1. Create a unique ID for this ad slot
+  const uniqueId = "ad_" + Date.now();
+
+  // 2. Create the container with strict styling to prevent "Right-Side" drift
   let adContainer = document.createElement("div");
   adContainer.className = "sourceBox"; 
   adContainer.style.width = "100%";
   adContainer.style.display = "block"; 
   adContainer.style.boxSizing = "border-box";
+  adContainer.style.textAlign = "center"; // Keeps it centered
+  adContainer.style.overflow = "hidden";
+
   adContainer.innerHTML = `
-    <div class="sourceText">
-      <div class="sourceTitle" style="font-size: 10px; opacity: 0.6;">SPONSORED</div>
-      <div id="ad-container-${Date.now()}" style="min-height: 50px; width: 100%;">
-         <script src="https://nap5k.com/tag.min.js" data-zone="10864876" async><\/script>
-      </div>
-    </div>`;
+    <div class="sourceText" style="width:100%;">
+      <div class="sourceTitle" style="font-size: 10px; opacity: 0.6; margin-bottom: 5px;">SPONSORED</div>
+      <div id="${uniqueId}" style="min-height: 50px; width: 100%; margin: 0 auto;"></div>
+    </div>
+  `;
+
+  // 3. Append to messages first
   messages.appendChild(adContainer);
+
+  // 4. MANUALLY create the script tag to force it to load inside the specific div
+  let s = document.createElement('script');
+  s.src = 'https://nap5k.com/tag.min.js';
+  s.dataset.zone = '10864876';
+  
+  // This part tells the script exactly where to put the ad
+  document.getElementById(uniqueId).appendChild(s);
+
+  // 5. Scroll to bottom
   messages.scrollTop = messages.scrollHeight;
 }
 
