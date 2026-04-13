@@ -1,704 +1,147 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Quadron Login</title>
-
-
-
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-
-
-
+<title>Quadron Profile</title>
 <style>
-
-
-
-/* HIDE UNTIL LOGIN CHECK */
-
-body{display:none;}
-
-
-
-/* ================= BASE (DESKTOP) ================= */
-
-
-
-body{
-
-margin:0;
-
-height:100vh;
-
-background:black;
-
-font-family:Arial, Helvetica, sans-serif;
-
-display:flex;
-
-overflow:hidden;
-
-color:white;
-
-}
-
-
-
-/* LEFT LOGIN PANEL */
-
-
-
-#leftPanel{
-
-width:40%;
-
-min-width:380px;
-
-
-
-display:flex;
-
-flex-direction:column;
-
-justify-content:center;
-
-align-items:center;
-
-
-
-background:#000;
-
-}
-
-
-
-#loginBox{
-
-width:320px;
-
-text-align:center;
-
-}
-
-
-
-#loginBox h2{
-
-font-weight:normal;
-
-margin-bottom:35px;
-
-}
-
-
-
-/* buttons */
-
-
-
-.loginBtn{
-
-width:100%;
-
-padding:14px;
-
-margin:10px 0;
-
-
-
-background:#050505;
-
-border:2px solid #ffe600;
-
-border-radius:8px;
-
-
-
-color:#ffe600;
-
-font-size:15px;
-
-
-
-cursor:pointer;
-
-transition:.25s;
-
-}
-
-
-
-.loginBtn:hover{
-
-background:#ffe600;
-
-color:black;
-
-
-
-box-shadow:
-
-0 0 20px #ffe600,
-
-0 0 60px rgba(255,230,0,.8);
-
-}
-
-
-
-#skip{
-
-margin-top:18px;
-
-font-size:14px;
-
-opacity:.7;
-
-cursor:pointer;
-
-}
-
-
-
-#skip:hover{
-
-opacity:1;
-
-}
-
-
-
-/* RIGHT PANEL */
-
-
-
-#rightPanel{
-
-flex:1;
-
-display:flex;
-
-justify-content:center;
-
-align-items:center;
-
-
-
-position:relative;
-
-overflow:hidden;
-
-
-
-background:black;
-
-}
-
-
-
-/* LIGHT GLOW */
-
-
-
-#rightPanel::after{
-
-content:"";
-
-position:absolute;
-
-
-
-right:-200px;
-
-top:-25%;
-
-
-
-width:1000px;
-
-height:150%;
-
-
-
-background:radial-gradient(circle at right,
-
-rgba(255,240,0,1) 0%,
-
-rgba(255,230,0,1) 8%,
-
-rgba(255,210,0,.95) 18%,
-
-rgba(255,200,0,.8) 30%,
-
-rgba(255,190,0,.55) 45%,
-
-rgba(255,170,0,.3) 60%,
-
-rgba(255,160,0,.12) 75%,
-
-transparent 85%);
-
-}
-
-
-
-/* QUADRON TEXT */
-
-
-
-#quadronText{
-
-font-size:130px;
-
-font-weight:bold;
-
-
-
-color:white;
-
-
-
-text-shadow:
-
-0 0 10px #ffffff,
-
-0 0 25px #ffffff,
-
-0 0 60px rgba(255,255,255,.8);
-
-
-
-transform:translateX(120%);
-
-animation:slideQuadron 3.2s ease-out forwards;
-
-}
-
-
-
-@keyframes slideQuadron{
-
-0%{
-
-transform:translateX(120%);
-
-opacity:0;
-
-}
-
-100%{
-
-transform:translateX(0);
-
-opacity:1;
-
-}
-
-}
-
-
-
-/* ================= MOBILE FIX ================= */
-
-
-
-@media (max-width:700px){
-
-
-
-body{
-
-flex-direction:column;
-
-}
-
-
-
-/* TOP AREA */
-
-
-
-#rightPanel{
-
-height:40vh;
-
-width:100%;
-
-order:1;
-
-}
-
-
-
-#rightPanel::after{
-
-right:-300px;
-
-width:700px;
-
-}
-
-
-
-#quadronText{
-
-font-size:60px;
-
-transform:none;
-
-animation:none;
-
-}
-
-
-
-/* BOTTOM LOGIN PANEL */
-
-
-
-#leftPanel{
-
-width:100%;
-
-height:60vh;
-
-min-width:unset;
-
-
-
-order:2;
-
-
-
-display:flex;
-
-justify-content:center;
-
-align-items:center;
-
-
-
-border-top:2px solid #ffe600;
-
-box-shadow:0 -10px 40px rgba(255,230,0,0.15);
-
-}
-
-
-
-/* CENTER CONTENT PERFECTLY */
-
-
-
-#loginBox{
-
-width:90%;
-
-max-width:350px;
-
-margin:0 auto;
-
-text-align:center;
-
-}
-
-
-
-/* FIX BUTTON ALIGNMENT */
-
-
-
-.loginBtn{
-
-width:100%;
-
-margin:10px auto;
-
-display:block;
-
-padding:12px;
-
-font-size:14px;
-
-}
-
-
-
-/* FIX GOOGLE BUTTON ALIGN */
-
-
-
-.g_id_signin{
-
-display:flex;
-
-justify-content:center;
-
-}
-
-
-
-/* TEXT SPACING */
-
-
-
-#loginBox h2{
-
-margin-bottom:20px;
-
-}
-
-
-
-#skip{
-
-font-size:13px;
-
-}
-
-
-
-}
-
-
-
-</style>
-
-</head>
-
-
-
-<body>
-
-
-
-<!-- LEFT LOGIN -->
-
-
-
-<div id="leftPanel">
-
-<div id="loginBox">
-
-
-
-<h2>Log into your account</h2>
-
-
-
-<div id="g_id_onload"
-
-data-client_id="1050489714046-adurc65sk6qomb1ufhkmliimka1bddtj.apps.googleusercontent.com"
-
-data-callback="handleCredentialResponse">
-
-</div>
-
-
-
-<div class="g_id_signin"
-
-data-type="standard"
-
-data-theme="filled_black"
-
-data-size="large"
-
-data-shape="pill"
-
-data-text="signin_with">
-
-</div>
-
-
-
-<!-- CAPTCHA -->
-
-
-
-<div class="cf-turnstile"
-
-data-sitekey="0x4AAAAAACqOZECQ4_L5eg0G"
-
-style="margin:20px 0;">
-
-</div>
-
-
-
-<button class="loginBtn" onclick="emailLogin()">Login with Email</button>
-
-
-
-<button class="loginBtn" onclick="guestLogin()">Skip Sign-in</button>
-
-
-
-<div id="skip" onclick="guestLogin()">Continue as guest</div>
-
-
-
-</div>
-
-</div>
-
-
-
-<!-- RIGHT SIDE -->
-
-
-
-<div id="rightPanel">
-
-<div id="quadronText">Quadron</div>
-
-</div>
-
-
-
-<script>
-
-
-
-/* ✅ AUTO LOGIN CHECK (MAIN FIX) */
-
-window.onload = () => {
-
-    const userRaw = localStorage.getItem("quadronUser");
-
-
-
-    if(userRaw && userRaw !== "null"){
-
-        try{
-
-            const user = JSON.parse(userRaw);
-
-
-
-            if(user && (user.email || user === "guest")){
-
-                window.location.href = "home.html";
-
-                return;
-
-            }
-
-        }catch(e){
-
-            // if parsing fails but exists → still redirect
-
-            window.location.href = "home.html";
-
-            return;
-
-        }
-
+    body {
+        margin: 0;
+        background: #0a0a0a;
+        color: #ffd900;
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
     }
 
+    #profileCard {
+        width: 350px;
+        background: #111;
+        padding: 30px;
+        border: 2px solid #ffd900;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 0 20px #ffd900;
+    }
 
+    #uPic {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        border: 3px solid #ffd900;
+        margin-bottom: 15px;
+        box-shadow: 0 0 15px #ffd900;
+    }
 
-    /* show page only if NOT logged in */
+    h2 { margin: 10px 0; text-shadow: 0 0 10px #ffd900; }
+    p { color: #fff; margin: 5px 0; opacity: 0.8; }
 
-    document.body.style.display = "flex";
+    .stats {
+        margin: 25px 0;
+        padding: 15px;
+        border-top: 1px solid #333;
+        border-bottom: 1px solid #333;
+    }
 
-};
+    .limit-bar {
+        width: 100%;
+        height: 10px;
+        background: #222;
+        border-radius: 5px;
+        margin-top: 10px;
+        overflow: hidden;
+    }
 
+    #progress {
+        height: 100%;
+        background: #ffd900;
+        width: 0%;
+        box-shadow: 0 0 10px #ffd900;
+        transition: 0.5s;
+    }
 
+    .btn {
+        width: 100%;
+        padding: 12px;
+        margin-top: 10px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s;
+    }
 
-/* GOOGLE LOGIN */
+    .back-btn { background: #222; color: #fff; }
+    .back-btn:hover { background: #333; }
 
+    .logout-btn { background: #ffd900; color: #000; margin-top: 20px; }
+    .logout-btn:hover { box-shadow: 0 0 20px #ffd900; }
+</style>
+</head>
+<body>
 
+<div id="profileCard">
+    <img id="uPic" src="" alt="User">
+    <h2 id="uName">Loading...</h2>
+    <p id="uEmail"></p>
 
-function handleCredentialResponse(response){
+    <div class="stats">
+        <div>Daily Message Limit</div>
+        <div id="limitText">0 / 100</div>
+        <div class="limit-bar">
+            <div id="progress"></div>
+        </div>
+    </div>
 
-const jwt = response.credential
+    <button class="btn back-btn" onclick="window.location.href='home.html'">Back to Chat</button>
+    <button class="btn logout-btn" onclick="logout()">Logout</button>
+</div>
 
-const payload = JSON.parse(atob(jwt.split('.')[1]))
+<script>
+    // 1. Get User Data
+    let userRaw = localStorage.getItem("quadronUser");
+    let user = {};
 
+    if(userRaw === "guest") {
+        user = { 
+            name: "Guest User", 
+            email: "guest@mode", 
+            picture: "https://cdn-icons-png.flaticon.com/512/149/149071.png" 
+        };
+    } else {
+        try {
+            user = JSON.parse(userRaw) || {};
+        } catch(e) {
+            window.location.href = "login.html"; // Redirect if data is corrupted
+        }
+    }
 
+    // 2. Get Limit Data
+    let limitKey = "limit_" + (user.email || "guest");
+    let limitData = JSON.parse(localStorage.getItem(limitKey)) || {count: 0};
+    let count = limitData.count || 0;
 
-const user = {
+    // 3. Update UI
+    document.getElementById("uPic").src = user.picture || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+    document.getElementById("uName").textContent = user.name || "Guest";
+    document.getElementById("uEmail").textContent = user.email || "";
+    document.getElementById("limitText").textContent = count + " / 100";
+    
+    // Update Progress Bar
+    let percentage = (count / 100) * 100;
+    document.getElementById("progress").style.width = percentage + "%";
 
-name: payload.name,
-
-email: payload.email,
-
-picture: payload.picture
-
-}
-
-
-
-localStorage.setItem("quadronUser", JSON.stringify(user))
-
-enterSite()
-
-}
-
-
-
-/* EMAIL LOGIN */
-
-
-
-function emailLogin(){
-
-let email = prompt("Enter your email")
-
-if(!email) return
-
-
-
-localStorage.setItem("quadronUser", JSON.stringify({email:email}))
-
-enterSite()
-
-}
-
-
-
-/* GUEST LOGIN */
-
-
-
-/* GUEST LOGIN - UPDATED FOR STABILITY */
-function guestLogin(){
-    // Storing as an object ensures home.html doesn't crash when JSON.parsing
-    const guestUser = {
-        name: "Guest",
-        email: "guest@mode",
-        picture: "https://via.placeholder.com/40"
-    };
-    localStorage.setItem("quadronUser", JSON.stringify(guestUser));
-    enterSite();
-}
-
-
-/* REDIRECT */
-
-
-
-function enterSite(){
-
-window.location.href = "home.html"
-
-}
-
-
-
+    // 4. Logout Function
+    function logout() {
+        if(confirm("Are you sure you want to logout?")) {
+            localStorage.removeItem("quadronUser");
+            // Note: We don't remove the limit data so it persists until tomorrow
+            window.location.href = "login.html"; 
+        }
+    }
 </script>
 
-
-
 </body>
-
-</html> 
+</html>
