@@ -1,531 +1,639 @@
 <!DOCTYPE html>
-
-<html lang="en">
-
+<html>
 <head>
-
 <meta charset="UTF-8">
-
+<title>Quadron AI</title>
+<link rel="icon" href="favicon.html">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Quadron Voice Mode</title>
-
-
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/monokai-sublime.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 
 <style>
-
-body{
-
-background:#050505;
-
-font-family:Arial, Helvetica, sans-serif;
-
-margin:0;
-
-overflow:hidden;
-
-display:flex;
-
-flex-direction:column;
-
-align-items:center;
-
-justify-content:center;
-
-height:100vh;
-
-color:white;
-
+/* SAME UI - UNCHANGED */
+body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;transition:.3s;}
+.blur-bg{filter:blur(6px);}
+header{display:flex;justify-content:space-between;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 15px #ffd900;}
+header div:first-child{font-weight:bold;text-shadow:0 0 15px #ffd900;}
+#menuBtn{cursor:pointer;font-size:24px;}
+#overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;z-index:500;}
+#sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;display:flex;flex-direction:column;}
+#sidePanel.open{transform:translateX(0);}
+#menuProfile{display:flex;gap:10px;padding:10px;border-bottom:1px solid #333;cursor:pointer;}
+#menuProfile img{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  border:2px solid #ffd900;
+  box-shadow:0 0 10px #ffd900;
+  transition:0.2s;
+}
+  #profileName{
+  font-weight:bold;
+  color:#ffd900;
+  text-shadow:0 0 10px #ffd900;
+  transition:0.2s;
 }
 
-
-
-/* --- BACK BUTTON STYLE --- */
-
-#backBtn {
-
-position: absolute;
-
-top: 20px;
-
-left: 20px;
-
-background: rgba(255, 230, 0, 0.1);
-
-border: 1px solid #ffe600;
-
-color: #ffe600;
-
-padding: 10px 15px;
-
-border-radius: 8px;
-
-cursor: pointer;
-
-font-size: 14px;
-
-font-weight: bold;
-
-text-decoration: none;
-
-transition: 0.3s;
-
-z-index: 2000;
-
-box-shadow: 0 0 10px rgba(255, 230, 0, 0.3);
-
+#profileEmail{
+  color:#ffd900;
+  text-shadow:0 0 8px #ffd900;
+  transition:0.2s;
+}
+.menuItem{
+  padding:10px;
+  cursor:pointer;
+  margin-top:8px;
+  font-weight:bold;
+  color:#fff;
+  text-shadow:0 0 8px #fff, 0 0 15px #fff;
+  transition:0.2s;
 }
 
-
-
-#backBtn:hover {
-
-background: #ffe600;
-
-color: black;
-
-box-shadow: 0 0 20px #ffe600;
-
+.menuItem:hover{
+  text-shadow:0 0 15px #fff, 0 0 30px #fff, 0 0 50px #fff;
 }
 
-
-
-#waveCanvas{
-
-width:900px;
-
-max-width:90%;
-
-height:220px;
-
+#chatHistory div {
+  padding: 6px;
+  cursor: pointer;
+  color: #ffd900;
+  font-weight: bold;
+  text-shadow: 0 0 6px #ffd900, 0 0 12px #ffd900;
+  transition: 0.3s;
 }
 
-
-
-#caption{
-
-position:absolute;
-
-bottom:120px;
-
-font-size:34px;
-
-font-weight:bold;
-
-color:#ffe600;
-
-text-shadow:
-
-0 0 10px #ffe600,
-
-0 0 25px #ffd000,
-
-0 0 50px #ffc400;
-
+#chatHistory div:hover {
+  color: #ffd900;
+  text-shadow: 
+    0 0 10px #ffd900,
+    0 0 20px #ffd900,
+    0 0 40px #ffd900,
+    0 0 70px #ffd900;
 }
 
-
-
-#footer{
-
-position:absolute;
-
-bottom:20px;
-
-font-size:13px;
-
-opacity:.65;
-
+#chatHistory .menuItem {
+  color: #ffd900;
+  text-shadow: 0 0 6px #ffd900;
 }
 
-
-
-@media (max-width: 600px){
-
-#backBtn {
-
-top: 15px;
-
-left: 15px;
-
-padding: 8px 12px;
-
-font-size: 12px;
-
+#chatHistory .menuItem:hover {
+  color: #ffd900;
+  text-shadow:
+    0 0 10px #ffd900,
+    0 0 20px #ffd900,
+    0 0 40px #ffd900,
+    0 0 70px #ffd900;
+}
+.menuFooter{margin-top:auto;text-align:center;font-size:12px;color:#fff;text-shadow:0 0 10px #fff;}
+.menuFooter span{color:#ffd900;text-shadow:0 0 10px #ffd900;}
+#chat{max-width:800px;margin:auto;padding:10px;}
+#messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;border-radius:12px;box-shadow:0 0 20px #ffd900;}
+#inputArea{display:flex;gap:8px;margin-top:10px;}
+input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
+input::placeholder{color:rgba(255,255,255,0.3);}
+button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;border-radius:20px;box-shadow:0 0 15px #ffd900;transition:.2s;}
+button:hover{box-shadow:0 0 35px #ffd900;}
+.userText{color:#ffd900;text-shadow:0 0 10px #ffd900;}
+.aiText{color:#fff;text-shadow:0 0 10px #fff;}
+.footer{text-align:center;font-size:12px;margin:10px;color:#fff;text-shadow:0 0 10px #fff;}
+.footer a{color:#ffd900;text-shadow:0 0 15px #ffd900;text-decoration:none;}
+#menuProfile:hover #profileName,
+#menuProfile:hover #profileEmail{
+  text-shadow:0 0 20px #ffd900, 0 0 40px #ffd900;
 }
 
-#waveCanvas{
-
-width:100%;
-
-height:180px;
-
+#menuProfile:hover img{
+  box-shadow:0 0 20px #ffd900, 0 0 40px #ffd900;
+  border-color:#ffd900;
 }
 
-#caption{
-
-font-size:22px;
-
-bottom:100px;
-
-text-align:center;
-
-padding:0 10px;
-
+.codeBox{background:#000;border:1px solid #ffd900;border-radius:10px;margin-top:10px;overflow:hidden;}
+.codeTop{display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #ffd900;}
+.codeTitle{color:#fff;text-shadow:0 0 10px #fff;}
+.codeBtns span{margin-left:10px;cursor:pointer;color:#fff;text-shadow:0 0 10px #fff;}
+.backBtn{color:#ffd900;text-shadow:0 0 10px #ffd900;cursor:pointer;}
+.loader{width:20px;height:20px;border:3px solid #fff;border-top:3px solid transparent;border-radius:50%;animation:spin 1s linear infinite;margin:5px;}
+@keyframes spin{100%{transform:rotate(360deg);}}
+a.link{
+  color:#ffd900;
+  text-shadow:0 0 10px #ffd900, 0 0 20px #ffd900;
+  text-decoration:none;
+}
+.sourceBox{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:10px;
+  padding:10px;
+  border:1px solid #fff;
+  border-radius:10px;
+  cursor:pointer;
+  transition:0.2s;
+  box-shadow:0 0 10px #fff;
 }
 
-#footer{
-
-font-size:11px;
-
-bottom:10px;
-
-text-align:center;
-
-padding:0 10px;
-
+.sourceBox:hover{
+  box-shadow:0 0 25px #fff;
 }
 
-html{
-
-font-size:16px;
-
+.sourceBox img{
+  width:20px;
+  height:20px;
 }
 
+.sourceText{
+  display:flex;
+  flex-direction:column;
 }
 
+.sourceTitle{
+  color:#fff;
+  font-size:14px;
+  text-shadow:0 0 5px #fff;
+}
+
+.sourceLink{
+  color:#aaa;
+  font-size:12px;
+}
 </style>
-
 </head>
-
-
 
 <body>
 
+<header>
+  <div>Quadron AI</div>
+  <div id="menuBtn">☰</div>
+</header>
 
+<div id="overlay"></div>
 
-<a href="home.html" id="backBtn">← Back</a>
+<div id="sidePanel">
+  <div id="menuProfile">
+    <img id="profilePic">
+    <div>
+      <div id="profileName"></div>
+      <div id="profileEmail" style="font-size:12px;"></div>
+    </div>
+  </div>
 
+  <div class="menuItem" id="newChatBtn">New Chat</div>
+  <div class="menuItem" id="codeModeBtn">Code /</div>
+  <div class="menuItem" id="exploreModeBtn">Explore</div>
+  <div class="menuItem" id="voiceModeBtn">Voice Mode</div>
 
+  <div id="chatHistory" style="margin-top:15px;overflow:auto;max-height:300px;"></div>
 
-<canvas id="waveCanvas"></canvas>
-
-<div id="caption"></div>
-
-<div id="footer">
-
-English-only voice mode, using other languages would be devastating
-
+  <div class="menuFooter">
+    Developed by <span>Rawat Systems</span>
+  </div>
 </div>
 
+<div id="chat">
+  <div id="messages"></div>
+  <div id="inputArea">
+    <input id="msg" placeholder="Type here.....">
+    <button id="sendBtn">Send</button>
+    <input type="file" id="fileInput" style="display:none;">
+  </div>
+  <div id="filePreview"></div>
+</div>
 
+<div class="footer">
+  Quadron AI can make mistakes, by using it you accept our
+  <a href="terms.html">Terms & Conditions</a>
+</div>
 
 <script>
+let currentChatId = null;
+let isFirstMessage = true;
+let db;
+let currentMessages = [];
+let req = indexedDB.open("quadronDB", 1);
 
-/* ---------------- WAVE VISUALIZER ---------------- */
+req.onupgradeneeded = e => {
+  db = e.target.result;
+  db.createObjectStore("chats", { keyPath: "id" });
+};
 
-const canvas = document.getElementById("waveCanvas")
+req.onsuccess = e => {
+  db = e.target.result;
+  loadChatList();
+};
 
-const ctx = canvas.getContext("2d")
+function saveChat(id, data){
+  let tx = db.transaction("chats", "readwrite");
+  let store = tx.objectStore("chats");
+  let getReq = store.get(id);
 
-
-
-canvas.width = 900
-
-canvas.height = 220
-
-
-
-let phase = 0
-
-let speaking = false
-
-
-
-function drawWave(){
-
-ctx.clearRect(0,0,canvas.width,canvas.height)
-
-let amp = speaking ? 42 : 18
-
-
-
-function wave(speed,opacity,width){
-
-ctx.beginPath()
-
-ctx.lineWidth = width
-
-ctx.strokeStyle = `rgba(255,230,0,${opacity})`
-
-ctx.shadowBlur = 35
-
-ctx.shadowColor = "#ffe600"
-
-for(let x=0;x<canvas.width;x++){
-
-let y = canvas.height/2 + Math.sin((x+phase)*speed)*amp
-
-ctx.lineTo(x,y)
-
+  getReq.onsuccess = () => {
+    let existing = getReq.result || {};
+    store.put({
+      id,
+      title: data.title || existing.title || "New Chat",
+      messages: data.messages || existing.messages || []
+    });
+  };
 }
 
-ctx.stroke()
+function loadChatList(){
+  let history = document.getElementById("chatHistory");
+  history.innerHTML = "";
+  let tx = db.transaction("chats", "readonly");
+  let store = tx.objectStore("chats");
 
+  store.openCursor().onsuccess = e => {
+    let cursor = e.target.result;
+    if(cursor){
+      let div = document.createElement("div");
+      div.textContent = cursor.value.title;
+      div.style.cursor = "pointer";
+      div.style.padding = "6px";
+      div.style.borderBottom = "1px solid #333";
+      let chatId = cursor.value.id;
+
+      div.onclick = () => {
+        let tx = db.transaction("chats", "readonly");
+        let store = tx.objectStore("chats");
+        let req = store.get(chatId);
+        req.onsuccess = () => {
+          if(req.result) loadChat(req.result);
+        };
+      };
+      history.appendChild(div);
+      cursor.continue();
+    }
+  };
 }
 
-wave(.02,.9,3)
+function loadChat(chatData){
+  currentChatId = chatData.id;
+  isFirstMessage = false;
+  currentMessages = Array.isArray(chatData.messages) ? chatData.messages : [];
+  messages.innerHTML = "";
+  closeMenu();
 
-wave(.025,.5,2)
-
-wave(.03,.3,1)
-
-phase += 2
-
-requestAnimationFrame(drawWave)
-
+  currentMessages.forEach(m=>{
+    if(m.role === "user"){
+      let p = document.createElement("p");
+      p.className = "userText";
+      p.textContent = "You: " + m.content;
+      messages.appendChild(p);
+    }else{
+      let p = document.createElement("p");
+      messages.appendChild(p);
+      if(m.type === "code"){
+        createCodeBox(p, m.content, true);
+      }else{
+        p.className = "aiText";
+        p.textContent = "Quadron: " + m.content;
+      }
+    }
+  });
 }
 
-drawWave()
+const menuBtn = document.getElementById("menuBtn");
+const overlay = document.getElementById("overlay");
+const sidePanel = document.getElementById("sidePanel");
+const chat = document.getElementById("chat");
+const messages = document.getElementById("messages");
+const msg = document.getElementById("msg");
+const sendBtn = document.getElementById("sendBtn");
+sendBtn.onclick = send;
 
+const profileName = document.getElementById("profileName");
+const profileEmail = document.getElementById("profileEmail");
+const profilePic = document.getElementById("profilePic");
+const menuProfile = document.getElementById("menuProfile");
+const newChatBtn = document.getElementById("newChatBtn");
+const codeModeBtn = document.getElementById("codeModeBtn");
+const exploreModeBtn = document.getElementById("exploreModeBtn");
+const voiceModeBtn = document.getElementById("voiceModeBtn");
 
+let userRaw = localStorage.getItem("quadronUser");
+let user = {};
 
-/* ---------------- SPEECH OUTPUT ---------------- */
-
-const caption = document.getElementById("caption")
-
-let currentUtterance = null
-
-
-
-function stopSpeech(){
-
-if(currentUtterance){
-
-speechSynthesis.cancel()
-
-currentUtterance = null
-
+if(userRaw === "guest") {
+    user = { name: "Guest", email: "guest@mode", picture: "https://via.placeholder.com/40" };
+} else {
+    try {
+        user = JSON.parse(userRaw) || { name: "Guest", email: "", picture: "https://via.placeholder.com/40" };
+    } catch(e) {
+        user = { name: "Guest", email: "", picture: "https://via.placeholder.com/40" };
+    }
 }
 
-caption.innerText = ""
+profileName.textContent = user.name || "Guest";
+profileEmail.textContent = user.email || "";
+profilePic.src = user.picture || "https://via.placeholder.com/40";
 
-speaking = false
+menuBtn.addEventListener("click", ()=>{
+  sidePanel.classList.add("open");
+  overlay.style.display="block";
+  chat.classList.add("blur-bg");
+});
+overlay.onclick = closeMenu;
 
+function closeMenu(){
+  sidePanel.classList.remove("open");
+  overlay.style.display="none";
+  chat.classList.remove("blur-bg");
 }
 
-
-
-function speak(text){
-
-stopSpeech();
-
-try { recognition.stop(); } catch(e) {}
-
-
-
-let words = text.split(" ")
-
-let index = 0
-
-let utter = new SpeechSynthesisUtterance(text)
-
-utter.lang = "en-US"
-
-utter.rate = 1
-
-
-
-currentUtterance = utter
-
-speaking = true
-
-
-
-utter.onboundary = function(event){
-
-if(event.name === "word"){
-
-caption.innerText = words[index] || ""
-
-index++
-
+function menuAction(fn){
+  closeMenu();
+  if(fn) fn();
 }
 
+let mode="normal";
+function resetChat(){messages.innerHTML="";}
+
+function newChat(){
+  mode="normal";
+  resetChat();
+  currentChatId = null;
+  isFirstMessage = true;
+}
+function codeMode(){mode="code";resetChat();fastType(messages,"Describe What You Want To Code");}
+function exploreMode(){mode="explore";resetChat();fastType(messages,"Explore The Universe");}
+function voiceMode(){window.location.href="voice.html";}
+
+menuProfile.onclick=()=>{closeMenu();window.location.href="profile.html";}
+newChatBtn.onclick=()=>menuAction(newChat);
+codeModeBtn.onclick=()=>menuAction(codeMode);
+exploreModeBtn.onclick=()=>menuAction(exploreMode);
+voiceModeBtn.onclick=()=>{closeMenu();voiceMode();};
+
+function fastType(el,text){
+  let span=document.createElement("span");
+  span.className="aiText";
+  el.appendChild(span);
+  let parts = text.split(/(<a.*?>.*?<\/a>)/g);
+  let i = 0;
+
+  function typePart(){
+    if(i >= parts.length) return;
+    let part = parts[i];
+    if(part.startsWith("<a")){
+      span.innerHTML += part;
+      i++;
+      typePart();
+    }else{
+      let j = 0;
+      let speed = 2; 
+      let int = setInterval(()=>{
+        span.innerHTML += part[j++];
+        if(j >= part.length){
+          clearInterval(int);
+          i++;
+          typePart();
+        }
+      }, speed);
+    }
+  }
+  typePart();
 }
 
+async function autoGreeting(){
+  if(sessionStorage.getItem("greeted")) return;
+  let hour = new Date().getHours();
+  let timeText = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
+  let name = user.name || "Guest";
+  let prompt = `Write a short sarcastic greeting saying "Good ${timeText}" to ${name}. Keep it funny, slightly rude, and human-like. No extra explanation.`;
 
-
-utter.onend = function(){
-
-caption.innerText = ""
-
-speaking = false
-
-currentUtterance = null
-
-startRecognition();
-
+  try{
+    let res = await fetch("/api/chat",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({message: prompt})
+    });
+    let reply = (await res.json()).reply;
+    let p = document.createElement("p");
+    messages.appendChild(p);
+    fastType(p, "Quadron: " + reply);
+    sessionStorage.setItem("greeted", true);
+  }catch(e){
+    console.error("Greeting failed", e);
+  }
 }
 
-
-
-speechSynthesis.speak(utter)
-
+function createSourceBox(url){
+  let domain = (new URL(url)).hostname;
+  let box = document.createElement("div");
+  box.className = "sourceBox";
+  box.innerHTML = `
+    <img src="https://www.google.com/s2/favicons?domain=${domain}" />
+    <div class="sourceText">
+      <div class="sourceTitle">${domain}</div>
+      <div class="sourceLink">${url}</div>
+    </div>
+  `;
+  box.onclick = ()=>{ window.open(url, "_blank"); };
+  return box;
 }
 
-
-
-/* ---------------- VOICE INPUT ---------------- */
-
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-
-const recognition = new SpeechRecognition()
-
-
-
-recognition.lang = "en-US"
-
-recognition.continuous = true
-
-recognition.interimResults = true
-
-
-
-let transcriptBuffer = ""
-
-let silenceTimer = null
-
-
-
-function startRecognition(){
-
-if(speaking) return;
-
-try{
-
-recognition.start();
-
-} catch(e){}
-
+async function getWikiData(query){
+  try{
+    let res=await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
+    let data=await res.json();
+    return data.extract || "";
+  }catch{return "";}
 }
 
+async function send(){
+  let limitKey = "limit_" + (user.email || "guest");
+  let limitData = JSON.parse(localStorage.getItem(limitKey)) || {count: 0};
+  
+  if(limitData.count >= 100){
+      alert("LIMIT CROSSED COME AGAIN TOMORROW");
+      return;
+  }
 
+  let text=msg.value.trim();
+  if(!text)return;
+  
+  limitData.count++;
+  localStorage.setItem(limitKey, JSON.stringify(limitData));
 
-recognition.onresult = function(event){
+  if(isFirstMessage){
+    currentChatId = "chat_" + Date.now();
+    saveChat(currentChatId,{ title: "New Chat", messages: [] });
 
-let result = event.results[event.results.length-1]
+    fetch("/api/chat",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ message: "Write a 3 or 4 word title only, nothing else: " + text })
+    })
+    .then(res=>res.json())
+    .then(data=>{
+      let title = data.reply.trim();
+      saveChat(currentChatId,{ title: title, messages: [] });
+      loadChatList();
+    });
+    isFirstMessage = false;
+  }
 
-let text = result[0].transcript.trim()
+  messages.innerHTML+=`<p class="userText">You: ${text}</p>`;
+  currentMessages.push({ role: "user", content: text });
+  msg.value="";
 
+  let p=document.createElement("p");
+  messages.appendChild(p);
 
+  let finalPrompt=text;
+  if(mode==="code"){
+    finalPrompt = `You are a code generator.\nRules:\n- Output ONLY complete working code\n- No explanations\n- No comments unless inside code\n- No markdown (no \`\`\`)\n- No "Here is code"\n- No text before or after\n- Code must be directly runnable\n- If HTML → include full <!DOCTYPE html>\n\nTask:\n${text}`;
+  }
+  if(mode==="explore"){
+    let wiki=await getWikiData(text);
+    finalPrompt=`Use this data:\n${wiki}\n\nExplain clearly and give one source link at end do not provide html codes with link just provide links in end as "Source: link".\n${text}`;
+  }
 
-if(speaking){
+  let history = currentMessages.slice(-6).map(m => `${m.role}: ${m.content}`).join("\n");
+  let res=await fetch("/api/chat",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({ message: `Conversation so far:\n${history}\n\nUser: ${finalPrompt}` })
+  });
+  let reply=(await res.json()).reply;
 
-stopSpeech()
+  if(mode==="code"){
+    reply = reply.replace(/```[\w]*/g,"").replace(/```/g,"").trim();
+    createCodeBox(p,reply);
+    currentMessages.push({ role: "ai", content: reply, type: "code" });
+    saveChat(currentChatId, { title: "Chat", messages: currentMessages });
+    return;
+  }
 
+  if(mode==="explore"){
+    let sourceMatch = reply.match(/Source:\s*([^\s]+)/i);
+    if(sourceMatch){
+      let url = sourceMatch[1].replace(/undefined+$/i, "");
+      if(!url.startsWith("http")) url = "https://" + url;
+      reply = reply.replace(/Source:\s*[^\s]+/i, "");
+      let box = createSourceBox(url);
+      fastType(p,"Quadron: "+reply);
+      setTimeout(() => p.appendChild(box), 500);
+      currentMessages.push({ role: "ai", content: reply });
+      saveChat(currentChatId, { title: "Chat", messages: currentMessages });
+      return;
+    }
+  }
+
+  fastType(p,"Quadron: "+reply);
+  currentMessages.push({ role: "ai", content: reply });
+  saveChat(currentChatId, { title: "Chat", messages: currentMessages });
 }
 
+function createCodeBox(parent,code, instant=false){
+  let box=document.createElement("div");
+  box.className="codeBox";
+  let top=document.createElement("div");
+  top.className="codeTop";
+  let title=document.createElement("div");
+  title.className="codeTitle";
 
+  function detectCodeName(c){
+    if(c.includes("<html")) return "HTML File";
+    if(c.includes("function") || c.includes("=>")) return "JavaScript File";
+    if(c.includes("import") && c.includes("from")) return "Python File";
+    if(c.includes("#include")) return "C/C++ File";
+    return "Code";
+  }
 
-transcriptBuffer = text
+  let codeName = detectCodeName(code);
+  title.innerHTML="&lt;/&gt; " + codeName;
+  let btns=document.createElement("div");
+  btns.className="codeBtns";
+  let copy=document.createElement("span"); copy.textContent="Copy";
+  let run=document.createElement("span"); run.textContent="Run";
+  let debug=document.createElement("span"); debug.textContent="Debugg";
 
-clearTimeout(silenceTimer)
+  btns.append(copy,run,debug);
+  top.append(title,btns);
+  let loaderWrap = document.createElement("div");
+  loaderWrap.style.display="flex";
+  loaderWrap.style.paddingLeft="8px";
+  let loader = document.createElement("div");
+  loader.className="loader";
+  loaderWrap.appendChild(loader);
 
+  let pre=document.createElement("pre");
+  box.append(top, loaderWrap, pre);
+  parent.appendChild(box);
 
+  if(instant){
+    pre.textContent = code;
+    loaderWrap.remove();
+    hljs.highlightElement(pre);
+  }else{
+    let i=0,txt="";
+    let int=setInterval(()=>{
+      txt+=code[i++];
+      pre.textContent=txt;
+      if(i>=code.length){
+        clearInterval(int);
+        loaderWrap.remove();
+        hljs.highlightElement(pre);
+      }
+    },1);
+  }
 
-silenceTimer = setTimeout(async ()=>{
+  copy.onclick=()=>{
+    navigator.clipboard.writeText(code);
+    copy.textContent="Copied !";
+    setTimeout(()=>copy.textContent="Copy",1500);
+  };
 
-if(!transcriptBuffer) return
+  run.onclick=()=>{
+    pre.style.display="none";
+    let existingFrame = box.querySelector("iframe");
+    if(existingFrame) existingFrame.remove();
+    let iframe=document.createElement("iframe");
+    iframe.style.width="100%";
+    iframe.style.height="300px";
+    let back=document.createElement("div");
+    back.className="backBtn";
+    back.textContent="Back";
+    top.innerHTML="";
+    top.append(title, back);
+    box.appendChild(iframe);
+    iframe.contentDocument.write(code);
+    back.onclick=()=>{
+      iframe.remove();
+      pre.style.display="block";
+      top.innerHTML="";
+      top.append(title, btns);
+    };
+  };
 
-let speech = transcriptBuffer
-
-transcriptBuffer = ""
-
-
-
-try{
-
-let response = await fetch("/api/chat",{
-
-method:"POST",
-
-headers:{"Content-Type":"application/json"},
-
-body:JSON.stringify({message:speech})
-
-})
-
-
-
-const resText = await response.text()
-
-let data
-
-try{
-
-data = JSON.parse(resText)
-
-}catch{
-
-speak("Error understanding server response")
-
-return
-
+  debug.onclick=async()=>{
+    loaderWrap.style.display="flex";
+    if(!box.contains(loaderWrap)) box.insertBefore(loaderWrap, pre);
+    let res=await fetch("/api/chat",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ message:`Fix this code. Return ONLY fixed code. No explanation:\n${code}` })
+    });
+    let fixed=(await res.json()).reply;
+    fixed = fixed.replace(/```[\w]*/g,"").replace(/```/g,"").trim();
+    code = fixed;
+    let i=0,txt="";
+    let int=setInterval(()=>{
+      txt+=fixed[i++];
+      pre.textContent=txt;
+      if(i>=fixed.length){
+        clearInterval(int);
+        loaderWrap.style.display="none";
+        hljs.highlightElement(pre);
+      }
+    },1);
+  };
 }
 
-
-
-if(!response.ok){
-
-speak("API error occurred")
-
-return
-
-}
-
-speak(data.reply || "No response from AI")
-
-}catch(e){
-
-console.log("API error",e)
-
-speak("Connection error")
-
-}
-
-}, 1000)
-
-}
-
-
-
-recognition.onend = function(){
-
-if(!speaking) {
-
-setTimeout(startRecognition, 400)
-
-}
-
-}
-
-
-
-recognition.onerror = function(event){
-
-setTimeout(startRecognition, 800)
-
-}
-
-
-
-startRecognition()
-
-
-
+msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
+window.addEventListener("load", autoGreeting);
 </script>
-
 </body>
-
 </html>
