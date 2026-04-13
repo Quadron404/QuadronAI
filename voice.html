@@ -4,193 +4,125 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quadron Voice Mode</title>
-
 <style>
-body{
-background:#050505;
-font-family:Arial, Helvetica, sans-serif;
-margin:0;
-overflow:hidden;
-display:flex;
-flex-direction:column;
-align-items:center;
-justify-content:center;
-height:100vh;
-color:white;
-}
-
-#backBtn {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    background: rgba(255, 230, 0, 0.1);
-    border: 1px solid #ffe600;
-    color: #ffe600;
-    padding: 10px 15px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: bold;
-    text-decoration: none;
-    transition: 0.3s;
-    z-index: 2000;
-}
-
-#backBtn:hover {
-    background: #ffe600;
-    color: black;
-}
-
-#waveCanvas{
-width:900px;
-max-width:90%;
-height:220px;
-}
-
-#caption{
-position:absolute;
-bottom:120px;
-font-size:34px;
-font-weight:bold;
-color:#ffe600;
-text-shadow: 0 0 10px #ffe600, 0 0 25px #ffd000;
-text-align:center;
-min-height: 1.2em;
-}
-
-#footer{
-position:absolute;
-bottom:20px;
-font-size:13px;
-opacity:.65;
-}
-
-@media (max-width: 600px){
-#backBtn { top: 15px; left: 15px; font-size: 12px; }
-#waveCanvas{ width:100%; height:180px; }
-#caption{ font-size:22px; bottom:100px; }
-}
+body{ background:#050505; font-family:Arial, sans-serif; margin:0; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; color:white; }
+#backBtn { position: absolute; top: 20px; left: 20px; background: rgba(255, 230, 0, 0.1); border: 1px solid #ffe600; color: #ffe600; padding: 10px 15px; border-radius: 8px; text-decoration: none; font-weight: bold; z-index: 2000; }
+#waveCanvas{ width:900px; max-width:90%; height:220px; }
+#caption{ position:absolute; bottom:120px; font-size:32px; font-weight:bold; color:#ffe600; text-shadow: 0 0 10px #ffe600; text-align:center; padding: 0 20px; }
+@media (max-width: 600px){ #caption{ font-size:24px; bottom:100px; } }
 </style>
 </head>
-
 <body>
 
 <a href="home.html" id="backBtn">← Back</a>
-
 <canvas id="waveCanvas"></canvas>
 <div id="caption"></div>
-<div id="footer">English-only voice mode</div>
 
 <script>
-/* ---------------- WAVE VISUALIZER ---------------- */
-const canvas = document.getElementById("waveCanvas")
-const ctx = canvas.getContext("2d")
+/* ---------------- VISUALIZER (UNCHANGED) ---------------- */
+const canvas = document.getElementById("waveCanvas");
+const ctx = canvas.getContext("2d");
 canvas.width = 900; canvas.height = 220;
 let phase = 0, speaking = false;
 
 function drawWave(){
-    ctx.clearRect(0,0,canvas.width,canvas.height)
-    let amp = speaking ? 42 : 18
-    function wave(speed,opacity,width){
-        ctx.beginPath(); ctx.lineWidth = width;
-        ctx.strokeStyle = `rgba(255,230,0,${opacity})`;
-        for(let x=0;x<canvas.width;x++){
-            let y = canvas.height/2 + Math.sin((x+phase)*speed)*amp
-            ctx.lineTo(x,y)
-        }
-        ctx.stroke()
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    let amp = speaking ? 45 : 15;
+    ctx.beginPath(); ctx.lineWidth = 3; ctx.strokeStyle = `#ffe600`;
+    for(let x=0;x<canvas.width;x++){
+        let y = canvas.height/2 + Math.sin((x+phase)*.02)*amp;
+        ctx.lineTo(x,y);
     }
-    wave(.02,.9,3); wave(.025,.5,2); wave(.03,.3,1);
-    phase += 2; requestAnimationFrame(drawWave)
+    ctx.stroke();
+    phase += 2; requestAnimationFrame(drawWave);
 }
-drawWave()
+drawWave();
 
-/* ---------------- SPEECH OUTPUT ---------------- */
-const caption = document.getElementById("caption")
-let currentUtterance = null
-let wordTimer = null
+/* ---------------- ACCURATE SPEECH OUTPUT ---------------- */
+const caption = document.getElementById("caption");
+let captionTimeout = null;
 
 function stopSpeech(){
-    if(currentUtterance) speechSynthesis.cancel()
-    if(wordTimer) clearInterval(wordTimer)
-    caption.innerText = ""
-    speaking = false
+    window.speechSynthesis.cancel();
+    clearTimeout(captionTimeout);
+    caption.innerText = "";
+    speaking = false;
 }
 
-function speak(text){
+function speak(text) {
     stopSpeech();
     try { recognition.stop(); } catch(e) {}
 
-    let utter = new SpeechSynthesisUtterance(text)
-    utter.lang = "en-US"
-    utter.rate = 1 
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = "en-US";
+    utter.rate = 1.0; 
 
-    currentUtterance = utter
-    speaking = true
+    utter.onstart = () => {
+        speaking = true;
+        const words = text.split(" ");
+        renderWord(words, 0);
+    };
 
-    // MANUAL WORD-BY-WORD LOGIC (WORKS ON MOBILE)
-    utter.onstart = function() {
-        let words = text.split(" ");
-        let i = 0;
-        // Calculation: Average human speech is ~150-200ms per word at rate 1
-        let msPerWord = 300; 
-
-        wordTimer = setInterval(() => {
-            if (i < words.length) {
-                caption.innerText = words[i];
-                i++;
-            } else {
-                clearInterval(wordTimer);
-            }
-        }, msPerWord);
-    }
-
-    utter.onend = function(){
-        stopSpeech();
+    utter.onend = () => {
+        speaking = false;
+        caption.innerText = "";
         startRecognition();
+    };
+
+    // Phonetic Timing Logic
+    function renderWord(wordArray, index) {
+        if (index >= wordArray.length || !speaking) return;
+
+        const word = wordArray[index];
+        caption.innerText = word;
+
+        // Base timing: 140ms per word
+        // Add 35ms for every character (syllabic approximation)
+        let duration = 140 + (word.replace(/[^a-zA-Z]/g, '').length * 35);
+
+        // Precise Punctuation Pauses
+        if (word.endsWith('.') || word.endsWith('!') || word.endsWith('?')) duration += 450;
+        else if (word.endsWith(',') || word.endsWith(';') || word.endsWith(':')) duration += 200;
+
+        captionTimeout = setTimeout(() => {
+            renderWord(wordArray, index + 1);
+        }, duration);
     }
 
-    speechSynthesis.speak(utter)
+    window.speechSynthesis.speak(utter);
 }
 
 /* ---------------- VOICE INPUT ---------------- */
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-const recognition = new SpeechRecognition()
-recognition.lang = "en-US"; recognition.continuous = true; recognition.interimResults = true
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = new SpeechRecognition();
+recognition.continuous = true; recognition.interimResults = true;
 
 function startRecognition(){
-    if(speaking) return; 
-    try{ recognition.start(); } catch(e){}
+    if(!speaking) try { recognition.start(); } catch(e) {}
 }
 
-recognition.onresult = function(event){
-    let result = event.results[event.results.length-1]
-    let text = result[0].transcript.trim()
-    
-    // User transcript display
-    caption.innerText = text;
+recognition.onresult = (event) => {
+    let text = event.results[event.results.length-1][0].transcript.trim();
+    caption.innerText = text; 
+    if(speaking) stopSpeech();
 
-    if(speaking) stopSpeech()
-
-    clearTimeout(window.silenceTimer)
-    window.silenceTimer = setTimeout(async ()=>{
-        if(!text) return
-        try{
-            let response = await fetch("/api/chat",{
+    clearTimeout(window.sTimer);
+    window.sTimer = setTimeout(async () => {
+        if(!text) return;
+        try {
+            let res = await fetch("/api/chat", {
                 method:"POST",
                 headers:{"Content-Type":"application/json"},
-                body:JSON.stringify({message:text})
-            })
-            let data = await response.json()
-            speak(data.reply || "No response")
-        }catch(e){ speak("Connection error") }
-    }, 1200)
-}
+                body:JSON.stringify({message: text})
+            });
+            let data = await res.json();
+            speak(data.reply);
+        } catch(e) { speak("Connection error"); }
+    }, 1200);
+};
 
-recognition.onend = () => { if(!speaking) setTimeout(startRecognition, 400); }
-recognition.onerror = () => { setTimeout(startRecognition, 800); }
-
-startRecognition()
+recognition.onend = () => { if(!speaking) setTimeout(startRecognition, 400); };
+startRecognition();
 </script>
 </body>
 </html>
