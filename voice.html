@@ -19,7 +19,6 @@ height:100vh;
 color:white;
 }
 
-/* --- BACK BUTTON STYLE --- */
 #backBtn {
     position: absolute;
     top: 20px;
@@ -35,13 +34,11 @@ color:white;
     text-decoration: none;
     transition: 0.3s;
     z-index: 2000;
-    box-shadow: 0 0 10px rgba(255, 230, 0, 0.3);
 }
 
 #backBtn:hover {
     background: #ffe600;
     color: black;
-    box-shadow: 0 0 20px #ffe600;
 }
 
 #waveCanvas{
@@ -56,12 +53,9 @@ bottom:120px;
 font-size:34px;
 font-weight:bold;
 color:#ffe600;
-text-shadow:
-0 0 10px #ffe600,
-0 0 25px #ffd000,
-0 0 50px #ffc400;
+text-shadow: 0 0 10px #ffe600, 0 0 25px #ffd000;
 text-align:center;
-padding: 0 20px;
+min-height: 1.2em;
 }
 
 #footer{
@@ -72,31 +66,9 @@ opacity:.65;
 }
 
 @media (max-width: 600px){
-#backBtn {
-    top: 15px;
-    left: 15px;
-    padding: 8px 12px;
-    font-size: 12px;
-}
-#waveCanvas{
-width:100%;
-height:180px;
-}
-#caption{
-font-size:22px;
-bottom:100px;
-text-align:center;
-padding:0 10px;
-}
-#footer{
-font-size:11px;
-bottom:10px;
-text-align:center;
-padding:0 10px;
-}
-html{
-font-size:16px;
-}
+#backBtn { top: 15px; left: 15px; font-size: 12px; }
+#waveCanvas{ width:100%; height:180px; }
+#caption{ font-size:22px; bottom:100px; }
 }
 </style>
 </head>
@@ -107,171 +79,118 @@ font-size:16px;
 
 <canvas id="waveCanvas"></canvas>
 <div id="caption"></div>
-<div id="footer">
-English-only voice mode, using other languages would be devastating
-</div>
+<div id="footer">English-only voice mode</div>
 
 <script>
 /* ---------------- WAVE VISUALIZER ---------------- */
 const canvas = document.getElementById("waveCanvas")
 const ctx = canvas.getContext("2d")
-
-canvas.width = 900
-canvas.height = 220
-
-let phase = 0
-let speaking = false
+canvas.width = 900; canvas.height = 220;
+let phase = 0, speaking = false;
 
 function drawWave(){
-ctx.clearRect(0,0,canvas.width,canvas.height)
-let amp = speaking ? 42 : 18
-
-function wave(speed,opacity,width){
-ctx.beginPath()
-ctx.lineWidth = width
-ctx.strokeStyle = `rgba(255,230,0,${opacity})`
-ctx.shadowBlur = 35
-ctx.shadowColor = "#ffe600"
-for(let x=0;x<canvas.width;x++){
-let y = canvas.height/2 + Math.sin((x+phase)*speed)*amp
-ctx.lineTo(x,y)
-}
-ctx.stroke()
-}
-wave(.02,.9,3)
-wave(.025,.5,2)
-wave(.03,.3,1)
-phase += 2
-requestAnimationFrame(drawWave)
+    ctx.clearRect(0,0,canvas.width,canvas.height)
+    let amp = speaking ? 42 : 18
+    function wave(speed,opacity,width){
+        ctx.beginPath(); ctx.lineWidth = width;
+        ctx.strokeStyle = `rgba(255,230,0,${opacity})`;
+        for(let x=0;x<canvas.width;x++){
+            let y = canvas.height/2 + Math.sin((x+phase)*speed)*amp
+            ctx.lineTo(x,y)
+        }
+        ctx.stroke()
+    }
+    wave(.02,.9,3); wave(.025,.5,2); wave(.03,.3,1);
+    phase += 2; requestAnimationFrame(drawWave)
 }
 drawWave()
 
 /* ---------------- SPEECH OUTPUT ---------------- */
 const caption = document.getElementById("caption")
 let currentUtterance = null
+let wordTimer = null
 
 function stopSpeech(){
-if(currentUtterance){
-speechSynthesis.cancel()
-currentUtterance = null
-}
-caption.innerText = ""
-speaking = false
+    if(currentUtterance) speechSynthesis.cancel()
+    if(wordTimer) clearInterval(wordTimer)
+    caption.innerText = ""
+    speaking = false
 }
 
 function speak(text){
-stopSpeech();
-try { recognition.stop(); } catch(e) {}
+    stopSpeech();
+    try { recognition.stop(); } catch(e) {}
 
-let words = text.split(" ")
-let index = 0
-let utter = new SpeechSynthesisUtterance(text)
-utter.lang = "en-US"
-utter.rate = 1
+    let utter = new SpeechSynthesisUtterance(text)
+    utter.lang = "en-US"
+    utter.rate = 1 
 
-currentUtterance = utter
-speaking = true
+    currentUtterance = utter
+    speaking = true
 
-// MOBILE FIX: Display text on start because onboundary is unreliable on mobile browsers
-utter.onstart = function() {
-    caption.innerText = text;
-}
+    // MANUAL WORD-BY-WORD LOGIC (WORKS ON MOBILE)
+    utter.onstart = function() {
+        let words = text.split(" ");
+        let i = 0;
+        // Calculation: Average human speech is ~150-200ms per word at rate 1
+        let msPerWord = 300; 
 
-utter.onboundary = function(event){
-if(event.name === "word"){
-    // Desktop support for word-by-word
-    caption.innerText = words[index] || ""
-    index++
-}
-}
+        wordTimer = setInterval(() => {
+            if (i < words.length) {
+                caption.innerText = words[i];
+                i++;
+            } else {
+                clearInterval(wordTimer);
+            }
+        }, msPerWord);
+    }
 
-utter.onend = function(){
-caption.innerText = ""
-speaking = false
-currentUtterance = null
-startRecognition();
-}
+    utter.onend = function(){
+        stopSpeech();
+        startRecognition();
+    }
 
-speechSynthesis.speak(utter)
+    speechSynthesis.speak(utter)
 }
 
 /* ---------------- VOICE INPUT ---------------- */
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
 const recognition = new SpeechRecognition()
-
-recognition.lang = "en-US"
-recognition.continuous = true
-recognition.interimResults = true
-
-let transcriptBuffer = ""
-let silenceTimer = null
+recognition.lang = "en-US"; recognition.continuous = true; recognition.interimResults = true
 
 function startRecognition(){
     if(speaking) return; 
-    try{ 
-        recognition.start();
-    } catch(e){}
+    try{ recognition.start(); } catch(e){}
 }
 
 recognition.onresult = function(event){
-let result = event.results[event.results.length-1]
-let text = result[0].transcript.trim()
+    let result = event.results[event.results.length-1]
+    let text = result[0].transcript.trim()
+    
+    // User transcript display
+    caption.innerText = text;
 
-// Show what the user is currently saying as a caption
-caption.innerText = text;
+    if(speaking) stopSpeech()
 
-if(speaking){
-stopSpeech()
+    clearTimeout(window.silenceTimer)
+    window.silenceTimer = setTimeout(async ()=>{
+        if(!text) return
+        try{
+            let response = await fetch("/api/chat",{
+                method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify({message:text})
+            })
+            let data = await response.json()
+            speak(data.reply || "No response")
+        }catch(e){ speak("Connection error") }
+    }, 1200)
 }
 
-transcriptBuffer = text
-clearTimeout(silenceTimer)
-
-silenceTimer = setTimeout(async ()=>{
-if(!transcriptBuffer) return
-let speech = transcriptBuffer
-transcriptBuffer = ""
-
-try{
-let response = await fetch("/api/chat",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({message:speech})
-})
-
-const resText = await response.text()
-let data
-try{
-data = JSON.parse(resText)
-}catch{
-speak("Error understanding server response")
-return
-}
-
-if(!response.ok){
-speak("API error occurred")
-return
-}
-speak(data.reply || "No response from AI")
-}catch(e){
-console.log("API error",e)
-speak("Connection error")
-}
-}, 1000)
-}
-
-recognition.onend = function(){
-    if(!speaking) {
-        setTimeout(startRecognition, 400)
-    }
-}
-
-recognition.onerror = function(event){
-    setTimeout(startRecognition, 800)
-}
+recognition.onend = () => { if(!speaking) setTimeout(startRecognition, 400); }
+recognition.onerror = () => { setTimeout(startRecognition, 800); }
 
 startRecognition()
-
 </script>
 </body>
 </html>
