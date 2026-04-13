@@ -11,6 +11,7 @@ display:flex;
 justify-content:center;
 align-items:center;
 height:100vh;
+margin:0;
 }
 .card{
 background:#111;
@@ -19,11 +20,24 @@ border:1px solid #ffd900;
 border-radius:12px;
 text-align:center;
 box-shadow:0 0 20px #ffd900;
+width: 280px;
 }
 img{
 width:80px;
+height:80px;
 border-radius:50%;
 border:2px solid #ffd900;
+object-fit: cover;
+}
+.btn-back {
+margin-top: 20px;
+display: inline-block;
+color: #000;
+background: #ffd900;
+padding: 8px 15px;
+text-decoration: none;
+border-radius: 5px;
+font-weight: bold;
 }
 </style>
 </head>
@@ -34,21 +48,56 @@ border:2px solid #ffd900;
 <img id="pic">
 <h2 id="name"></h2>
 <p id="email"></p>
+<hr style="border:0; border-top:1px solid #333; margin: 20px 0;">
 <h3>Daily Limit: 100</h3>
-<p id="usage"></p>
+<p id="usage" style="font-size: 1.2em; font-weight: bold;"></p>
+<a href="home.html" class="btn-back">Back to Chat</a>
 </div>
 
 <script>
-let user=JSON.parse(localStorage.getItem("quadronUser"));
+// 1. Get User Data or Default to Guest
+let user = JSON.parse(localStorage.getItem("quadronUser")) || { name: "Guest", email: "guest_user", picture: "https://via.placeholder.com/80" };
 
-document.getElementById("name").innerText=user?.name||"Guest";
-document.getElementById("email").innerText=user?.email||"";
-document.getElementById("pic").src=user?.picture||"https://via.placeholder.com/80";
+document.getElementById("name").innerText = user.name || "Guest";
+document.getElementById("email").innerText = user.email !== "guest_user" ? user.email : "Not Signed In";
+document.getElementById("pic").src = user.picture || "https://via.placeholder.com/80";
 
-let key="limit_"+(user?.email||"guest");
-let data=JSON.parse(localStorage.getItem(key))||{count:0};
+// 2. Limit Logic (Date Based)
+const limitKey = "quadron_usage_limit_" + (user.email || "guest");
+const today = new Date().toLocaleDateString();
 
-document.getElementById("usage").innerText="Used: "+data.count+" / 100";
+// Load current data
+let limitData = JSON.parse(localStorage.getItem(limitKey)) || { count: 0, date: today };
+
+// If it's a new day, reset the count automatically
+if (limitData.date !== today) {
+    limitData = { count: 0, date: today };
+    localStorage.setItem(limitKey, JSON.stringify(limitData));
+}
+
+// 3. Update UI
+const usageText = document.getElementById("usage");
+usageText.innerText = "Used: " + limitData.count + " / 100";
+
+// Color coding for limit
+if (limitData.count >= 100) {
+    usageText.style.color = "#ff4444";
+    usageText.innerHTML += "<br><span style='font-size:12px;'>LIMIT CROSSED COME AGAIN TOMORROW</span>";
+} else if (limitData.count > 80) {
+    usageText.style.color = "orange";
+}
+
+/* NOTE FOR HOME.HTML INTEGRATION:
+   In your home.html 'send' function, you should add this logic:
+   
+   let limitData = JSON.parse(localStorage.getItem("quadron_usage_limit_" + (user.email || "guest"))) || {count:0, date: new Date().toLocaleDateString()};
+   if(limitData.count >= 100) {
+       alert("LIMIT CROSSED COME AGAIN TOMORROW");
+       return;
+   }
+   limitData.count++;
+   localStorage.setItem("quadron_usage_limit_" + (user.email || "guest"), JSON.stringify(limitData));
+*/
 </script>
 
 </body>
