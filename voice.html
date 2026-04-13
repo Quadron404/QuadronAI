@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +6,6 @@
 <title>Quadron Voice Mode</title>
 
 <style>
-
 body{
 background:#050505;
 font-family:Arial, Helvetica, sans-serif;
@@ -45,52 +43,41 @@ bottom:20px;
 font-size:13px;
 opacity:.65;
 }
-/* 🔥 MOBILE FIX FOR VOICE MODE */
-@media (max-width: 600px){
 
+@media (max-width: 600px){
 #waveCanvas{
 width:100%;
 height:180px;
 }
-
 #caption{
 font-size:22px;
 bottom:100px;
 text-align:center;
 padding:0 10px;
 }
-
 #footer{
 font-size:11px;
 bottom:10px;
 text-align:center;
 padding:0 10px;
 }
-
-/* prevent zoom */
 html{
 font-size:16px;
 }
-
 }
 </style>
-
 </head>
 
 <body>
 
 <canvas id="waveCanvas"></canvas>
-
 <div id="caption"></div>
-
 <div id="footer">
-English-only voice mode , using other languages would be devastating
+English-only voice mode, using other languages would be devastating
 </div>
 
 <script>
-
 /* ---------------- WAVE VISUALIZER ---------------- */
-
 const canvas = document.getElementById("waveCanvas")
 const ctx = canvas.getContext("2d")
 
@@ -101,66 +88,51 @@ let phase = 0
 let speaking = false
 
 function drawWave(){
-
 ctx.clearRect(0,0,canvas.width,canvas.height)
-
 let amp = speaking ? 42 : 18
 
 function wave(speed,opacity,width){
-
 ctx.beginPath()
 ctx.lineWidth = width
 ctx.strokeStyle = `rgba(255,230,0,${opacity})`
-
 ctx.shadowBlur = 35
 ctx.shadowColor = "#ffe600"
-
 for(let x=0;x<canvas.width;x++){
 let y = canvas.height/2 + Math.sin((x+phase)*speed)*amp
 ctx.lineTo(x,y)
 }
-
 ctx.stroke()
 }
-
 wave(.02,.9,3)
 wave(.025,.5,2)
 wave(.03,.3,1)
-
 phase += 2
 requestAnimationFrame(drawWave)
-
 }
-
 drawWave()
 
 /* ---------------- SPEECH OUTPUT ---------------- */
-
 const caption = document.getElementById("caption")
-
 let currentUtterance = null
 
 function stopSpeech(){
-
 if(currentUtterance){
 speechSynthesis.cancel()
 currentUtterance = null
 }
-
 caption.innerText = ""
 speaking = false
-
 }
 
 function speak(text){
-
-stopSpeech()
+stopSpeech();
+// MOBILE FIX: Explicitly stop recognition before speaking to prevent loop
+isUserSpeaking = false; 
+try { recognition.stop(); } catch(e) {}
 
 let words = text.split(" ")
 let index = 0
-
 let utter = new SpeechSynthesisUtterance(text)
-
 utter.lang = "en-US"
 utter.rate = 1
 
@@ -178,18 +150,15 @@ utter.onend = function(){
 caption.innerText = ""
 speaking = false
 currentUtterance = null
+// RESTART MIC AFTER AI FINISHES
+startRecognition();
 }
 
 speechSynthesis.speak(utter)
-
 }
 
 /* ---------------- VOICE INPUT ---------------- */
-
-const SpeechRecognition =
-window.SpeechRecognition ||
-window.webkitSpeechRecognition
-
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
 const recognition = new SpeechRecognition()
 
 recognition.lang = "en-US"
@@ -198,13 +167,17 @@ recognition.interimResults = true
 
 let transcriptBuffer = ""
 let silenceTimer = null
+let isUserSpeaking = false; // Flag to prevent rapid restart loops
 
 function startRecognition(){
-try{ recognition.start() }catch(e){}
+    if(speaking) return; // Don't start if AI is talking
+    try{ 
+        recognition.start();
+        isUserSpeaking = true;
+    } catch(e){}
 }
 
 recognition.onresult = function(event){
-
 let result = event.results[event.results.length-1]
 let text = result[0].transcript.trim()
 
@@ -213,33 +186,22 @@ stopSpeech()
 }
 
 transcriptBuffer = text
-
 clearTimeout(silenceTimer)
 
 silenceTimer = setTimeout(async ()=>{
-
 if(!transcriptBuffer) return
-
 let speech = transcriptBuffer
 transcriptBuffer = ""
 
 try{
-
-// 🔥 CALL YOUR WORKING API (IMPORTANT CHANGE)
 let response = await fetch("/api/chat",{
 method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-message:speech
-})
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({message:speech})
 })
 
 const resText = await response.text()
-
 let data
-
 try{
 data = JSON.parse(resText)
 }catch{
@@ -251,30 +213,32 @@ if(!response.ok){
 speak("API error occurred")
 return
 }
-
-// ✅ SPEAK REAL AI RESPONSE
 speak(data.reply || "No response from AI")
-
 }catch(e){
 console.log("API error",e)
 speak("Connection error")
 }
-
-},1000)
-
+}, 1000)
 }
 
 recognition.onend = function(){
-setTimeout(startRecognition,400)
+    isUserSpeaking = false;
+    // Only restart if the AI isn't currently speaking
+    if(!speaking) {
+        setTimeout(startRecognition, 400)
+    }
 }
 
-recognition.onerror = function(){
-setTimeout(startRecognition,800)
+recognition.onerror = function(event){
+    if(event.error === 'not-allowed') {
+        caption.innerText = "Please enable Mic access";
+    }
+    setTimeout(startRecognition, 800)
 }
 
+// Initial Start
 startRecognition()
 
 </script>
-
 </body>
 </html>
