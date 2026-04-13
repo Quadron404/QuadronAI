@@ -19,6 +19,31 @@ height:100vh;
 color:white;
 }
 
+/* --- BACK BUTTON STYLE --- */
+#backBtn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: rgba(255, 230, 0, 0.1);
+    border: 1px solid #ffe600;
+    color: #ffe600;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: 0.3s;
+    z-index: 2000;
+    box-shadow: 0 0 10px rgba(255, 230, 0, 0.3);
+}
+
+#backBtn:hover {
+    background: #ffe600;
+    color: black;
+    box-shadow: 0 0 20px #ffe600;
+}
+
 #waveCanvas{
 width:900px;
 max-width:90%;
@@ -45,6 +70,12 @@ opacity:.65;
 }
 
 @media (max-width: 600px){
+#backBtn {
+    top: 15px;
+    left: 15px;
+    padding: 8px 12px;
+    font-size: 12px;
+}
 #waveCanvas{
 width:100%;
 height:180px;
@@ -69,6 +100,8 @@ font-size:16px;
 </head>
 
 <body>
+
+<a href="home.html" id="backBtn">← Back</a>
 
 <canvas id="waveCanvas"></canvas>
 <div id="caption"></div>
@@ -126,8 +159,6 @@ speaking = false
 
 function speak(text){
 stopSpeech();
-// MOBILE FIX: Explicitly stop recognition before speaking to prevent loop
-isUserSpeaking = false; 
 try { recognition.stop(); } catch(e) {}
 
 let words = text.split(" ")
@@ -150,7 +181,6 @@ utter.onend = function(){
 caption.innerText = ""
 speaking = false
 currentUtterance = null
-// RESTART MIC AFTER AI FINISHES
 startRecognition();
 }
 
@@ -167,13 +197,11 @@ recognition.interimResults = true
 
 let transcriptBuffer = ""
 let silenceTimer = null
-let isUserSpeaking = false; // Flag to prevent rapid restart loops
 
 function startRecognition(){
-    if(speaking) return; // Don't start if AI is talking
+    if(speaking) return; 
     try{ 
         recognition.start();
-        isUserSpeaking = true;
     } catch(e){}
 }
 
@@ -222,21 +250,15 @@ speak("Connection error")
 }
 
 recognition.onend = function(){
-    isUserSpeaking = false;
-    // Only restart if the AI isn't currently speaking
     if(!speaking) {
         setTimeout(startRecognition, 400)
     }
 }
 
 recognition.onerror = function(event){
-    if(event.error === 'not-allowed') {
-        caption.innerText = "Please enable Mic access";
-    }
     setTimeout(startRecognition, 800)
 }
 
-// Initial Start
 startRecognition()
 
 </script>
