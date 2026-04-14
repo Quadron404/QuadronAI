@@ -318,14 +318,9 @@ font-size:12px;
 
 .ad-container {
   text-align: center;
-  margin: 6px 0;
-  opacity: 0.85;              /* slightly faded */
-  transition: 0.2s;
-  min-height: 50px;           /* ensures space for ad */
-}
-
-.ad-container:hover {
-  opacity: 1;                 /* fully visible on hover */
+  margin: 10px 0;
+  display: block;
+  min-height: 50px;
 }
 </style>
 
@@ -937,14 +932,13 @@ return;
 if (messages.children.length % 6 === 0) {
   let adDiv = document.createElement("div");
   adDiv.className = "ad-container";
-  let adId = "dynAd_" + Date.now();
-  adDiv.id = adId;
-  messages.appendChild(adDiv);
   
-  let s = document.createElement('script');
-  s.src = 'https://al5sm.com/tag.min.js';
-  s.dataset.zone = '10874144';
+  let s = document.createElement("script");
+  s.src = "https://al5sm.com/tag.min.js";
+  s.dataset.zone = "10874144";
+  
   adDiv.appendChild(s);
+  messages.appendChild(adDiv);
 }
 
 let text=msg.value.trim();
