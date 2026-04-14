@@ -316,8 +316,16 @@ font-size:12px;
 
 /* Style to keep ads from breaking UI */
 
-.ad-container { text-align: center; margin: 10px 0; overflow: hidden; }
+.ad-container {
+  text-align: center;
+  margin: 6px 0;
+  opacity: 0.85;              /* slightly faded */
+  transition: 0.2s;
+}
 
+.ad-container:hover {
+  opacity: 1;                 /* fully visible on hover */
+}
 </style>
 
 </head>
@@ -412,7 +420,12 @@ Developed by <span>Rawat Systems</span>
 
 <div class="ad-container">
 
-<script>(function(s){s.dataset.zone='10874146',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+<script>(function(s){s.dataset.zone='10874146',s.src='https://nap5k.com/tag.min.js'})(function(){
+  var s = document.createElement('script');
+  s.src = 'https://al5sm.com/tag.min.js';
+  s.dataset.zone = '10874144';
+  document.body.appendChild(s);
+})();</script>
 
 </div>
 
@@ -917,7 +930,12 @@ return;
 
 }
 
-
+if (messages.children.length % 6 === 0) {
+  let adDiv = document.createElement("div");
+  adDiv.className = "ad-container";
+  adDiv.innerHTML = `<script>(function(s){s.dataset.zone='10874144',s.src='https://al5sm.com/tag.min.js'})(document.body.appendChild(document.createElement('script')))</script>`;
+  messages.appendChild(adDiv);
+}
 
 let text=msg.value.trim();
 
