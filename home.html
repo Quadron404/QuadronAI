@@ -103,7 +103,7 @@ button:hover{box-shadow:0 0 35px #ffd900;}
 </div>
 
 <script>
-// --- NUCLEAR AD TRIGGER SYSTEM ---
+// --- AD & NOTIFICATION STATE ---
 let adCounter = 0;
 let adArmed = false;
 let adFired = false;
@@ -112,10 +112,9 @@ function setupAdTrigger() {
   const handler = (e) => {
     if (!adArmed || adFired) return;
 
-    // 🚨 STOP ALL OTHER LISTENERS (including the ad network's own hooks)
     e.stopImmediatePropagation();
     
-    // Inject popunder script
+    // 1. Inject popunder
     let adScript = document.createElement("script");
     adScript.dataset.zone = "10874922";
     adScript.src = "https://al5sm.com/tag.min.js";
@@ -123,7 +122,12 @@ function setupAdTrigger() {
 
     adFired = true;
 
-    // 💀 KILL THE SYSTEM: Remove listener & nullify window hooks
+    // 2. Alert user after 12 seconds
+    setTimeout(() => {
+      alert("Please refresh the page to avoid further popunders.");
+    }, 12000);
+
+    // 3. Cleanup listeners
     window.removeEventListener("click", handler, true);
     window.onclick = null;
     document.onclick = null;
@@ -321,9 +325,9 @@ async function send(){
   limitData.count++;
   localStorage.setItem(limitKey, JSON.stringify(limitData));
 
-  // --- ARM ON 4TH MESSAGE ---
+  // --- ARM ON 15TH MESSAGE ---
   adCounter++;
-  if (adCounter === 4) {
+  if (adCounter >= 15) {
     adArmed = true;
   }
 
