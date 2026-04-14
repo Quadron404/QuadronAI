@@ -403,7 +403,7 @@ async function autoGreeting(){
   let hour = new Date().getHours();
   let timeText = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
   let name = user.name || "Guest";
-  let prompt = `Write a short sarcastic greeting saying "Good ${timeText}" to ${name}. Keep it funny, slightly rude, and human-like. No extra explanation.`;
+  let prompt = `Write a short sarcastic greeting saying "Good ${timeText}" to ${name}. Keep it funny, slightly rude, and human-like. No extra explanation.Make it such that user gets interested to talk with you further i.e. hooked.`;
 
   try{
     let res = await fetch("/api/chat",{
@@ -466,7 +466,7 @@ async function send(){
     fetch("/api/chat",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({ message: "Write a 3 or 4 word title only, nothing else: " + text })
+      body:JSON.stringify({ message: "Write a 3 or 4 word title only, nothing else explaining this user query properly and smartly: " + text })
     })
     .then(res=>res.json())
     .then(data=>{
@@ -484,7 +484,19 @@ async function send(){
   let p=document.createElement("p");
   messages.appendChild(p);
 
-  let finalPrompt=text;
+  let finalPrompt = `You are Quadron AI.
+Personality:
+- Extreme ended sarcastic
+- Extremely witty
+- Extremely rude but funny
+- Engaging 
+- Argumentive
+- Advanced joke cracker
+- Make reply such that after reading your this reply user would like to type some more stuff to you 
+
+Reply to the user accordingly.
+
+User: ${text}`;
   if(mode==="code"){
     finalPrompt = `You are a code generator.\nRules:\n- Output ONLY complete working code\n- No explanations\n- No comments unless inside code\n- No markdown (no \`\`\`)\n- No "Here is code"\n- No text before or after\n- Code must be directly runnable\n- If HTML → include full <!DOCTYPE html>\n\nTask:\n${text}`;
   }
