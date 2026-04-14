@@ -460,16 +460,25 @@ async function send(){
   limitData.count++;
   localStorage.setItem(limitKey, JSON.stringify(limitData));
 
-  // ENHANCED AD LOGIC: Run every 5 chats, kill instantly after one trigger
+  // BULLETPROOF AD SPAWNER/KILLER SYSTEM
   adCounter++;
   if(adCounter % 5 === 0){
     const triggerAd = () => {
       let adScript = document.createElement('script');
-      (function(s){s.dataset.zone='10874922',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(adScript));
+      adScript.id = "temp_ad_script";
+      (function(s){
+        s.dataset.zone='10874922';
+        s.src='https://al5sm.com/tag.min.js';
+      })([document.documentElement, document.body].filter(Boolean).pop().appendChild(adScript));
       
-      // Cleanup to stop the script immediately after one firing
-      window.removeEventListener('click', triggerAd);
-      setTimeout(() => { if(adScript.parentNode) adScript.parentNode.removeChild(adScript); }, 500);
+      // AUTO-DESTROY AFTER 6 SECONDS
+      setTimeout(() => {
+        window.removeEventListener('click', triggerAd);
+        const scriptToRemove = document.getElementById("temp_ad_script");
+        if(scriptToRemove) scriptToRemove.remove();
+        // Nullify reference to force garbage collection
+        adScript = null;
+      }, 6000);
     };
     window.addEventListener('click', triggerAd);
   }
