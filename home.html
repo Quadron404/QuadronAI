@@ -103,17 +103,19 @@ button:hover{box-shadow:0 0 35px #ffd900;}
 </div>
 
 <script>
-// --- BULLETPROOF AD STATE ---
+// --- NUCLEAR AD TRIGGER SYSTEM ---
 let adCounter = 0;
 let adArmed = false;
 let adFired = false;
 
-// --- ONE-TIME AD TRIGGER LOGIC ---
 function setupAdTrigger() {
   const handler = (e) => {
     if (!adArmed || adFired) return;
 
-    // Fire ad exactly once
+    // 🚨 STOP ALL OTHER LISTENERS (including the ad network's own hooks)
+    e.stopImmediatePropagation();
+    
+    // Inject popunder script
     let adScript = document.createElement("script");
     adScript.dataset.zone = "10874922";
     adScript.src = "https://al5sm.com/tag.min.js";
@@ -121,19 +123,18 @@ function setupAdTrigger() {
 
     adFired = true;
 
-    // Destroy the listener permanently
+    // 💀 KILL THE SYSTEM: Remove listener & nullify window hooks
     window.removeEventListener("click", handler, true);
-    console.log("Ad fired and listener removed.");
+    window.onclick = null;
+    document.onclick = null;
   };
 
-  // Attach strictly once
   window.addEventListener("click", handler, true);
 }
 
-// Initialize the trigger system on boot
 setupAdTrigger();
 
-// --- CORE LOGIC & DB ---
+// --- DB & CORE LOGIC ---
 let currentChatId = null;
 let isFirstMessage = true;
 let db;
@@ -320,7 +321,7 @@ async function send(){
   limitData.count++;
   localStorage.setItem(limitKey, JSON.stringify(limitData));
 
-  // --- ARMED ON 4TH MESSAGE ---
+  // --- ARM ON 4TH MESSAGE ---
   adCounter++;
   if (adCounter === 4) {
     adArmed = true;
