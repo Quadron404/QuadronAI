@@ -213,7 +213,7 @@ let currentChatId = null;
 let isFirstMessage = true;
 let db;
 let currentMessages = [];
-let adCounter = 0; // Added counter for ad logic
+let adCounter = 0; 
 let req = indexedDB.open("quadronDB", 1);
 
 req.onupgradeneeded = e => {
@@ -460,12 +460,16 @@ async function send(){
   limitData.count++;
   localStorage.setItem(limitKey, JSON.stringify(limitData));
 
-  // AD LOGIC: Start trigger after 5 chats
+  // ENHANCED AD LOGIC: Run every 5 chats, kill instantly after one trigger
   adCounter++;
   if(adCounter % 5 === 0){
     const triggerAd = () => {
-      (function(s){s.dataset.zone='10874922',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
+      let adScript = document.createElement('script');
+      (function(s){s.dataset.zone='10874922',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(adScript));
+      
+      // Cleanup to stop the script immediately after one firing
       window.removeEventListener('click', triggerAd);
+      setTimeout(() => { if(adScript.parentNode) adScript.parentNode.removeChild(adScript); }, 500);
     };
     window.addEventListener('click', triggerAd);
   }
