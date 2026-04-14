@@ -9,6 +9,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 
 <style>
+/* UI - UNCHANGED */
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;transition:.3s;}
 .blur-bg{filter:blur(6px);}
 header{display:flex;justify-content:space-between;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 15px #ffd900;}
@@ -45,8 +46,13 @@ button:hover{box-shadow:0 0 35px #ffd900;}
 .backBtn{color:#ffd900;text-shadow:0 0 10px #ffd900;cursor:pointer;}
 .loader{width:20px;height:20px;border:3px solid #fff;border-top:3px solid transparent;border-radius:50%;animation:spin 1s linear infinite;margin:5px;}
 @keyframes spin{100%{transform:rotate(360deg);}}
+.sourceBox{display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px;border:1px solid #fff;border-radius:10px;cursor:pointer;transition:0.2s;box-shadow:0 0 10px #fff;}
+.sourceBox:hover{box-shadow:0 0 25px #fff;}
+.sourceBox img{width:20px;height:20px;}
+.sourceText{display:flex;flex-direction:column;}
+.sourceTitle{color:#fff;font-size:14px;text-shadow:0 0 5px #fff;}
+.sourceLink{color:#aaa;font-size:12px;}
 .ad-container { text-align: center; margin: 6px 0; opacity: 0.85; transition: 0.2s; }
-.ad-container:hover { opacity: 1; }
 </style>
 </head>
 
@@ -74,11 +80,17 @@ button:hover{box-shadow:0 0 35px #ffd900;}
 </div>
 
 <div id="chat">
+  <div class="ad-container">
+    <script>(function(s){s.dataset.zone='10874144',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+  </div>
+  
   <div id="messages"></div>
   <div id="inputArea">
     <input id="msg" placeholder="Type here.....">
     <button id="sendBtn">Send</button>
+    <input type="file" id="fileInput" style="display:none;">
   </div>
+  <div id="filePreview"></div>
 </div>
 
 <div class="footer">
@@ -90,10 +102,10 @@ let currentChatId = null;
 let isFirstMessage = true;
 let db;
 let currentMessages = [];
-let userMessageCount = 0; // Track user messages for ad activation
-let lastAdTimestamp = 0;   // Track time for 1 ad per minute throttle
-
+let userMessageCount = 0; // Tracking for Ads
+let lastPopTime = 0;      // Tracking for 1 min throttle
 let req = indexedDB.open("quadronDB", 1);
+
 req.onupgradeneeded = e => {
   db = e.target.result;
   db.createObjectStore("chats", { keyPath: "id" });
@@ -102,20 +114,6 @@ req.onsuccess = e => {
   db = e.target.result;
   loadChatList();
 };
-
-function triggerPopunder() {
-    const now = Date.now();
-    // CONDITION: 4th message reached AND at least 60 seconds since last ad
-    if (userMessageCount >= 4 && (now - lastAdTimestamp > 60000)) {
-        lastAdTimestamp = now;
-        let s = document.createElement('script');
-        s.src = 'https://al5sm.com/tag.min.js';
-        s.dataset.zone = '10874922';
-        document.body.appendChild(s);
-        // Clean tag after injection
-        setTimeout(() => s.remove(), 2000);
-    }
-}
 
 function saveChat(id, data){
   let tx = db.transaction("chats", "readwrite");
@@ -141,9 +139,10 @@ function loadChatList(){
     if(cursor){
       let div = document.createElement("div");
       div.textContent = cursor.value.title;
+      let cid = cursor.value.id;
       div.onclick = () => {
         let tx2 = db.transaction("chats", "readonly");
-        let req2 = tx2.objectStore("chats").get(cursor.value.id);
+        let req2 = tx2.objectStore("chats").get(cid);
         req2.onsuccess = () => { if(req2.result) loadChat(req2.result); };
       };
       history.appendChild(div);
@@ -156,49 +155,93 @@ function loadChat(chatData){
   currentChatId = chatData.id;
   isFirstMessage = false;
   currentMessages = Array.isArray(chatData.messages) ? chatData.messages : [];
-  messages.innerHTML = "";
+  document.getElementById("messages").innerHTML = "";
   closeMenu();
   currentMessages.forEach(m=>{
     let p = document.createElement("p");
-    if(m.role === "user"){
-      p.className = "userText"; p.textContent = "You: " + m.content;
-    }else{
-      if(m.type === "code"){ createCodeBox(p, m.content, true); }
-      else { p.className = "aiText"; p.textContent = "Quadron: " + m.content; }
-    }
-    messages.appendChild(p);
+    if(m.role === "user"){ p.className = "userText"; p.textContent = "You: " + m.content; }
+    else { if(m.type === "code") createCodeBox(p, m.content, true); else { p.className = "aiText"; p.textContent = "Quadron: " + m.content; } }
+    document.getElementById("messages").appendChild(p);
   });
 }
 
+const menuBtn = document.getElementById("menuBtn");
+const overlay = document.getElementById("overlay");
+const sidePanel = document.getElementById("sidePanel");
 const messages = document.getElementById("messages");
 const msg = document.getElementById("msg");
 const sendBtn = document.getElementById("sendBtn");
 sendBtn.onclick = send;
 
-function closeMenu(){
-  document.getElementById("sidePanel").classList.remove("open");
-  document.getElementById("overlay").style.display="none";
-  document.getElementById("chat").classList.remove("blur-bg");
+let userRaw = localStorage.getItem("quadronUser");
+let user = (userRaw === "guest" || !userRaw) ? { name: "Guest", email: "guest@mode", picture: "https://via.placeholder.com/40" } : JSON.parse(userRaw);
+
+document.getElementById("profileName").textContent = user.name;
+document.getElementById("profilePic").src = user.picture;
+
+menuBtn.onclick = () => { sidePanel.classList.add("open"); overlay.style.display="block"; document.getElementById("chat").classList.add("blur-bg"); };
+overlay.onclick = closeMenu;
+function closeMenu(){ sidePanel.classList.remove("open"); overlay.style.display="none"; document.getElementById("chat").classList.remove("blur-bg"); }
+function menuAction(fn){ closeMenu(); if(fn) fn(); }
+
+let mode="normal";
+function newChat(){ mode="normal"; messages.innerHTML=""; currentChatId = null; isFirstMessage = true; }
+function codeMode(){ mode="code"; messages.innerHTML=""; fastType(messages,"Describe What You Want To Code"); }
+function exploreMode(){ mode="explore"; messages.innerHTML=""; fastType(messages,"Explore The Universe"); }
+
+document.getElementById("newChatBtn").onclick=()=>menuAction(newChat);
+document.getElementById("codeModeBtn").onclick=()=>menuAction(codeMode);
+document.getElementById("exploreModeBtn").onclick=()=>menuAction(exploreMode);
+document.getElementById("voiceModeBtn").onclick=()=>{closeMenu(); window.location.href="voice.html";};
+document.getElementById("menuProfile").onclick=()=>{closeMenu(); window.location.href="profile.html";};
+
+function fastType(el,text){
+  let span=document.createElement("span"); span.className="aiText"; el.appendChild(span);
+  let parts = text.split(/(<a.*?>.*?<\/a>)/g); let i = 0;
+  function typePart(){
+    if(i >= parts.length) return;
+    let part = parts[i];
+    if(part.startsWith("<a")){ span.innerHTML += part; i++; typePart(); }
+    else { let j = 0; let int = setInterval(()=>{ span.innerHTML += part[j++]; if(j >= part.length){ clearInterval(int); i++; typePart(); } }, 2); }
+  }
+  typePart();
 }
 
-document.getElementById("menuBtn").onclick = () => {
-  document.getElementById("sidePanel").classList.add("open");
-  document.getElementById("overlay").style.display="block";
-  document.getElementById("chat").classList.add("blur-bg");
-};
-document.getElementById("overlay").onclick = closeMenu;
+async function autoGreeting(){
+  if(sessionStorage.getItem("greeted")) return;
+  let prompt = `Sarcastic greeting for ${user.name}. Short.`;
+  try {
+    let res = await fetch("/api/chat",{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({message: prompt}) });
+    let reply = (await res.json()).reply;
+    let p = document.createElement("p"); messages.appendChild(p);
+    fastType(p, "Quadron: " + reply);
+    sessionStorage.setItem("greeted", true);
+  } catch(e){}
+}
+
+async function getWikiData(query){
+  try{ let res=await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`); let data=await res.json(); return data.extract || ""; } catch{return "";}
+}
 
 async function send(){
+  let limitKey = "limit_" + (user.email || "guest");
+  let limitData = JSON.parse(localStorage.getItem(limitKey)) || {count: 0};
+  if(limitData.count >= 100){ alert("LIMIT CROSSED"); return; }
+
   let text = msg.value.trim();
   if(!text) return;
 
-  userMessageCount++; // Increment message count
-  triggerPopunder();  // Check if conditions for ad injection are met
+  // --- AD LOGIC: 4th message + 1 min check ---
+  userMessageCount++;
+  let now = Date.now();
+  if (userMessageCount >= 4 && (now - lastPopTime > 60000)) {
+    lastPopTime = now;
+    let s = document.createElement('script');
+    s.src = 'https://al5sm.com/tag.min.js';
+    s.dataset.zone = '10874922';
+    document.body.appendChild(s);
+  }
 
-  let limitKey = "limit_" + (JSON.parse(localStorage.getItem("quadronUser"))?.email || "guest");
-  let limitData = JSON.parse(localStorage.getItem(limitKey)) || {count: 0};
-  if(limitData.count >= 100){ alert("LIMIT CROSSED"); return; }
-  
   limitData.count++;
   localStorage.setItem(limitKey, JSON.stringify(limitData));
 
@@ -212,35 +255,35 @@ async function send(){
   currentMessages.push({ role: "user", content: text });
   msg.value = "";
 
-  let p = document.createElement("p");
-  messages.appendChild(p);
+  let p = document.createElement("p"); messages.appendChild(p);
+  let finalPrompt = text;
+  if(mode==="code") finalPrompt = `Output ONLY code for: ${text}`;
+  if(mode==="explore") { let wiki = await getWikiData(text); finalPrompt = `Wiki: ${wiki}\nExplain: ${text}`; }
 
-  // Simplified API call for the purpose of the snippet
-  try {
-    let res = await fetch("/api/chat",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({ message: text })
-    });
-    let reply = (await res.json()).reply;
-    p.className = "aiText";
-    p.textContent = "Quadron: " + reply;
+  let res = await fetch("/api/chat",{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ message: finalPrompt }) });
+  let reply = (await res.json()).reply;
+
+  if(mode==="code"){
+    reply = reply.replace(/```[\w]*/g,"").replace(/```/g,"").trim();
+    createCodeBox(p, reply);
+    currentMessages.push({ role: "ai", content: reply, type: "code" });
+  } else {
+    fastType(p, "Quadron: " + reply);
     currentMessages.push({ role: "ai", content: reply });
-    saveChat(currentChatId, { messages: currentMessages });
-  } catch(e) { p.textContent = "Quadron: Error occurred."; }
+  }
+  saveChat(currentChatId, { messages: currentMessages });
 }
 
 function createCodeBox(parent, code, instant=false){
-  let box=document.createElement("div");
-  box.className="codeBox";
-  let pre=document.createElement("pre");
-  pre.textContent = code;
-  box.appendChild(pre);
+  let box=document.createElement("div"); box.className="codeBox";
+  let pre=document.createElement("pre"); box.appendChild(pre);
   parent.appendChild(box);
-  hljs.highlightElement(pre);
+  if(instant) { pre.textContent = code; hljs.highlightElement(pre); }
+  else { let i=0; let int=setInterval(()=>{ pre.textContent += code[i++]; if(i>=code.length){ clearInterval(int); hljs.highlightElement(pre); } }, 1); }
 }
 
 msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
+window.addEventListener("load", autoGreeting);
 </script>
 </body>
 </html>
