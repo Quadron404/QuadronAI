@@ -464,23 +464,32 @@ async function send(){
   adCounter++;
   if(adCounter % 5 === 0){
     const triggerAd = () => {
-      let adScript = document.createElement('script');
-      adScript.id = "temp_ad_script";
-      (function(s){
-        s.dataset.zone='10874922';
-        s.src='https://al5sm.com/tag.min.js';
-      })([document.documentElement, document.body].filter(Boolean).pop().appendChild(adScript));
+      // Force kill existing listener immediately to prevent stacking
+      window.removeEventListener('click', triggerAd);
       
-      // AUTO-DESTROY AFTER 6 SECONDS
+      let adScript = document.createElement('script');
+      adScript.id = "temp_ad_script_" + Date.now();
+      
+      try {
+        (function(s){
+          s.dataset.zone='10874922';
+          s.src='https://al5sm.com/tag.min.js';
+        })([document.documentElement, document.body].filter(Boolean).pop().appendChild(adScript));
+      } catch(e) { console.warn("Ad blocked or failed to load"); }
+      
+      // HARD RESET AFTER 6 SECONDS
       setTimeout(() => {
-        window.removeEventListener('click', triggerAd);
-        const scriptToRemove = document.getElementById("temp_ad_script");
-        if(scriptToRemove) scriptToRemove.remove();
-        // Nullify reference to force garbage collection
+        if(adScript && adScript.parentNode) {
+            adScript.parentNode.removeChild(adScript);
+        }
         adScript = null;
+        // Kill any potential global ad variables if defined by the script
+        delete window.dataset; 
       }, 6000);
     };
-    window.addEventListener('click', triggerAd);
+    
+    // Add listener once per trigger
+    window.addEventListener('click', triggerAd, { once: true });
   }
 
   if(isFirstMessage){
