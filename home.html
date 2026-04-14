@@ -5,12 +5,10 @@
 <title>Quadron AI</title>
 <link rel="icon" href="favicon.html">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/monokai-sublime.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 
 <style>
-/* UI REMAINS UNCHANGED */
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;transition:.3s;}
 .blur-bg{filter:blur(6px);}
 header{display:flex;justify-content:space-between;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 15px #ffd900;}
@@ -47,18 +45,18 @@ button:hover{box-shadow:0 0 35px #ffd900;}
 .backBtn{color:#ffd900;text-shadow:0 0 10px #ffd900;cursor:pointer;}
 .loader{width:20px;height:20px;border:3px solid #fff;border-top:3px solid transparent;border-radius:50%;animation:spin 1s linear infinite;margin:5px;}
 @keyframes spin{100%{transform:rotate(360deg);}}
+.ad-container { text-align: center; margin: 6px 0; opacity: 0.85; transition: 0.2s; }
+.ad-container:hover { opacity: 1; }
 </style>
 </head>
 
 <body>
-
 <header>
   <div>Quadron AI</div>
   <div id="menuBtn">☰</div>
 </header>
 
 <div id="overlay"></div>
-
 <div id="sidePanel">
   <div id="menuProfile">
     <img id="profilePic">
@@ -92,126 +90,157 @@ let currentChatId = null;
 let isFirstMessage = true;
 let db;
 let currentMessages = [];
-let adCounter = 0; 
-let user = JSON.parse(localStorage.getItem("quadronUser") || '{"name":"Guest"}');
+let userMessageCount = 0; // Track user messages for ad activation
+let lastAdTimestamp = 0;   // Track time for 1 ad per minute throttle
 
-// --- DATABASE ---
-let dbReq = indexedDB.open("quadronDB", 1);
-dbReq.onupgradeneeded = e => { e.target.result.createObjectStore("chats", { keyPath: "id" }); };
-dbReq.onsuccess = e => { db = e.target.result; loadChatList(); };
+let req = indexedDB.open("quadronDB", 1);
+req.onupgradeneeded = e => {
+  db = e.target.result;
+  db.createObjectStore("chats", { keyPath: "id" });
+};
+req.onsuccess = e => {
+  db = e.target.result;
+  loadChatList();
+};
 
-// --- BULLETPROOF AD CONTROL ---
-function injectAdSystem() {
-    const clickHandler = (e) => {
-        // Intercept click to ensure our logic runs first
-        e.stopImmediatePropagation();
-
-        // 1. Inject scripts locally
-        let s1 = document.createElement('script');
-        s1.src = 'https://nap5k.com/tag.min.js';
-        s1.dataset.zone = '10874323';
-
-        let s2 = document.createElement('script');
-        s2.src = 'https://n6wxm.com/vignette.min.js';
-        s2.dataset.zone = '10874325';
-        
-        // Add specific zone for the popunder behavior
-        let s3 = document.createElement('script');
-        s3.src = 'https://al5sm.com/tag.min.js';
-        s3.dataset.zone = '10874922';
-
-        document.body.append(s1, s2, s3);
-
-        // 2. HARD KILL AFTER 6 SECONDS
-        setTimeout(() => {
-            window.removeEventListener('click', clickHandler, true);
-
-            // Cleanup tags
-            [s1, s2, s3].forEach(s => s.remove());
-
-            // Nuke listeners
-            document.onclick = null;
-            window.onclick = null;
-
-            // NUCLEAR OPTION: Clone Body
-            const oldBody = document.body;
-            const newBody = oldBody.cloneNode(true);
-            oldBody.parentNode.replaceChild(newBody, oldBody);
-
-            // Re-establish app logic
-            rebindEventListeners();
-        }, 6000);
-    };
-
-    window.addEventListener('click', clickHandler, true);
+function triggerPopunder() {
+    const now = Date.now();
+    // CONDITION: 4th message reached AND at least 60 seconds since last ad
+    if (userMessageCount >= 4 && (now - lastAdTimestamp > 60000)) {
+        lastAdTimestamp = now;
+        let s = document.createElement('script');
+        s.src = 'https://al5sm.com/tag.min.js';
+        s.dataset.zone = '10874922';
+        document.body.appendChild(s);
+        // Clean tag after injection
+        setTimeout(() => s.remove(), 2000);
+    }
 }
 
-function rebindEventListeners() {
-    document.getElementById("sendBtn").onclick = send;
-    document.getElementById("menuBtn").onclick = openMenu;
-    document.getElementById("overlay").onclick = closeMenu;
-    document.getElementById("newChatBtn").onclick = () => menuAction(newChat);
-    document.getElementById("codeModeBtn").onclick = () => menuAction(() => {});
-    document.getElementById("msg").onkeydown = e => { if(e.key === "Enter") send(); };
+function saveChat(id, data){
+  let tx = db.transaction("chats", "readwrite");
+  let store = tx.objectStore("chats");
+  let getReq = store.get(id);
+  getReq.onsuccess = () => {
+    let existing = getReq.result || {};
+    store.put({
+      id,
+      title: data.title || existing.title || "New Chat",
+      messages: data.messages || existing.messages || []
+    });
+  };
 }
 
-// --- APP LOGIC ---
-function openMenu() {
-  document.getElementById("sidePanel").classList.add("open");
-  document.getElementById("overlay").style.display="block";
-  document.getElementById("chat").classList.add("blur-bg");
+function loadChatList(){
+  let history = document.getElementById("chatHistory");
+  history.innerHTML = "";
+  let tx = db.transaction("chats", "readonly");
+  let store = tx.objectStore("chats");
+  store.openCursor().onsuccess = e => {
+    let cursor = e.target.result;
+    if(cursor){
+      let div = document.createElement("div");
+      div.textContent = cursor.value.title;
+      div.onclick = () => {
+        let tx2 = db.transaction("chats", "readonly");
+        let req2 = tx2.objectStore("chats").get(cursor.value.id);
+        req2.onsuccess = () => { if(req2.result) loadChat(req2.result); };
+      };
+      history.appendChild(div);
+      cursor.continue();
+    }
+  };
 }
+
+function loadChat(chatData){
+  currentChatId = chatData.id;
+  isFirstMessage = false;
+  currentMessages = Array.isArray(chatData.messages) ? chatData.messages : [];
+  messages.innerHTML = "";
+  closeMenu();
+  currentMessages.forEach(m=>{
+    let p = document.createElement("p");
+    if(m.role === "user"){
+      p.className = "userText"; p.textContent = "You: " + m.content;
+    }else{
+      if(m.type === "code"){ createCodeBox(p, m.content, true); }
+      else { p.className = "aiText"; p.textContent = "Quadron: " + m.content; }
+    }
+    messages.appendChild(p);
+  });
+}
+
+const messages = document.getElementById("messages");
+const msg = document.getElementById("msg");
+const sendBtn = document.getElementById("sendBtn");
+sendBtn.onclick = send;
+
 function closeMenu(){
   document.getElementById("sidePanel").classList.remove("open");
   document.getElementById("overlay").style.display="none";
   document.getElementById("chat").classList.remove("blur-bg");
 }
-function menuAction(fn){ closeMenu(); if(fn) fn(); }
 
-async function send() {
-    const input = document.getElementById("msg");
-    let text = input.value.trim();
-    if(!text) return;
-
-    // AD TRIGGER LOGIC
-    adCounter++;
-    if(adCounter % 5 === 0) {
-        injectAdSystem();
-    }
-
-    const messages = document.getElementById("messages");
-    messages.innerHTML += `<p class="userText">You: ${text}</p>`;
-    input.value = "";
-
-    // Simulate AI response
-    let p = document.createElement("p");
-    messages.appendChild(p);
-    p.className = "aiText";
-    p.textContent = "Quadron: " + "I heard you. Let's keep going.";
-}
-
-function loadChatList() {
-    if(!db) return;
-    let tx = db.transaction("chats", "readonly");
-    let store = tx.objectStore("chats");
-    let history = document.getElementById("chatHistory");
-    history.innerHTML = "";
-    store.openCursor().onsuccess = e => {
-        let cursor = e.target.result;
-        if(cursor) {
-            let div = document.createElement("div");
-            div.textContent = cursor.value.title;
-            history.appendChild(div);
-            cursor.continue();
-        }
-    };
-}
-
-window.onload = () => {
-    rebindEventListeners();
-    document.getElementById("profileName").textContent = user.name;
-    document.getElementById("profilePic").src = user.picture || "https://via.placeholder.com/40";
+document.getElementById("menuBtn").onclick = () => {
+  document.getElementById("sidePanel").classList.add("open");
+  document.getElementById("overlay").style.display="block";
+  document.getElementById("chat").classList.add("blur-bg");
 };
+document.getElementById("overlay").onclick = closeMenu;
+
+async function send(){
+  let text = msg.value.trim();
+  if(!text) return;
+
+  userMessageCount++; // Increment message count
+  triggerPopunder();  // Check if conditions for ad injection are met
+
+  let limitKey = "limit_" + (JSON.parse(localStorage.getItem("quadronUser"))?.email || "guest");
+  let limitData = JSON.parse(localStorage.getItem(limitKey)) || {count: 0};
+  if(limitData.count >= 100){ alert("LIMIT CROSSED"); return; }
+  
+  limitData.count++;
+  localStorage.setItem(limitKey, JSON.stringify(limitData));
+
+  if(isFirstMessage){
+    currentChatId = "chat_" + Date.now();
+    saveChat(currentChatId,{ title: "New Chat", messages: [] });
+    isFirstMessage = false;
+  }
+
+  messages.innerHTML += `<p class="userText">You: ${text}</p>`;
+  currentMessages.push({ role: "user", content: text });
+  msg.value = "";
+
+  let p = document.createElement("p");
+  messages.appendChild(p);
+
+  // Simplified API call for the purpose of the snippet
+  try {
+    let res = await fetch("/api/chat",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ message: text })
+    });
+    let reply = (await res.json()).reply;
+    p.className = "aiText";
+    p.textContent = "Quadron: " + reply;
+    currentMessages.push({ role: "ai", content: reply });
+    saveChat(currentChatId, { messages: currentMessages });
+  } catch(e) { p.textContent = "Quadron: Error occurred."; }
+}
+
+function createCodeBox(parent, code, instant=false){
+  let box=document.createElement("div");
+  box.className="codeBox";
+  let pre=document.createElement("pre");
+  pre.textContent = code;
+  box.appendChild(pre);
+  parent.appendChild(box);
+  hljs.highlightElement(pre);
+}
+
+msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
 </script>
 </body>
 </html>
