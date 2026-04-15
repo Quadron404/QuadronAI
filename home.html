@@ -746,7 +746,7 @@ async function send(){
   let limitData = JSON.parse(localStorage.getItem(limitKey)) || {count: 0};
   
   if(limitData.count >= limit){
-      alert("LIMIT CROSSED FOR YOUR PLAN. UPGRADE OR WAIT UNTIL TOMORROW.");
+      alert("LIMIT CROSSED FOR YOUR PLAN , YOU CAN UPGRADE FOR WITHOUT MONEY! . OR COME TOMMOROW");
       return;
   }
 
@@ -763,7 +763,7 @@ async function send(){
     fetch("/api/chat",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({ message: "Write a 3 or 4 word title only, nothing else: " + text })
+      body:JSON.stringify({ message: "Write a 3 or 4 word title only for this user query explaining it properly, nothing else: " + text })
     })
     .then(res=>res.json())
     .then(data=>{
