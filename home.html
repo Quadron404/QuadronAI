@@ -13,8 +13,8 @@
 /* SAME UI - UNCHANGED */
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;transition:.3s;}
 .blur-bg{filter:blur(6px);}
-header{display:flex;justify-content:space-between;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 15px #ffd900;align-items:center;}
-header div:first-child{font-weight:bold;text-shadow:0 0 15px #ffd900;display:flex;align-items:center;gap:10px;}
+header{display:flex;justify-content:space-between;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 15px #ffd900; align-items: center;}
+header div:first-child{font-weight:bold;text-shadow:0 0 15px #ffd900; display: flex; align-items: center; gap: 10px;}
 #menuBtn{cursor:pointer;font-size:24px;}
 #overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;z-index:500;}
 #sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;display:flex;flex-direction:column;}
@@ -26,7 +26,7 @@ header div:first-child{font-weight:bold;text-shadow:0 0 15px #ffd900;display:fle
 .menuItem{padding:10px;cursor:pointer;margin-top:8px;font-weight:bold;color:#fff;text-shadow:0 0 8px #fff, 0 0 15px #fff;transition:0.2s;}
 .menuItem:hover{text-shadow:0 0 15px #fff, 0 0 30px #fff, 0 0 50px #fff;}
 #chatHistory div {padding: 6px;cursor: pointer;color: #ffd900;font-weight: bold;text-shadow: 0 0 6px #ffd900, 0 0 12px #ffd900;transition: 0.3s;}
-#chatHistory div:hover {color: #ffd900;text-shadow: 0 0 10px #ffd900, 0 0 20px #ffd900, 0 0 40px #ffd900, 0 0 70px #ffd900;}
+#chatHistory div:hover {color: #ffd900;text-shadow:0 0 10px #ffd900, 0 0 20px #ffd900, 0 0 40px #ffd900, 0 0 70px #ffd900;}
 .menuFooter{margin-top:auto;text-align:center;font-size:12px;color:#fff;text-shadow:0 0 10px #fff;}
 .menuFooter span{color:#ffd900;text-shadow:0 0 10px #ffd900;}
 #chat{max-width:800px;margin:auto;padding:10px;}
@@ -48,89 +48,72 @@ button:hover{box-shadow:0 0 35px #ffd900;}
 .loader{width:20px;height:20px;border:3px solid #fff;border-top:3px solid transparent;border-radius:50%;animation:spin 1s linear infinite;margin:5px;}
 @keyframes spin{100%{transform:rotate(360deg);}}
 
-/* --- UPGRADE SYSTEM UI --- */
+/* --- PLAN SELECTION UI --- */
 #upgradeBtn {
-    background: #ffd900;
-    color: #000;
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 0 10px #ffd900;
-    animation: glowBtn 1.5s infinite alternate;
-    margin-right: 15px;
-    font-size: 13px;
+    background: #ffd900; color: #000; padding: 5px 10px; border-radius: 8px;
+    font-weight: bold; cursor: pointer; box-shadow: 0 0 10px #ffd900;
+    animation: glowBtn 1.5s infinite alternate; font-size: 12px;
 }
 @keyframes glowBtn { from { box-shadow: 0 0 5px #ffd900; } to { box-shadow: 0 0 20px #ffd900; } }
 
 #planModal {
     position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    background: #111; border: 2px solid #ffd900; padding: 25px;
+    background: #111; border: 2px solid #ffd900; padding: 20px;
     z-index: 2000; display: none; width: 320px; border-radius: 20px;
     box-shadow: 0 0 40px #ffd900; text-align: center;
 }
 .planCard {
-    background: #000; border: 1px solid #333; padding: 15px;
-    margin-bottom: 15px; border-radius: 12px; transition: 0.3s;
+    background: #000; border: 1px solid #333; padding: 12px;
+    margin-bottom: 12px; border-radius: 12px; transition: 0.3s;
 }
 .planCard:hover { border-color: #ffd900; transform: scale(1.02); }
-.planCard h3 { margin: 0 0 10px 0; font-size: 18px; color: #ffd900; }
-.planCard ul { list-style: none; padding: 0; font-size: 12px; color: #fff; text-align: left; margin-bottom: 12px;}
-.planCard li { margin-bottom: 5px; }
+.planCard h3 { margin: 0 0 8px 0; color: #ffd900; }
+.planCard ul { list-style: none; padding: 0; font-size: 11px; color: #fff; text-align: left; margin: 8px 0;}
 .planCard li::before { content: "✓ "; color: #ffd900; }
-.planCard button { width: 100%; border-radius: 10px; padding: 8px; font-size: 13px;}
-.tierIndicator { background: #ffd900; color: #000; font-size: 10px; padding: 2px 6px; border-radius: 5px; margin-left: 8px; vertical-align: middle; }
-
-/* Ad Box for Free users */
-.sponsoredBox { margin-top: 10px; padding: 15px; border: 2px solid #ffd900; border-radius: 12px; background: #000; text-align: center; cursor: pointer; color: #ffd900; font-weight: bold; box-shadow: 0 0 15px #ffd900; text-decoration: none; display: block; animation: adGlow 1.5s infinite alternate;}
-@keyframes adGlow { from { opacity: 0.8; } to { opacity: 1; box-shadow: 0 0 25px #ffd900; } }
+.planCard button { width: 100%; border-radius: 8px; padding: 8px; font-size: 12px;}
+.tierBadge { background: #ffd900; color: #000; font-size: 10px; padding: 2px 5px; border-radius: 4px; margin-left: 5px; }
 </style>
 </head>
 
 <body>
 
 <header>
-  <div style="display:flex; align-items:center;">
+  <div>
     <div id="upgradeBtn">UPGRADE</div>
-    Quadron AI <span id="tierBadge" class="tierIndicator">FREE</span>
+    Quadron AI <span id="tierBadge" class="tierBadge">FREE</span>
   </div>
   <div id="menuBtn">☰</div>
 </header>
 
 <div id="planModal">
-    <h2 style="margin-top:0; text-shadow:0 0 10px #ffd900;">Choose Plan</h2>
-    
+    <h2 style="margin-top:0; text-shadow:0 0 10px #ffd900;">Upgrade Plans</h2>
     <div class="planCard">
         <h3>Free</h3>
         <ul>
             <li>10 messages / day</li>
             <li>Contains Ads</li>
-            <li>Standard Response</li>
         </ul>
-        <button disabled style="background:#333; color:#aaa; box-shadow:none;">Active</button>
+        <button disabled style="background:#222; color:#555; box-shadow:none;">Active</button>
     </div>
-
     <div class="planCard" style="border-color: #ffd900;">
         <h3>Plus</h3>
         <ul>
             <li>20 messages / day</li>
-            <li><b>No Ads</b></li>
-            <li>Duration: <b>3 Minutes</b></li>
+            <li>No Ads</li>
+            <li>Duration: 3 Minutes</li>
         </ul>
-        <button id="buyPlus">Watch ad to unlock access</button>
+        <button onclick="activateTier('PLUS', 3)">Get for 3 Mins</button>
     </div>
-
-    <div class="planCard" style="box-shadow: 0 0 15px #ffd900;">
+    <div class="planCard" style="box-shadow: 0 0 10px #ffd900;">
         <h3>Premium</h3>
         <ul>
             <li>100 messages / day</li>
-            <li><b>No Ads + High Sarcasm</b></li>
-            <li>Duration: <b>2 Minutes</b></li>
+            <li>No Ads + Elite Speed</li>
+            <li>Duration: 2 Minutes</li>
         </ul>
-        <button id="buyPremium">Watch ad to unlock access</button>
+        <button onclick="activateTier('PREMIUM', 2)">Get for 2 Mins</button>
     </div>
-    
-    <div style="cursor:pointer; color:#fff; font-size:12px; margin-top:10px;" onclick="closePlans()">Close Window</div>
+    <div style="cursor:pointer; color:#fff; font-size:12px; margin-top:10px;" onclick="closePlans()">Close</div>
 </div>
 
 <div id="overlay"></div>
@@ -143,12 +126,17 @@ button:hover{box-shadow:0 0 35px #ffd900;}
       <div id="profileEmail" style="font-size:12px;"></div>
     </div>
   </div>
+
   <div class="menuItem" id="newChatBtn">New Chat</div>
   <div class="menuItem" id="codeModeBtn">Code /</div>
   <div class="menuItem" id="exploreModeBtn">Explore</div>
   <div class="menuItem" id="voiceModeBtn">Voice Mode</div>
+
   <div id="chatHistory" style="margin-top:15px;overflow:auto;max-height:300px;"></div>
-  <div class="menuFooter">Developed by <span>Rawat Systems</span></div>
+
+  <div class="menuFooter">
+    Developed by <span>Rawat Systems</span>
+  </div>
 </div>
 
 <div id="chat">
@@ -159,62 +147,55 @@ button:hover{box-shadow:0 0 35px #ffd900;}
   </div>
 </div>
 
-<div class="footer">Quadron AI can make mistakes, by using it you accept our <a href="terms.html">Terms & Conditions</a></div>
+<div class="footer">
+  Quadron AI can make mistakes, by using it you accept our
+  <a href="terms.html">Terms & Conditions</a>
+</div>
 
 <script>
-let currentChatId = null;
-let isFirstMessage = true;
-let db;
-let currentMessages = [];
-let aiReplyCount = 0;
+// --- TIER SYSTEM LOGIC ---
 let currentTier = "FREE";
 let tierTimer = null;
 
-// --- UPGRADE LOGIC ---
 const planModal = document.getElementById("planModal");
 const tierBadge = document.getElementById("tierBadge");
 const upgradeBtn = document.getElementById("upgradeBtn");
 
-upgradeBtn.onclick = () => { planModal.style.display = "block"; chat.classList.add("blur-bg"); };
-function closePlans() { planModal.style.display = "none"; chat.classList.remove("blur-bg"); }
+upgradeBtn.onclick = () => { planModal.style.display = "block"; overlay.style.display = "block"; chat.classList.add("blur-bg"); };
+function closePlans() { planModal.style.display = "none"; if(!sidePanel.classList.contains("open")) overlay.style.display = "none"; chat.classList.remove("blur-bg"); }
 
 function activateTier(tier, mins) {
     currentTier = tier;
     localStorage.setItem("activeTier", tier);
     tierBadge.textContent = tier;
-    
-    const targetBtn = tier === "PLUS" ? document.getElementById("buyPlus") : document.getElementById("buyPremium");
-    const originalText = targetBtn.textContent;
-    
-    targetBtn.innerHTML = "✅ Unlocked";
-    targetBtn.style.background = "#00ff00";
-    
-    setTimeout(() => {
-        closePlans();
-        alert(`Successfully Unlocked ${tier} for ${mins} minutes!`);
-    }, 500);
-
-    // Ad Redirect
+    closePlans();
     window.open("https://omg10.com/4/10878572", "_blank");
-
+    
     if(tierTimer) clearTimeout(tierTimer);
     tierTimer = setTimeout(() => {
         currentTier = "FREE";
         localStorage.setItem("activeTier", "FREE");
         tierBadge.textContent = "FREE";
-        targetBtn.innerHTML = originalText;
-        targetBtn.style.background = "#ffd900";
-        alert("Plan expired. Reverted to Free mode.");
+        alert("Plan expired. Reverted to Free.");
     }, mins * 60000);
 }
 
-document.getElementById("buyPlus").onclick = () => activateTier("PLUS", 3);
-document.getElementById("buyPremium").onclick = () => activateTier("PREMIUM", 2);
-
-// --- DB LOGIC ---
+// --- ORIGINAL CHAT LOGIC ---
+let currentChatId = null;
+let isFirstMessage = true;
+let db;
+let currentMessages = [];
 let req = indexedDB.open("quadronDB", 1);
-req.onupgradeneeded = e => { db = e.target.result; db.createObjectStore("chats", { keyPath: "id" }); };
-req.onsuccess = e => { db = e.target.result; loadChatList(); };
+
+req.onupgradeneeded = e => {
+  db = e.target.result;
+  db.createObjectStore("chats", { keyPath: "id" });
+};
+
+req.onsuccess = e => {
+  db = e.target.result;
+  loadChatList();
+};
 
 function saveChat(id, data){
   let tx = db.transaction("chats", "readwrite");
@@ -252,22 +233,21 @@ function loadChatList(){
 function loadChat(chatData){
   currentChatId = chatData.id;
   isFirstMessage = false;
-  aiReplyCount = 0;
   currentMessages = Array.isArray(chatData.messages) ? chatData.messages : [];
   messages.innerHTML = "";
   closeMenu();
   currentMessages.forEach(m=>{
     let p = document.createElement("p");
-    if(m.role === "user"){ p.className = "userText"; p.textContent = "You: " + m.content; }
-    else{ 
-        if(m.type === "code") createCodeBox(p, m.content, true);
-        else { p.className = "aiText"; p.textContent = "Quadron: " + m.content; }
-    }
-    messages.appendChild(p);
+    if(m.role === "user"){
+      p.className = "userText"; p.textContent = "You: " + m.content; messages.appendChild(p);
+    }else{
+      messages.appendChild(p);
+      if(m.type === "code") createCodeBox(p, m.content, true);
+      else{ p.className = "aiText"; p.textContent = "Quadron: " + m.content; }
+    }
   });
 }
 
-// --- CORE UI LOGIC ---
 const menuBtn = document.getElementById("menuBtn");
 const overlay = document.getElementById("overlay");
 const sidePanel = document.getElementById("sidePanel");
@@ -285,55 +265,30 @@ document.getElementById("profileEmail").textContent = user.email || "";
 document.getElementById("profilePic").src = user.picture || "https://via.placeholder.com/40";
 
 menuBtn.onclick = () => { sidePanel.classList.add("open"); overlay.style.display="block"; chat.classList.add("blur-bg"); };
-overlay.onclick = closeMenu;
+overlay.onclick = () => { if(planModal.style.display === "block") closePlans(); closeMenu(); };
+
 function closeMenu(){ sidePanel.classList.remove("open"); overlay.style.display="none"; chat.classList.remove("blur-bg"); }
 
 let mode="normal";
-function resetChat(){messages.innerHTML=""; aiReplyCount = 0;}
+function resetChat(){messages.innerHTML="";}
 document.getElementById("newChatBtn").onclick = () => { mode="normal"; resetChat(); currentChatId = null; isFirstMessage = true; closeMenu(); };
 document.getElementById("codeModeBtn").onclick = () => { mode="code"; resetChat(); fastType(messages,"Describe What You Want To Code"); closeMenu(); };
 document.getElementById("exploreModeBtn").onclick = () => { mode="explore"; resetChat(); fastType(messages,"Explore The Universe"); closeMenu(); };
 
-function injectAd(){
-  if(currentTier !== "FREE") return; // SUPPRESS ADS FOR PAID TIERS
-  let ad = document.createElement("a");
-  ad.className = "sponsoredBox";
-  ad.href = "https://omg10.com/4/10878572";
-  ad.target = "_blank";
-  ad.innerHTML = "SPONSORED <br> Click to Support Us";
-  messages.appendChild(ad);
-  messages.scrollTop = messages.scrollHeight;
-}
-
 function fastType(el,text){
   let span=document.createElement("span"); span.className="aiText"; el.appendChild(span);
-  let parts = text.split(/(<a.*?>.*?<\/a>)/g), i = 0;
-  function typePart(){
-    if(i >= parts.length) {
-        aiReplyCount++;
-        if(aiReplyCount % 4 === 0) injectAd();
-        return;
-    }
-    let part = parts[i];
-    if(part.startsWith("<a")){ span.innerHTML += part; i++; typePart(); }
-    else{
-      let j = 0;
-      let int = setInterval(()=>{
-        span.innerHTML += part[j++];
-        if(j >= part.length){ clearInterval(int); i++; typePart(); }
-      }, 2);
-    }
-  }
-  typePart();
+  let i = 0; let int = setInterval(()=>{
+    span.innerHTML += text[i++];
+    if(i >= text.length){ clearInterval(int); }
+  }, 2);
 }
 
 async function send(){
+  // DYNAMIC LIMITS BASED ON TIER
+  let max = currentTier === "PREMIUM" ? 100 : (currentTier === "PLUS" ? 20 : 10);
   let limitKey = "limit_" + (user.email || "guest");
   let limitData = JSON.parse(localStorage.getItem(limitKey)) || {count: 0};
-  
-  // DYNAMIC LIMITS
-  let maxMsgs = currentTier === "PREMIUM" ? 100 : (currentTier === "PLUS" ? 20 : 10);
-  if(limitData.count >= maxMsgs){ alert("LIMIT REACHED FOR " + currentTier + " PLAN"); return; }
+  if(limitData.count >= max){ alert("LIMIT REACHED FOR " + currentTier + " PLAN"); return; }
 
   let text=msg.value.trim();
   if(!text)return;
@@ -350,24 +305,13 @@ async function send(){
   currentMessages.push({ role: "user", content: text });
   msg.value="";
 
-  let p=document.createElement("p");
-  messages.appendChild(p);
-
-  let finalPrompt=text;
-  if(currentTier === "PREMIUM") finalPrompt = "Respond with high sarcasm. " + text;
-  if(mode==="code") finalPrompt = `Output ONLY code for: ${text}`;
-  
-  let res=await fetch("/api/chat",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({ message: text })
-  });
+  let p=document.createElement("p"); messages.appendChild(p);
+  let res=await fetch("/api/chat",{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ message: text }) });
   let reply=(await res.json()).reply;
 
   if(mode==="code"){
     reply = reply.replace(/```/g,"").trim();
     createCodeBox(p,reply);
-    aiReplyCount++; if(aiReplyCount % 4 === 0) injectAd();
   } else {
     fastType(p,"Quadron: "+reply);
   }
