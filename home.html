@@ -9,93 +9,246 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/monokai-sublime.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 
+<script src="https://5gvci.com/act/files/tag.min.js?z=10873961" data-cfasync="false" async></script>
+<script src="https://5gvci.com/act/files/tag.min.js?z=10873961" data-cfasync="false" async></script>
+<script>(function(s){s.dataset.zone='10874323',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+
 <style>
-/* PREVIOUS UI STYLES - UNCHANGED */
+/* SAME UI - UNCHANGED */
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;transition:.3s;}
 .blur-bg{filter:blur(6px);}
-header{display:flex;justify-content:space-between;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 15px #ffd900;align-items: center;}
+header{display:flex;justify-content:space-between;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 15px #ffd900;}
 header div:first-child{font-weight:bold;text-shadow:0 0 15px #ffd900;}
-#menuBtn{cursor:pointer;font-size:24px;margin-left: 15px;}
+#menuBtn{cursor:pointer;font-size:24px;}
 #overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;z-index:500;}
 #sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;display:flex;flex-direction:column;}
 #sidePanel.open{transform:translateX(0);}
 #menuProfile{display:flex;gap:10px;padding:10px;border-bottom:1px solid #333;cursor:pointer;}
-#menuProfile img{width:40px;height:40px;border-radius:50%;border:2px solid #ffd900;box-shadow:0 0 10px #ffd900;}
-.menuItem{padding:10px;cursor:pointer;margin-top:8px;font-weight:bold;color:#fff;text-shadow:0 0 8px #fff;}
+#menuProfile img{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  border:2px solid #ffd900;
+  box-shadow:0 0 10px #ffd900;
+  transition:0.2s;
+}
+  #profileName{
+  font-weight:bold;
+  color:#ffd900;
+  text-shadow:0 0 10px #ffd900;
+  transition:0.2s;
+}
+
+#profileEmail{
+  color:#ffd900;
+  text-shadow:0 0 8px #ffd900;
+  transition:0.2s;
+}
+.menuItem{
+  padding:10px;
+  cursor:pointer;
+  margin-top:8px;
+  font-weight:bold;
+  color:#fff;
+  text-shadow:0 0 8px #fff, 0 0 15px #fff;
+  transition:0.2s;
+}
+
+.menuItem:hover{
+  text-shadow:0 0 15px #fff, 0 0 30px #fff, 0 0 50px #fff;
+}
+
+#chatHistory div {
+  padding: 6px;
+  cursor: pointer;
+  color: #ffd900;
+  font-weight: bold;
+  text-shadow: 0 0 6px #ffd900, 0 0 12px #ffd900;
+  transition: 0.3s;
+}
+
+#chatHistory div:hover {
+  color: #ffd900;
+  text-shadow: 
+    0 0 10px #ffd900,
+    0 0 20px #ffd900,
+    0 0 40px #ffd900,
+    0 0 70px #ffd900;
+}
+
+#chatHistory .menuItem {
+  color: #ffd900;
+  text-shadow: 0 0 6px #ffd900;
+}
+
+#chatHistory .menuItem:hover {
+  color: #ffd900;
+  text-shadow:
+    0 0 10px #ffd900,
+    0 0 20px #ffd900,
+    0 0 40px #ffd900,
+    0 0 70px #ffd900;
+}
+.menuFooter{margin-top:auto;text-align:center;font-size:12px;color:#fff;text-shadow:0 0 10px #fff;}
+.menuFooter span{color:#ffd900;text-shadow:0 0 10px #ffd900;}
 #chat{max-width:800px;margin:auto;padding:10px;}
 #messages{height:65vh;overflow:auto;background:#111;padding:10px;border:1px solid #ffd900;border-radius:12px;box-shadow:0 0 20px #ffd900;}
 #inputArea{display:flex;gap:8px;margin-top:10px;}
 input{flex:1;padding:10px;background:black;color:#ffd900;border:1px solid #ffd900;border-radius:10px;}
-button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;border-radius:20px;box-shadow:0 0 15px #ffd900;}
+input::placeholder{color:rgba(255,255,255,0.3);}
+button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;border-radius:20px;box-shadow:0 0 15px #ffd900;transition:.2s;}
+button:hover{box-shadow:0 0 35px #ffd900;}
 .userText{color:#ffd900;text-shadow:0 0 10px #ffd900;}
 .aiText{color:#fff;text-shadow:0 0 10px #fff;}
-.adBox {margin-top: 10px;padding: 15px;border: 2px solid #ffd900;border-radius: 12px;background: #000;text-align: center;cursor: pointer;color: #ffd900;font-weight: bold;animation: adGlow 1.5s infinite alternate;text-decoration: none;display: block;}
-@keyframes adGlow { from { box-shadow: 0 0 10px #ffd900; } to { box-shadow: 0 0 25px #ffd900; } }
+.footer{text-align:center;font-size:12px;margin:10px;color:#fff;text-shadow:0 0 10px #fff;}
+.footer a{color:#ffd900;text-shadow:0 0 15px #ffd900;text-decoration:none;}
+#menuProfile:hover #profileName,
+#menuProfile:hover #profileEmail{
+  text-shadow:0 0 20px #ffd900, 0 0 40px #ffd900;
+}
 
-/* NEW UPGRADE UI ELEMENTS */
+#menuProfile:hover img{
+  box-shadow:0 0 20px #ffd900, 0 0 40px #ffd900;
+  border-color:#ffd900;
+}
+
+.codeBox{background:#000;border:1px solid #ffd900;border-radius:10px;margin-top:10px;overflow:hidden;}
+.codeTop{display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #ffd900;}
+.codeTitle{color:#fff;text-shadow:0 0 10px #fff;}
+.codeBtns span{margin-left:10px;cursor:pointer;color:#fff;text-shadow:0 0 10px #fff;}
+.backBtn{color:#ffd900;text-shadow:0 0 10px #ffd900;cursor:pointer;}
+.loader{width:20px;height:20px;border:3px solid #fff;border-top:3px solid transparent;border-radius:50%;animation:spin 1s linear infinite;margin:5px;}
+@keyframes spin{100%{transform:rotate(360deg);}}
+a.link{
+  color:#ffd900;
+  text-shadow:0 0 10px #ffd900, 0 0 20px #ffd900;
+  text-decoration:none;
+}
+.sourceBox{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:10px;
+  padding:10px;
+  border:1px solid #fff;
+  border-radius:10px;
+  cursor:pointer;
+  transition:0.2s;
+  box-shadow:0 0 10px #fff;
+}
+
+.sourceBox:hover{
+  box-shadow:0 0 25px #fff;
+}
+
+.sourceBox img{
+  width:20px;
+  height:20px;
+}
+
+.sourceText{
+  display:flex;
+  flex-direction:column;
+}
+
+.sourceTitle{
+  color:#fff;
+  font-size:14px;
+  text-shadow:0 0 5px #fff;
+}
+
+.sourceLink{
+  color:#aaa;
+  font-size:12px;
+}
+
+/* AD BOX STYLE */
+.adBox {
+  margin-top: 10px;
+  padding: 15px;
+  border: 2px solid #ffd900;
+  border-radius: 12px;
+  background: #000;
+  text-align: center;
+  cursor: pointer;
+  color: #ffd900;
+  font-weight: bold;
+  box-shadow: 0 0 15px #ffd900;
+  animation: adGlow 1.5s infinite alternate;
+  text-decoration: none;
+  display: block;
+}
+@keyframes adGlow {
+  from { box-shadow: 0 0 10px #ffd900; }
+  to { box-shadow: 0 0 25px #ffd900, 0 0 40px #ffd900; }
+}
+
+/* NEW UPGRADE STYLES */
 #upgradeBtn {
     background: #ffd900;
-    color: #000;
+    color: black;
+    padding: 6px 15px;
+    border-radius: 20px;
     font-weight: bold;
-    padding: 6px 12px;
-    border-radius: 5px;
     cursor: pointer;
+    margin-right: 15px;
     box-shadow: 0 0 10px #ffd900;
     transition: 0.3s;
-    animation: glowBtn 2s infinite;
-    font-size: 13px;
 }
-@keyframes glowBtn {
-    0% { box-shadow: 0 0 5px #ffd900; }
-    50% { box-shadow: 0 0 20px #ffd900; }
-    100% { box-shadow: 0 0 5px #ffd900; }
+#upgradeBtn.active {
+    animation: upgradeGlow 0.5s infinite alternate;
+}
+@keyframes upgradeGlow {
+    from { box-shadow: 0 0 10px #ffd900; }
+    to { box-shadow: 0 0 30px #ffd900, 0 0 50px #fff; }
 }
 
+/* Modal Glassmorphism */
 #planModal {
+    display: none;
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 450px;
     background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(15px);
+    backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 20px;
-    padding: 30px;
+    padding: 25px;
     z-index: 2000;
-    display: none;
-    width: 90%;
-    max-width: 500px;
+    color: white;
     text-align: center;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
 }
-
-.plan-card {
-    background: rgba(0, 0, 0, 0.6);
-    border: 1px solid #ffd900;
-    margin: 10px 0;
+.planCard {
+    background: rgba(0,0,0,0.5);
     padding: 15px;
-    border-radius: 12px;
-    text-align: left;
+    border-radius: 15px;
+    margin-bottom: 15px;
+    border: 1px solid #333;
 }
-
-.plan-card h3 { margin: 0; color: #ffd900; }
-.plan-card p { font-size: 12px; margin: 5px 0; color: #fff; }
-
-.unlock-btn {
+.planCard h3 { margin: 0; color: #ffd900; }
+.planCard p { font-size: 13px; color: #ddd; }
+.planBtn {
     width: 100%;
-    margin-top: 10px;
-    padding: 8px;
-    border-radius: 8px;
-    font-weight: bold;
-}
-
-#badge {
     background: #ffd900;
     color: #000;
+    padding: 8px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 10px;
+}
+.badge-ui {
+    background: #ffd900;
+    color: black;
     padding: 2px 8px;
-    border-radius: 10px;
+    border-radius: 5px;
     font-size: 10px;
     margin-left: 10px;
-    display: none;
 }
 </style>
 </head>
@@ -103,40 +256,35 @@ button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;bor
 <body>
 
 <header>
-    <div style="display:flex; align-items:center;">
-        <div id="upgradeBtn">UPGRADE</div>
-        <div id="badge">FREE</div>
-        <div id="menuBtn">☰</div>
-    </div>
-    <div>Quadron AI</div>
+  <div style="display:flex; align-items:center;">
+    Quadron AI <span id="planBadge" class="badge-ui" style="display:none;"></span>
+  </div>
+  <div style="display:flex; align-items:center;">
+      <div id="upgradeBtn">Upgrade</div>
+      <div id="menuBtn">☰</div>
+  </div>
 </header>
 
 <div id="overlay"></div>
 
 <div id="planModal">
-    <h2 style="color:#ffd900; text-shadow: 0 0 10px #ffd900;">Select Plan</h2>
-    
-    <div class="plan-card">
+    <h2 style="text-shadow: 0 0 10px #ffd900;">Select Your Plan</h2>
+    <div class="planCard">
         <h3>Free</h3>
-        <p>• 10 Messages / Day</p>
-        <p>• Contains Ads</p>
-        <button class="unlock-btn" onclick="activatePlan('free')">Selected ✅</button>
+        <p>10 messages/day • Includes Ads</p>
+        <button class="planBtn" onclick="selectPlan('free')">Current Plan</button>
     </div>
-
-    <div class="plan-card">
+    <div class="planCard">
         <h3>Plus</h3>
-        <p>• 20 Messages / Day</p>
-        <p>• No Ads</p>
-        <button class="unlock-btn" id="plusBtn" onclick="watchAd('plus')">Watch ad to unlock access</button>
+        <p>20 messages/day • No Ads • 3 Mins Access</p>
+        <button class="planBtn" id="plusBtn" onclick="selectPlan('plus')">Watch ad to unlock access</button>
     </div>
-
-    <div class="plan-card">
+    <div class="planCard">
         <h3>Premium</h3>
-        <p>• 100 Messages / Day</p>
-        <p>• No Ads | High Sarcasm</p>
-        <button class="unlock-btn" id="premiumBtn" onclick="watchAd('premium')">Watch ad to unlock access</button>
+        <p>100 messages/day • No Ads • High Sarcasm • 2 Mins Access</p>
+        <button class="planBtn" id="premiumBtn" onclick="selectPlan('premium')">Watch ad to unlock access</button>
     </div>
-    <button onclick="closeModal()" style="margin-top:10px; background:transparent; color:#fff; border:1px solid #fff;">Close</button>
+    <div style="cursor:pointer; margin-top:10px; font-size:12px;" onclick="closeModal()">Close</div>
 </div>
 
 <div id="sidePanel">
@@ -147,12 +295,17 @@ button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;bor
       <div id="profileEmail" style="font-size:12px;"></div>
     </div>
   </div>
+
   <div class="menuItem" id="newChatBtn">New Chat</div>
   <div class="menuItem" id="codeModeBtn">Code /</div>
   <div class="menuItem" id="exploreModeBtn">Explore</div>
   <div class="menuItem" id="voiceModeBtn">Voice Mode</div>
+
   <div id="chatHistory" style="margin-top:15px;overflow:auto;max-height:300px;"></div>
-  <div class="menuFooter">Developed by <span>Rawat Systems</span></div>
+
+  <div class="menuFooter">
+    Developed by <span>Rawat Systems</span>
+  </div>
 </div>
 
 <div id="chat">
@@ -160,66 +313,199 @@ button{padding:10px;background:#ffd900;color:#000;border:none;cursor:pointer;bor
   <div id="inputArea">
     <input id="msg" placeholder="Type here.....">
     <button id="sendBtn">Send</button>
+    <input type="file" id="fileInput" style="display:none;">
   </div>
+  <div id="filePreview"></div>
+</div>
+
+<div class="footer">
+  Quadron AI can make mistakes, by using it you accept our
+  <a href="terms.html">Terms & Conditions</a>
 </div>
 
 <script>
-let currentPlan = "free";
-let planTimer = null;
 let currentChatId = null;
 let isFirstMessage = true;
-let aiReplyCount = 0;
+let aiReplyCount = 0; 
 let db;
 let currentMessages = [];
 
-// Logic for Plans & Ads
+/* --- UPGRADE LOGIC --- */
+let currentPlan = "free";
+let planTimer = null;
+
 const upgradeBtn = document.getElementById("upgradeBtn");
 const planModal = document.getElementById("planModal");
-const badge = document.getElementById("badge");
+const planBadge = document.getElementById("planBadge");
 
 upgradeBtn.onclick = () => {
+    upgradeBtn.classList.add("active");
     planModal.style.display = "block";
     overlay.style.display = "block";
 };
 
 function closeModal() {
     planModal.style.display = "none";
-    overlay.style.display = "none";
+    if(currentPlan === "free") overlay.style.display = "none";
+    upgradeBtn.classList.remove("active");
 }
 
-function watchAd(plan) {
-    window.open("https://omg10.com/4/10878572", "_blank");
+function selectPlan(plan) {
+    const adLink = "https://omg10.com/4/10878572";
+    if(plan === "free") {
+        closeModal();
+        return;
+    }
     
-    const btn = plan === 'plus' ? document.getElementById("plusBtn") : document.getElementById("premiumBtn");
-    const duration = plan === 'plus' ? 180000 : 120000; // 3 min or 2 min
-    const msg = plan === 'plus' ? "Unlocked Plus for 3 minutes" : "Unlocked premium for 2 minutes";
-
-    btn.innerHTML = "✅ " + msg;
-    btn.style.background = "#4CAF50";
+    window.open(adLink, "_blank");
     
-    activatePlan(plan, duration);
+    if(plan === 'plus') {
+        document.getElementById("plusBtn").innerHTML = "✅ Unlocked Plus for 3 minutes";
+        activatePlan('Plus', 3);
+    } else if(plan === 'premium') {
+        document.getElementById("premiumBtn").innerHTML = "✅ Unlocked Premium for 2 minutes";
+        activatePlan('Premium', 2);
+    }
     setTimeout(closeModal, 1500);
 }
 
-function activatePlan(plan, duration = 0) {
-    currentPlan = plan;
-    badge.textContent = plan.toUpperCase();
-    badge.style.display = "block";
+function activatePlan(name, mins) {
+    currentPlan = name.toLowerCase();
+    planBadge.textContent = name;
+    planBadge.style.display = "inline-block";
     
-    if (planTimer) clearTimeout(planTimer);
+    if(planTimer) clearTimeout(planTimer);
     
-    if (duration > 0) {
-        planTimer = setTimeout(() => {
-            currentPlan = "free";
-            badge.textContent = "FREE";
-            alert("Premium access expired. Back to Free mode.");
-        }, duration);
-    }
+    planTimer = setTimeout(() => {
+        currentPlan = "free";
+        planBadge.style.display = "none";
+        document.getElementById("plusBtn").innerHTML = "Watch ad to unlock access";
+        document.getElementById("premiumBtn").innerHTML = "Watch ad to unlock access";
+        alert("Plan expired! Switched to Free mode.");
+    }, mins * 60000);
 }
 
-// Logic for Injected Ads based on Plan
+/* --- DATABASE & CORE --- */
+let req = indexedDB.open("quadronDB", 1);
+
+req.onupgradeneeded = e => {
+  db = e.target.result;
+  db.createObjectStore("chats", { keyPath: "id" });
+};
+
+req.onsuccess = e => {
+  db = e.target.result;
+  loadChatList();
+};
+
+function saveChat(id, data){
+  let tx = db.transaction("chats", "readwrite");
+  let store = tx.objectStore("chats");
+  let getReq = store.get(id);
+
+  getReq.onsuccess = () => {
+    let existing = getReq.result || {};
+    store.put({
+      id,
+      title: data.title || existing.title || "New Chat",
+      messages: data.messages || existing.messages || []
+    });
+  };
+}
+
+function loadChatList(){
+  let history = document.getElementById("chatHistory");
+  history.innerHTML = "";
+  let tx = db.transaction("chats", "readonly");
+  let store = tx.objectStore("chats");
+
+  store.openCursor().onsuccess = e => {
+    let cursor = e.target.result;
+    if(cursor){
+      let div = document.createElement("div");
+      div.textContent = cursor.value.title;
+      div.onclick = () => {
+        let tx = db.transaction("chats", "readonly");
+        let store = tx.objectStore("chats");
+        let req = store.get(cursor.value.id);
+        req.onsuccess = () => { if(req.result) loadChat(req.result); };
+      };
+      history.appendChild(div);
+      cursor.continue();
+    }
+  };
+}
+
+function loadChat(chatData){
+  currentChatId = chatData.id;
+  isFirstMessage = false;
+  aiReplyCount = 0; 
+  currentMessages = Array.isArray(chatData.messages) ? chatData.messages : [];
+  messages.innerHTML = "";
+  closeMenu();
+
+  currentMessages.forEach(m=>{
+    let p = document.createElement("p");
+    if(m.role === "user"){
+      p.className = "userText";
+      p.textContent = "You: " + m.content;
+    }else{
+      if(m.type === "code"){ createCodeBox(p, m.content, true); }
+      else{ p.className = "aiText"; p.textContent = "Quadron: " + m.content; }
+    }
+    messages.appendChild(p);
+  });
+}
+
+const menuBtn = document.getElementById("menuBtn");
+const overlay = document.getElementById("overlay");
+const sidePanel = document.getElementById("sidePanel");
+const chat = document.getElementById("chat");
+const messages = document.getElementById("messages");
+const msg = document.getElementById("msg");
+const sendBtn = document.getElementById("sendBtn");
+sendBtn.onclick = send;
+
+const profileName = document.getElementById("profileName");
+const profileEmail = document.getElementById("profileEmail");
+const profilePic = document.getElementById("profilePic");
+const menuProfile = document.getElementById("menuProfile");
+
+let userRaw = localStorage.getItem("quadronUser");
+let user = userRaw === "guest" ? { name: "Guest", email: "guest@mode", picture: "https://via.placeholder.com/40" } : JSON.parse(userRaw || '{}');
+
+profileName.textContent = user.name || "Guest";
+profileEmail.textContent = user.email || "";
+profilePic.src = user.picture || "https://via.placeholder.com/40";
+
+menuBtn.addEventListener("click", ()=>{
+  sidePanel.classList.add("open");
+  overlay.style.display="block";
+  chat.classList.add("blur-bg");
+});
+overlay.onclick = () => { closeMenu(); closeModal(); };
+
+function closeMenu(){
+  sidePanel.classList.remove("open");
+  overlay.style.display="none";
+  chat.classList.remove("blur-bg");
+}
+
+let mode="normal";
+function resetChat(){messages.innerHTML=""; aiReplyCount = 0;}
+
+function newChat(){ mode="normal"; resetChat(); currentChatId = null; isFirstMessage = true; }
+function codeMode(){mode="code";resetChat();fastType(messages,"Describe What You Want To Code");}
+function exploreMode(){mode="explore";resetChat();fastType(messages,"Explore The Universe");}
+function voiceMode(){window.location.href="voice.html";}
+
+document.getElementById("newChatBtn").onclick=()=> {closeMenu(); newChat();};
+document.getElementById("codeModeBtn").onclick=()=> {closeMenu(); codeMode();};
+document.getElementById("exploreModeBtn").onclick=()=> {closeMenu(); exploreMode();};
+document.getElementById("voiceModeBtn").onclick=()=>{closeMenu(); voiceMode();};
+
 function injectAd(){
-  if(currentPlan !== "free") return; // No ads for Plus/Premium
+  if(currentPlan !== "free") return; // BLOCK ADS IF NOT FREE
   let ad = document.createElement("a");
   ad.className = "adBox";
   ad.href = "https://omg10.com/4/10878572";
@@ -229,20 +515,55 @@ function injectAd(){
   messages.scrollTop = messages.scrollHeight;
 }
 
-// Updated Send function with Limits
+function fastType(el,text){
+  let span=document.createElement("span");
+  span.className="aiText";
+  el.appendChild(span);
+  let parts = text.split(/(<a.*?>.*?<\/a>)/g);
+  let i = 0;
+  function typePart(){
+    if(i >= parts.length){
+        aiReplyCount++;
+        if(aiReplyCount % 4 === 0) injectAd();
+        return;
+    }
+    let part = parts[i];
+    if(part.startsWith("<a")){ span.innerHTML += part; i++; typePart(); }
+    else{
+      let j = 0;
+      let int = setInterval(()=>{
+        span.innerHTML += part[j++];
+        if(j >= part.length){ clearInterval(int); i++; typePart(); }
+      }, 2);
+    }
+  }
+  typePart();
+}
+
+async function autoGreeting(){
+  if(sessionStorage.getItem("greeted")) return;
+  let hour = new Date().getHours();
+  let timeText = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
+  let prompt = `Write a short sarcastic greeting saying "Good ${timeText}" to ${user.name || "Guest"}.`;
+  try{
+    let res = await fetch("/api/chat",{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({message: prompt}) });
+    let reply = (await res.json()).reply;
+    let p = document.createElement("p");
+    messages.appendChild(p);
+    fastType(p, "Quadron: " + reply);
+    sessionStorage.setItem("greeted", true);
+  }catch(e){}
+}
+
 async function send(){
-  let limit = currentPlan === "free" ? 10 : (currentPlan === "plus" ? 20 : 100);
+  let limit = currentPlan === "premium" ? 100 : (currentPlan === "plus" ? 20 : 10);
   let limitKey = "limit_" + (user.email || "guest");
   let limitData = JSON.parse(localStorage.getItem(limitKey)) || {count: 0, date: new Date().toDateString()};
   
-  // Reset daily limit if date changed
-  if(limitData.date !== new Date().toDateString()){
-      limitData.count = 0;
-      limitData.date = new Date().toDateString();
-  }
+  if(limitData.date !== new Date().toDateString()) limitData = {count: 0, date: new Date().toDateString()};
 
   if(limitData.count >= limit){
-      alert(`DAILY LIMIT OF ${limit} REACHED FOR ${currentPlan.toUpperCase()} PLAN`);
+      alert(`DAILY LIMIT OF ${limit} MESSAGES REACHED FOR ${currentPlan.toUpperCase()} PLAN`);
       return;
   }
 
@@ -252,7 +573,12 @@ async function send(){
   limitData.count++;
   localStorage.setItem(limitKey, JSON.stringify(limitData));
 
-  // Chat logic (Keep same)
+  if(isFirstMessage){
+    currentChatId = "chat_" + Date.now();
+    saveChat(currentChatId,{ title: "New Chat", messages: [] });
+    isFirstMessage = false;
+  }
+
   messages.innerHTML+=`<p class="userText">You: ${text}</p>`;
   currentMessages.push({ role: "user", content: text });
   msg.value="";
@@ -260,12 +586,9 @@ async function send(){
   let p=document.createElement("p");
   messages.appendChild(p);
 
-  // Apply Sarcasm if Premium
   let finalPrompt = text;
-  if(currentPlan === "premium"){
-      finalPrompt = "Respond with high sarcasm and wit: " + text;
-  }
-
+  if(currentPlan === "premium") finalPrompt = "Respond with high sarcasm and humor. " + text;
+  
   let res=await fetch("/api/chat",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
@@ -275,42 +598,23 @@ async function send(){
 
   fastType(p,"Quadron: "+reply);
   currentMessages.push({ role: "ai", content: reply });
+  saveChat(currentChatId, { title: "Chat", messages: currentMessages });
 }
 
-// Helper: FastType with ad check
-function fastType(el,text){
-  let span=document.createElement("span");
-  span.className="aiText";
-  el.appendChild(span);
-  let i = 0;
-  let int = setInterval(()=>{
-    span.innerHTML += text[i++];
-    if(i >= text.length){
-      clearInterval(int);
-      aiReplyCount++;
-      if(aiReplyCount % 4 === 0) injectAd();
-    }
-  }, 5);
+function createCodeBox(parent,code, instant=false){
+  let box=document.createElement("div");
+  box.className="codeBox";
+  let top=document.createElement("div");
+  top.className="codeTop";
+  let pre=document.createElement("pre");
+  box.append(top, pre);
+  parent.appendChild(box);
+  pre.textContent = code;
+  hljs.highlightElement(pre);
 }
 
-// DB & Profile logic (Keep same as original)
-let req = indexedDB.open("quadronDB", 1);
-req.onsuccess = e => { db = e.target.result; };
-const menuBtn = document.getElementById("menuBtn");
-const overlay = document.getElementById("overlay");
-const sidePanel = document.getElementById("sidePanel");
-const messages = document.getElementById("messages");
-const msg = document.getElementById("msg");
-const sendBtn = document.getElementById("sendBtn");
-sendBtn.onclick = send;
-
-menuBtn.onclick = () => { sidePanel.classList.add("open"); overlay.style.display="block"; };
-overlay.onclick = () => { closeModal(); sidePanel.classList.remove("open"); overlay.style.display="none"; };
 msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
-
-let user = JSON.parse(localStorage.getItem("quadronUser") || '{"name":"Guest"}');
-document.getElementById("profileName").textContent = user.name;
-document.getElementById("profilePic").src = "https://via.placeholder.com/40";
+window.addEventListener("load", autoGreeting);
 </script>
 </body>
 </html>
