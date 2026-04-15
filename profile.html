@@ -38,6 +38,17 @@
     h2 { margin: 10px 0; text-shadow: 0 0 10px #ffd900; }
     p { color: #fff; margin: 5px 0; opacity: 0.8; }
 
+    .tier-label {
+        display: inline-block;
+        background: #ffd900;
+        color: #000;
+        padding: 2px 10px;
+        border-radius: 5px;
+        font-weight: bold;
+        font-size: 12px;
+        margin-bottom: 10px;
+    }
+
     .stats {
         margin: 25px 0;
         padding: 15px;
@@ -83,13 +94,14 @@
 <body>
 
 <div id="profileCard">
+    <div id="tierLabel" class="tier-label">FREE PLAN</div>
     <img id="uPic" src="" alt="User">
     <h2 id="uName">Loading...</h2>
     <p id="uEmail"></p>
 
     <div class="stats">
-        <div>Daily Message Limit</div>
-        <div id="limitText">0 / 100</div>
+        <div id="statusTitle">Daily Message Limit</div>
+        <div id="limitText">0 / 0</div>
         <div class="limit-bar">
             <div id="progress"></div>
         </div>
@@ -114,30 +126,42 @@
         try {
             user = JSON.parse(userRaw) || {};
         } catch(e) {
-            window.location.href = "login.html"; // Redirect if data is corrupted
+            window.location.href = "login.html";
         }
     }
 
-    // 2. Get Limit Data
+    // 2. Detect Current Tier Logic (Mirroring home.html logic)
+    // Note: Since tier in home.html is a runtime variable, we check localStorage or 
+    // assume the session state. If you want tiers to persist across pages, 
+    // you should save the tier in localStorage when activated in home.html.
+    
+    let currentTier = localStorage.getItem("activeTier") || "FREE";
+    let maxMsgs = 10;
+    if(currentTier === "PLUS") maxMsgs = 20;
+    if(currentTier === "PREMIUM") maxMsgs = 100;
+
+    // 3. Get Limit Data
     let limitKey = "limit_" + (user.email || "guest");
     let limitData = JSON.parse(localStorage.getItem(limitKey)) || {count: 0};
     let count = limitData.count || 0;
 
-    // 3. Update UI
+    // 4. Update UI
     document.getElementById("uPic").src = user.picture || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
     document.getElementById("uName").textContent = user.name || "Guest";
     document.getElementById("uEmail").textContent = user.email || "";
-    document.getElementById("limitText").textContent = count + " / 100";
+    document.getElementById("tierLabel").textContent = currentTier + " PLAN";
+    document.getElementById("limitText").textContent = count + " / " + maxMsgs;
     
     // Update Progress Bar
-    let percentage = (count / 100) * 100;
+    let percentage = (count / maxMsgs) * 100;
+    if (percentage > 100) percentage = 100;
     document.getElementById("progress").style.width = percentage + "%";
 
-    // 4. Logout Function
+    // 5. Logout Function
     function logout() {
         if(confirm("Are you sure you want to logout?")) {
             localStorage.removeItem("quadronUser");
-            // Note: We don't remove the limit data so it persists until tomorrow
+            localStorage.removeItem("activeTier"); // Clear tier on logout
             window.location.href = "login.html"; 
         }
     }
