@@ -17,8 +17,8 @@
 /* SAME UI - UNCHANGED */
 body{background:#0a0a0a;color:#ffd900;font-family:Arial;margin:0;transition:.3s;}
 .blur-bg{filter:blur(6px);}
-header{display:flex;justify-content:space-between;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 15px #ffd900;}
-header div:first-child{font-weight:bold;text-shadow:0 0 15px #ffd900;}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#000;border-bottom:2px solid #ffd900;box-shadow:0 0 15px #ffd900;}
+header div:first-child{font-weight:bold;text-shadow:0 0 15px #ffd900; display: flex; align-items: center; gap: 10px;}
 #menuBtn{cursor:pointer;font-size:24px;}
 #overlay{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;z-index:500;}
 #sidePanel{position:fixed;right:0;top:0;width:260px;height:100%;background:#111;transform:translateX(100%);transition:.3s;padding:15px;z-index:1000;display:flex;flex-direction:column;}
@@ -183,72 +183,91 @@ a.link{
   to { box-shadow: 0 0 25px #ffd900, 0 0 40px #ffd900; }
 }
 
-/* NEW UPGRADE STYLES */
+/* NEW UPGRADE & MODAL STYLES */
 #upgradeBtn {
-    background: #ffd900;
-    color: black;
-    padding: 6px 15px;
-    border-radius: 20px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-right: 15px;
-    box-shadow: 0 0 10px #ffd900;
-    transition: 0.3s;
+  background: #000;
+  color: #ffd900;
+  border: 1px solid #ffd900;
+  padding: 5px 12px;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 0 5px #ffd900;
+  transition: 0.3s;
+  margin-right: 10px;
 }
-#upgradeBtn.active {
-    animation: upgradeGlow 0.5s infinite alternate;
-}
-@keyframes upgradeGlow {
-    from { box-shadow: 0 0 10px #ffd900; }
-    to { box-shadow: 0 0 30px #ffd900, 0 0 50px #fff; }
+#upgradeBtn:active {
+  box-shadow: 0 0 20px #ffd900, 0 0 40px #ffd900;
+  background: #ffd900;
+  color: #000;
 }
 
-/* Modal Glassmorphism */
 #planModal {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90%;
-    max-width: 450px;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 20px;
-    padding: 25px;
-    z-index: 2000;
-    color: white;
-    text-align: center;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 600px;
+  background: rgba(20, 20, 20, 0.7);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 217, 0, 0.3);
+  border-radius: 20px;
+  padding: 25px;
+  z-index: 2000;
+  display: none;
+  box-shadow: 0 0 30px rgba(0,0,0,0.5);
 }
-.planCard {
-    background: rgba(0,0,0,0.5);
-    padding: 15px;
-    border-radius: 15px;
-    margin-bottom: 15px;
-    border: 1px solid #333;
+
+.plan-container {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 20px;
 }
-.planCard h3 { margin: 0; color: #ffd900; }
-.planCard p { font-size: 13px; color: #ddd; }
-.planBtn {
-    width: 100%;
+
+.plan-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 15px;
+  flex: 1;
+  min-width: 150px;
+  text-align: center;
+  transition: 0.3s;
+}
+
+.plan-card:hover {
+  background: rgba(255, 217, 0, 0.1);
+  border-color: #ffd900;
+}
+
+.plan-card h3 { color: #ffd900; margin-top: 0; }
+.plan-card ul { list-style: none; padding: 0; font-size: 13px; color: #ccc; }
+.plan-card li { margin-bottom: 8px; }
+
+.unlock-btn {
+  background: #ffd900;
+  color: #000;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+  font-size: 12px;
+}
+
+.status-badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    margin-left: 8px;
     background: #ffd900;
     color: #000;
-    padding: 8px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    margin-top: 10px;
-}
-.badge-ui {
-    background: #ffd900;
-    color: black;
-    padding: 2px 8px;
-    border-radius: 5px;
-    font-size: 10px;
-    margin-left: 10px;
+    text-shadow: none;
+    display: none;
 }
 </style>
 </head>
@@ -256,35 +275,45 @@ a.link{
 <body>
 
 <header>
-  <div style="display:flex; align-items:center;">
-    Quadron AI <span id="planBadge" class="badge-ui" style="display:none;"></span>
+  <div>
+    <button id="upgradeBtn">Upgrade</button>
+    Quadron AI <span id="planBadge" class="status-badge">PLUS</span>
   </div>
-  <div style="display:flex; align-items:center;">
-      <div id="upgradeBtn">Upgrade</div>
-      <div id="menuBtn">☰</div>
-  </div>
+  <div id="menuBtn">☰</div>
 </header>
 
 <div id="overlay"></div>
 
 <div id="planModal">
-    <h2 style="text-shadow: 0 0 10px #ffd900;">Select Your Plan</h2>
-    <div class="planCard">
+  <h2 style="text-align:center; color:#ffd900; text-shadow:0 0 10px #ffd900;">Select a Plan</h2>
+  <div class="plan-container">
+    <div class="plan-card">
         <h3>Free</h3>
-        <p>10 messages/day • Includes Ads</p>
-        <button class="planBtn" onclick="selectPlan('free')">Current Plan</button>
+        <ul>
+            <li>10 Messages/day</li>
+            <li>Contains Ads</li>
+        </ul>
+        <button class="unlock-btn" onclick="setPlan('free')">Current Plan</button>
     </div>
-    <div class="planCard">
+    <div class="plan-card" style="border: 1px solid #ffd900; box-shadow: 0 0 10px #ffd900;">
         <h3>Plus</h3>
-        <p>20 messages/day • No Ads • 3 Mins Access</p>
-        <button class="planBtn" id="plusBtn" onclick="selectPlan('plus')">Watch ad to unlock access</button>
+        <ul>
+            <li>20 Messages/day</li>
+            <li>No Ads</li>
+        </ul>
+        <button class="unlock-btn" id="plusUnlockBtn" onclick="handleAdUnlock('plus')">Watch ad to unlock access</button>
     </div>
-    <div class="planCard">
+    <div class="plan-card">
         <h3>Premium</h3>
-        <p>100 messages/day • No Ads • High Sarcasm • 2 Mins Access</p>
-        <button class="planBtn" id="premiumBtn" onclick="selectPlan('premium')">Watch ad to unlock access</button>
+        <ul>
+            <li>100 Messages/day</li>
+            <li>High Sarcasm</li>
+            <li>No Ads</li>
+        </ul>
+        <button class="unlock-btn" id="premUnlockBtn" onclick="handleAdUnlock('premium')">Watch ad to unlock access</button>
     </div>
-    <div style="cursor:pointer; margin-top:10px; font-size:12px;" onclick="closeModal()">Close</div>
+  </div>
+  <button style="margin-top:20px; width:100%; background:transparent; color:#fff; border:1px solid #fff;" onclick="togglePlanModal()">Close</button>
 </div>
 
 <div id="sidePanel">
@@ -329,70 +358,15 @@ let isFirstMessage = true;
 let aiReplyCount = 0; 
 let db;
 let currentMessages = [];
-
-/* --- UPGRADE LOGIC --- */
 let currentPlan = "free";
 let planTimer = null;
 
-const upgradeBtn = document.getElementById("upgradeBtn");
-const planModal = document.getElementById("planModal");
-const planBadge = document.getElementById("planBadge");
-
-upgradeBtn.onclick = () => {
-    upgradeBtn.classList.add("active");
-    planModal.style.display = "block";
-    overlay.style.display = "block";
-};
-
-function closeModal() {
-    planModal.style.display = "none";
-    if(currentPlan === "free") overlay.style.display = "none";
-    upgradeBtn.classList.remove("active");
-}
-
-function selectPlan(plan) {
-    const adLink = "https://omg10.com/4/10878572";
-    if(plan === "free") {
-        closeModal();
-        return;
-    }
-    
-    window.open(adLink, "_blank");
-    
-    if(plan === 'plus') {
-        document.getElementById("plusBtn").innerHTML = "✅ Unlocked Plus for 3 minutes";
-        activatePlan('Plus', 3);
-    } else if(plan === 'premium') {
-        document.getElementById("premiumBtn").innerHTML = "✅ Unlocked Premium for 2 minutes";
-        activatePlan('Premium', 2);
-    }
-    setTimeout(closeModal, 1500);
-}
-
-function activatePlan(name, mins) {
-    currentPlan = name.toLowerCase();
-    planBadge.textContent = name;
-    planBadge.style.display = "inline-block";
-    
-    if(planTimer) clearTimeout(planTimer);
-    
-    planTimer = setTimeout(() => {
-        currentPlan = "free";
-        planBadge.style.display = "none";
-        document.getElementById("plusBtn").innerHTML = "Watch ad to unlock access";
-        document.getElementById("premiumBtn").innerHTML = "Watch ad to unlock access";
-        alert("Plan expired! Switched to Free mode.");
-    }, mins * 60000);
-}
-
-/* --- DATABASE & CORE --- */
+// IndexedDB Setup
 let req = indexedDB.open("quadronDB", 1);
-
 req.onupgradeneeded = e => {
   db = e.target.result;
   db.createObjectStore("chats", { keyPath: "id" });
 };
-
 req.onsuccess = e => {
   db = e.target.result;
   loadChatList();
@@ -424,11 +398,18 @@ function loadChatList(){
     if(cursor){
       let div = document.createElement("div");
       div.textContent = cursor.value.title;
+      div.style.cursor = "pointer";
+      div.style.padding = "6px";
+      div.style.borderBottom = "1px solid #333";
+      let chatId = cursor.value.id;
+
       div.onclick = () => {
         let tx = db.transaction("chats", "readonly");
         let store = tx.objectStore("chats");
-        let req = store.get(cursor.value.id);
-        req.onsuccess = () => { if(req.result) loadChat(req.result); };
+        let req = store.get(chatId);
+        req.onsuccess = () => {
+          if(req.result) loadChat(req.result);
+        };
       };
       history.appendChild(div);
       cursor.continue();
@@ -445,15 +426,21 @@ function loadChat(chatData){
   closeMenu();
 
   currentMessages.forEach(m=>{
-    let p = document.createElement("p");
     if(m.role === "user"){
+      let p = document.createElement("p");
       p.className = "userText";
       p.textContent = "You: " + m.content;
+      messages.appendChild(p);
     }else{
-      if(m.type === "code"){ createCodeBox(p, m.content, true); }
-      else{ p.className = "aiText"; p.textContent = "Quadron: " + m.content; }
+      let p = document.createElement("p");
+      messages.appendChild(p);
+      if(m.type === "code"){
+        createCodeBox(p, m.content, true);
+      }else{
+        p.className = "aiText";
+        p.textContent = "Quadron: " + m.content;
+      }
     }
-    messages.appendChild(p);
   });
 }
 
@@ -464,15 +451,75 @@ const chat = document.getElementById("chat");
 const messages = document.getElementById("messages");
 const msg = document.getElementById("msg");
 const sendBtn = document.getElementById("sendBtn");
+const planModal = document.getElementById("planModal");
+const planBadge = document.getElementById("planBadge");
+const upgradeBtn = document.getElementById("upgradeBtn");
+
 sendBtn.onclick = send;
+upgradeBtn.onclick = togglePlanModal;
+
+function togglePlanModal() {
+    let isVisible = planModal.style.display === "block";
+    planModal.style.display = isVisible ? "none" : "block";
+    overlay.style.display = isVisible ? "none" : "block";
+}
+
+function handleAdUnlock(type) {
+    window.open("https://omg10.com/4/10878572", "_blank");
+    
+    let btnId = type === 'plus' ? 'plusUnlockBtn' : 'premUnlockBtn';
+    let btn = document.getElementById(btnId);
+    
+    btn.innerHTML = "✓ Unlocked " + type.charAt(0).toUpperCase() + type.slice(1) + " for " + (type === 'plus' ? '3' : '2') + " minutes";
+    btn.style.background = "#00ff00";
+    
+    setPlan(type);
+}
+
+function setPlan(plan) {
+    currentPlan = plan;
+    if(plan === 'free') {
+        planBadge.style.display = "none";
+    } else {
+        planBadge.style.display = "inline-block";
+        planBadge.textContent = plan.toUpperCase();
+        
+        if(planTimer) clearTimeout(planTimer);
+        let duration = plan === 'plus' ? 180000 : 120000;
+        
+        planTimer = setTimeout(() => {
+            alert("Subscription expired. Shifting to Free mode.");
+            setPlan('free');
+            document.getElementById('plusUnlockBtn').innerHTML = "Watch ad to unlock access";
+            document.getElementById('plusUnlockBtn').style.background = "#ffd900";
+            document.getElementById('premUnlockBtn').innerHTML = "Watch ad to unlock access";
+            document.getElementById('premUnlockBtn').style.background = "#ffd900";
+        }, duration);
+    }
+    setTimeout(togglePlanModal, 1500);
+}
 
 const profileName = document.getElementById("profileName");
 const profileEmail = document.getElementById("profileEmail");
 const profilePic = document.getElementById("profilePic");
 const menuProfile = document.getElementById("menuProfile");
+const newChatBtn = document.getElementById("newChatBtn");
+const codeModeBtn = document.getElementById("codeModeBtn");
+const exploreModeBtn = document.getElementById("exploreModeBtn");
+const voiceModeBtn = document.getElementById("voiceModeBtn");
 
 let userRaw = localStorage.getItem("quadronUser");
-let user = userRaw === "guest" ? { name: "Guest", email: "guest@mode", picture: "https://via.placeholder.com/40" } : JSON.parse(userRaw || '{}');
+let user = {};
+
+if(userRaw === "guest") {
+    user = { name: "Guest", email: "guest@mode", picture: "https://via.placeholder.com/40" };
+} else {
+    try {
+        user = JSON.parse(userRaw) || { name: "Guest", email: "", picture: "https://via.placeholder.com/40" };
+    } catch(e) {
+        user = { name: "Guest", email: "", picture: "https://via.placeholder.com/40" };
+    }
+}
 
 profileName.textContent = user.name || "Guest";
 profileEmail.textContent = user.email || "";
@@ -483,29 +530,41 @@ menuBtn.addEventListener("click", ()=>{
   overlay.style.display="block";
   chat.classList.add("blur-bg");
 });
-overlay.onclick = () => { closeMenu(); closeModal(); };
+overlay.onclick = closeMenu;
 
 function closeMenu(){
   sidePanel.classList.remove("open");
   overlay.style.display="none";
+  planModal.style.display="none";
   chat.classList.remove("blur-bg");
+}
+
+function menuAction(fn){
+  closeMenu();
+  if(fn) fn();
 }
 
 let mode="normal";
 function resetChat(){messages.innerHTML=""; aiReplyCount = 0;}
 
-function newChat(){ mode="normal"; resetChat(); currentChatId = null; isFirstMessage = true; }
+function newChat(){
+  mode="normal";
+  resetChat();
+  currentChatId = null;
+  isFirstMessage = true;
+}
 function codeMode(){mode="code";resetChat();fastType(messages,"Describe What You Want To Code");}
 function exploreMode(){mode="explore";resetChat();fastType(messages,"Explore The Universe");}
 function voiceMode(){window.location.href="voice.html";}
 
-document.getElementById("newChatBtn").onclick=()=> {closeMenu(); newChat();};
-document.getElementById("codeModeBtn").onclick=()=> {closeMenu(); codeMode();};
-document.getElementById("exploreModeBtn").onclick=()=> {closeMenu(); exploreMode();};
-document.getElementById("voiceModeBtn").onclick=()=>{closeMenu(); voiceMode();};
+menuProfile.onclick=()=>{closeMenu();window.location.href="profile.html";}
+newChatBtn.onclick=()=>menuAction(newChat);
+codeModeBtn.onclick=()=>menuAction(codeMode);
+exploreModeBtn.onclick=()=>menuAction(exploreMode);
+voiceModeBtn.onclick=()=>{closeMenu();voiceMode();};
 
 function injectAd(){
-  if(currentPlan !== "free") return; // BLOCK ADS IF NOT FREE
+  if(currentPlan !== "free") return; // No ads for Plus/Premium
   let ad = document.createElement("a");
   ad.className = "adBox";
   ad.href = "https://omg10.com/4/10878572";
@@ -521,6 +580,7 @@ function fastType(el,text){
   el.appendChild(span);
   let parts = text.split(/(<a.*?>.*?<\/a>)/g);
   let i = 0;
+
   function typePart(){
     if(i >= parts.length){
         aiReplyCount++;
@@ -528,13 +588,21 @@ function fastType(el,text){
         return;
     }
     let part = parts[i];
-    if(part.startsWith("<a")){ span.innerHTML += part; i++; typePart(); }
-    else{
+    if(part.startsWith("<a")){
+      span.innerHTML += part;
+      i++;
+      typePart();
+    }else{
       let j = 0;
+      let speed = 2; 
       let int = setInterval(()=>{
         span.innerHTML += part[j++];
-        if(j >= part.length){ clearInterval(int); i++; typePart(); }
-      }, 2);
+        if(j >= part.length){
+          clearInterval(int);
+          i++;
+          typePart();
+        }
+      }, speed);
     }
   }
   typePart();
@@ -544,26 +612,59 @@ async function autoGreeting(){
   if(sessionStorage.getItem("greeted")) return;
   let hour = new Date().getHours();
   let timeText = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
-  let prompt = `Write a short sarcastic greeting saying "Good ${timeText}" to ${user.name || "Guest"}.`;
+  let name = user.name || "Guest";
+  let sarcasticLevel = currentPlan === "premium" ? "extremely sarcastic and high sarcasm" : "sarcastic";
+  let prompt = `Write a short ${sarcasticLevel} greeting saying "Good ${timeText}" to ${name}. Keep it funny, slightly rude, and human-like. No extra explanation.`;
+
   try{
-    let res = await fetch("/api/chat",{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({message: prompt}) });
+    let res = await fetch("/api/chat",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({message: prompt})
+    });
     let reply = (await res.json()).reply;
     let p = document.createElement("p");
     messages.appendChild(p);
     fastType(p, "Quadron: " + reply);
     sessionStorage.setItem("greeted", true);
-  }catch(e){}
+  }catch(e){
+    console.error("Greeting failed", e);
+  }
+}
+
+function createSourceBox(url){
+  let domain = (new URL(url)).hostname;
+  let box = document.createElement("div");
+  box.className = "sourceBox";
+  box.innerHTML = `
+    <img src="https://www.google.com/s2/favicons?domain=${domain}" />
+    <div class="sourceText">
+      <div class="sourceTitle">${domain}</div>
+      <div class="sourceLink">${url}</div>
+    </div>
+  `;
+  box.onclick = ()=>{ window.open(url, "_blank"); };
+  return box;
+}
+
+async function getWikiData(query){
+  try{
+    let res=await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
+    let data=await res.json();
+    return data.extract || "";
+  }catch{return "";}
 }
 
 async function send(){
-  let limit = currentPlan === "premium" ? 100 : (currentPlan === "plus" ? 20 : 10);
-  let limitKey = "limit_" + (user.email || "guest");
-  let limitData = JSON.parse(localStorage.getItem(limitKey)) || {count: 0, date: new Date().toDateString()};
-  
-  if(limitData.date !== new Date().toDateString()) limitData = {count: 0, date: new Date().toDateString()};
+  let limit = 10;
+  if(currentPlan === 'plus') limit = 20;
+  if(currentPlan === 'premium') limit = 100;
 
+  let limitKey = "limit_" + (user.email || "guest");
+  let limitData = JSON.parse(localStorage.getItem(limitKey)) || {count: 0};
+  
   if(limitData.count >= limit){
-      alert(`DAILY LIMIT OF ${limit} MESSAGES REACHED FOR ${currentPlan.toUpperCase()} PLAN`);
+      alert("LIMIT CROSSED FOR YOUR PLAN. UPGRADE OR WAIT UNTIL TOMORROW.");
       return;
   }
 
@@ -576,6 +677,18 @@ async function send(){
   if(isFirstMessage){
     currentChatId = "chat_" + Date.now();
     saveChat(currentChatId,{ title: "New Chat", messages: [] });
+
+    fetch("/api/chat",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ message: "Write a 3 or 4 word title only, nothing else: " + text })
+    })
+    .then(res=>res.json())
+    .then(data=>{
+      let title = data.reply.trim();
+      saveChat(currentChatId,{ title: title, messages: [] });
+      loadChatList();
+    });
     isFirstMessage = false;
   }
 
@@ -586,15 +699,51 @@ async function send(){
   let p=document.createElement("p");
   messages.appendChild(p);
 
-  let finalPrompt = text;
-  if(currentPlan === "premium") finalPrompt = "Respond with high sarcasm and humor. " + text;
+  let finalPrompt=text;
+  if(mode==="code"){
+    finalPrompt = `You are a code generator.\nRules:\n- Output ONLY complete working code\n- No explanations\n- No comments unless inside code\n- No markdown (no \`\`\`)\n- No "Here is code"\n- No text before or after\n- Code must be directly runnable\n- If HTML → include full <!DOCTYPE html>\n\nTask:\n${text}`;
+  }
+  if(mode==="explore"){
+    let wiki=await getWikiData(text);
+    finalPrompt=`Use this data:\n${wiki}\n\nExplain clearly and give one source link at end do not provide html codes with link just provide links in end as "Source: link".\n${text}`;
+  }
   
+  if(currentPlan === "premium"){
+      finalPrompt = "Use extreme high sarcasm in your reply. " + finalPrompt;
+  }
+
+  let history = currentMessages.slice(-6).map(m => `${m.role}: ${m.content}`).join("\n");
   let res=await fetch("/api/chat",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({ message: finalPrompt })
+    body:JSON.stringify({ message: `Conversation so far:\n${history}\n\nUser: ${finalPrompt}` })
   });
   let reply=(await res.json()).reply;
+
+  if(mode==="code"){
+    reply = reply.replace(/```[\w]*/g,"").replace(/```/g,"").trim();
+    createCodeBox(p,reply);
+    currentMessages.push({ role: "ai", content: reply, type: "code" });
+    saveChat(currentChatId, { title: "Chat", messages: currentMessages });
+    aiReplyCount++;
+    if(aiReplyCount % 4 === 0) injectAd();
+    return;
+  }
+
+  if(mode==="explore"){
+    let sourceMatch = reply.match(/Source:\s*([^\s]+)/i);
+    if(sourceMatch){
+      let url = sourceMatch[1].replace(/undefined+$/i, "");
+      if(!url.startsWith("http")) url = "https://" + url;
+      reply = reply.replace(/Source:\s*[^\s]+/i, "");
+      let box = createSourceBox(url);
+      fastType(p,"Quadron: "+reply);
+      setTimeout(() => p.appendChild(box), 500);
+      currentMessages.push({ role: "ai", content: reply });
+      saveChat(currentChatId, { title: "Chat", messages: currentMessages });
+      return;
+    }
+  }
 
   fastType(p,"Quadron: "+reply);
   currentMessages.push({ role: "ai", content: reply });
@@ -606,11 +755,105 @@ function createCodeBox(parent,code, instant=false){
   box.className="codeBox";
   let top=document.createElement("div");
   top.className="codeTop";
+  let title=document.createElement("div");
+  title.className="codeTitle";
+
+  function detectCodeName(c){
+    if(c.includes("<html")) return "HTML File";
+    if(c.includes("function") || c.includes("=>")) return "JavaScript File";
+    if(c.includes("import") && c.includes("from")) return "Python File";
+    if(c.includes("#include")) return "C/C++ File";
+    return "Code";
+  }
+
+  let codeName = detectCodeName(code);
+  title.innerHTML="&lt;/&gt; " + codeName;
+  let btns=document.createElement("div");
+  btns.className="codeBtns";
+  let copy=document.createElement("span"); copy.textContent="Copy";
+  let run=document.createElement("span"); run.textContent="Run";
+  let debug=document.createElement("span"); debug.textContent="Debugg";
+
+  btns.append(copy,run,debug);
+  top.append(title,btns);
+  let loaderWrap = document.createElement("div");
+  loaderWrap.style.display="flex";
+  loaderWrap.style.paddingLeft="8px";
+  let loader = document.createElement("div");
+  loader.className="loader";
+  loaderWrap.appendChild(loader);
+
   let pre=document.createElement("pre");
-  box.append(top, pre);
+  box.append(top, loaderWrap, pre);
   parent.appendChild(box);
-  pre.textContent = code;
-  hljs.highlightElement(pre);
+
+  if(instant){
+    pre.textContent = code;
+    loaderWrap.remove();
+    hljs.highlightElement(pre);
+  }else{
+    let i=0,txt="";
+    let int=setInterval(()=>{
+      txt+=code[i++];
+      pre.textContent=txt;
+      if(i>=code.length){
+        clearInterval(int);
+        loaderWrap.remove();
+        hljs.highlightElement(pre);
+      }
+    },1);
+  }
+
+  copy.onclick=()=>{
+    navigator.clipboard.writeText(code);
+    copy.textContent="Copied !";
+    setTimeout(()=>copy.textContent="Copy",1500);
+  };
+
+  run.onclick=()=>{
+    pre.style.display="none";
+    let existingFrame = box.querySelector("iframe");
+    if(existingFrame) existingFrame.remove();
+    let iframe=document.createElement("iframe");
+    iframe.style.width="100%";
+    iframe.style.height="300px";
+    let back=document.createElement("div");
+    back.className="backBtn";
+    back.textContent="Back";
+    top.innerHTML="";
+    top.append(title, back);
+    box.appendChild(iframe);
+    iframe.contentDocument.write(code);
+    back.onclick=()=>{
+      iframe.remove();
+      pre.style.display="block";
+      top.innerHTML="";
+      top.append(title, btns);
+    };
+  };
+
+  debug.onclick=async()=>{
+    loaderWrap.style.display="flex";
+    if(!box.contains(loaderWrap)) box.insertBefore(loaderWrap, pre);
+    let res=await fetch("/api/chat",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ message:`Fix this code. Return ONLY fixed code. No explanation:\n${code}` })
+    });
+    let fixed=(await res.json()).reply;
+    fixed = fixed.replace(/```[\w]*/g,"").replace(/```/g,"").trim();
+    code = fixed;
+    let i=0,txt="";
+    let int=setInterval(()=>{
+      txt+=fixed[i++];
+      pre.textContent=txt;
+      if(i>=fixed.length){
+        clearInterval(int);
+        loaderWrap.style.display="none";
+        hljs.highlightElement(pre);
+      }
+    },1);
+  };
 }
 
 msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
