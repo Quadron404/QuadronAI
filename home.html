@@ -766,13 +766,7 @@ async function send(){
       body:JSON.stringify({ message: "Write a 3 or 4 word title only for this user query explaining it properly, nothing else: " + text })
     })
     .then(res=>res.json())
-    .then(data=>{
-      let title = data.reply.trim();
-      saveChat(currentChatId,{ title: title, messages: [] });
-      loadChatList();
-    });
-    isFirstMessage = false;
-  }
+    .then(data => { let title = data.reply.trim(); saveChat(currentChatId, { title: title }); setTimeout(loadChatList, 100); });
 
   messages.innerHTML+=`<p class="userText">You: ${text}</p>`;
   currentMessages.push({ role: "user", content: text });
