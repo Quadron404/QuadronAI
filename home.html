@@ -767,6 +767,8 @@ async function send(){
     })
     .then(res=>res.json())
     .then(data => { let title = data.reply.trim(); saveChat(currentChatId, { title: title }); setTimeout(loadChatList, 100); });
+    }
+
 
   messages.innerHTML+=`<p class="userText">You: ${text}</p>`;
   currentMessages.push({ role: "user", content: text });
