@@ -802,7 +802,8 @@ async function send(){
     reply = reply.replace(/```[\w]*/g,"").replace(/```/g,"").trim();
     createCodeBox(p,reply);
     currentMessages.push({ role: "ai", content: reply, type: "code" });
-    saveChat(currentChatId, { title: "Chat", messages: currentMessages });
+    saveChat(currentChatId, { messages: currentMessages });
+
     aiReplyCount++;
     if(aiReplyCount % 4 === 0) injectAd();
     return;
@@ -818,14 +819,16 @@ async function send(){
       fastType(p,"Quadron: "+reply);
       setTimeout(() => p.appendChild(box), 500);
       currentMessages.push({ role: "ai", content: reply });
-      saveChat(currentChatId, { title: "Chat", messages: currentMessages });
+      saveChat(currentChatId, { messages: currentMessages });
+
       return;
     }
   }
 
   fastType(p,"Quadron: "+reply);
   currentMessages.push({ role: "ai", content: reply });
-  saveChat(currentChatId, { title: "Chat", messages: currentMessages });
+  saveChat(currentChatId, { messages: currentMessages });
+
 }
 
 function createCodeBox(parent,code, instant=false){
