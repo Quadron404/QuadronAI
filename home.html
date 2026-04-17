@@ -936,7 +936,8 @@ function createCodeBox(parent,code, instant=false){
 }
 
 msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
-window.addEventListener("load", autoGreeting);
+window.addEventListener("load", () => setTimeout(autoGreeting, 2000));
+
 </script>
 </body>
 </html>
