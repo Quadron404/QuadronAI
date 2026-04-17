@@ -901,7 +901,8 @@ function createCodeBox(parent,code, instant=false){
     top.innerHTML="";
     top.append(title, back);
     box.appendChild(iframe);
-    iframe.contentDocument.write(code);
+    iframe.setAttribute("sandbox", ""); iframe.srcdoc = code;
+
     back.onclick=()=>{
       iframe.remove();
       pre.style.display="block";
