@@ -1,10 +1,26 @@
 export async function onRequest(context) {
   const { request, env } = context;
+  const url = new URL(request.url);
 
-  if (request.method !== "POST") {
-    return new Response("Only POST allowed", { status: 405 });
+  /* =========================
+     🔥 OG IMAGE GENERATOR
+  ========================= */
+  if (url.pathname === "/api/og") {
+    const { searchParams } = url;
+    let user = searchParams.get("user") || "Hello?";
+    let ai = searchParams.get("ai") || "Roasted 😂";
+
+    // Simple SVG representation of the share image
+    let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630">
+    <rect width="100%" height="100%" fill="black"/>
+    <text x="50" y="200" fill="gold" font-size="40" font-family="Arial">User: ${user}</text>
+    <text x="50" y="350" fill="white" font-size="40" font-family="Arial">AI: ${ai}</text>
+    </svg>`;
+
+    return new Response(svg, { 
+      headers: { "Content-Type": "image/svg+xml" } 
+    });
   }
-
   try {
     const { message, mode } = await request.json();
 
