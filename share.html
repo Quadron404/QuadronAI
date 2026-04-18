@@ -8,8 +8,8 @@
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 
-<meta property="og:image" id="ogImg">
-<meta name="twitter:image" id="twImg">
+<meta property="og:image" content="">
+<meta name="twitter:image" content="">
 <style>
 body{
   background:#0a0a0a;
@@ -52,7 +52,6 @@ const params = new URLSearchParams(location.search);
 let user = params.get("user") || "Hello?";
 let ai = params.get("ai") || "Roasted 😂";
 
-// BUILD STATIC IMAGE URL (IMPORTANT FIX)
 let base = "https://quickchart.io/chart?c=";
 
 let payload = encodeURIComponent(JSON.stringify({
@@ -64,11 +63,9 @@ let payload = encodeURIComponent(JSON.stringify({
 
 let img = base + payload;
 
-// SET STATIC META (NO document.write)
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("ogImg").setAttribute("content", img);
-  document.getElementById("twImg").setAttribute("content", img);
-});
+// INSTANT ASSIGN (NO DOM READY)
+document.querySelector('meta[property="og:image"]').setAttribute("content", img);
+document.querySelector('meta[name="twitter:image"]').setAttribute("content", img);
 </script>
 </head>
 
