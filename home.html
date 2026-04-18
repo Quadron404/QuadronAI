@@ -968,46 +968,7 @@ function createCodeBox(parent,code, instant=false){
 
 msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
 window.addEventListener("DOMContentLoaded", autoGreeting);
-document.getElementById("postXBtn").onclick = () => {
-
-  // GET LAST USER + AI MESSAGE
-  let lastUser = "";
-  let lastAI = "";
-
-  for(let i = currentMessages.length - 1; i >= 0; i--){
-    if(currentMessages[i].role === "ai" && !lastAI){
-      lastAI = currentMessages[i].content;
-    }
-    if(currentMessages[i].role === "user" && !lastUser){
-      lastUser = currentMessages[i].content;
-    }
-    if(lastUser && lastAI) break;
-  }
-
-  // FALLBACK
-  if(!lastUser) lastUser = "Hello?";
-  if(!lastAI) lastAI = "No response yet.";
-
-  // ENCODE
-  let userText = encodeURIComponent(lastUser);
-  let aiText = encodeURIComponent(lastAI);
-
-  let text = `User: ${lastUser}\nAI: ${lastAI}`;
-
-let img = "https://quickchart.io/chart?c=" + encodeURIComponent(JSON.stringify({
-  type: "text",
-  data: { text }
-}));
-
-let final = `https://twitter.com/intent/tweet?text=${tweetText}&url=${encodeURIComponent(img)}`;
-  let tweetText = encodeURIComponent(
-    "Quadron AI Is Getting Sussy Day By Day"
-  );
-
-  let final = `https://twitter.com/intent/tweet?text=${tweetText}&url=${encodeURIComponent(shareUrl)}`;
-
-  window.open(final, "_blank");
-};
+document.getElementById("postXBtn").onclick = () => { let lastUser = currentMessages.filter(m => m.role === "user").slice(-1)[0]?.content || "Hello?", lastAI = currentMessages.filter(m => m.role === "ai").slice(-1)[0]?.content || "No response.", tweetText = encodeURIComponent("Quadron AI Is Getting Sussy Day By Day"), shareUrl = `https://quadron.pages.dev/share.html?user=${encodeURIComponent(lastUser)}&ai=${encodeURIComponent(lastAI)}`; window.open(`https://twitter.com/intent/tweet?text=${tweetText}&url=${encodeURIComponent(shareUrl)}`, "_blank"); };
 </script>
 </body>
 </html>
