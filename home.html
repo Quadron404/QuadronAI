@@ -354,7 +354,26 @@ a.link{
     <button id="upgradeBtn">Upgrade</button>
     Quadron AI <span id="planBadge" class="status-badge">PLUS</span>
   </div>
+  <div style="display:flex; align-items:center; gap:10px;">
+  
+  <!-- X BUTTON -->
+  <button id="postXBtn" style="
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background:#000;
+    color:#fff;
+    border:1px solid #fff;
+    padding:6px 12px;
+    border-radius:20px;
+    cursor:pointer;
+    font-weight:bold;
+  ">
+    𝕏 Post on X
+  </button>
+
   <div id="menuBtn">☰</div>
+</div>
 </header>
 
 <div id="overlay"></div>
@@ -949,7 +968,40 @@ function createCodeBox(parent,code, instant=false){
 
 msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
 window.addEventListener("DOMContentLoaded", autoGreeting);
+document.getElementById("postXBtn").onclick = () => {
 
+  // GET LAST USER + AI MESSAGE
+  let lastUser = "";
+  let lastAI = "";
+
+  for(let i = currentMessages.length - 1; i >= 0; i--){
+    if(currentMessages[i].role === "ai" && !lastAI){
+      lastAI = currentMessages[i].content;
+    }
+    if(currentMessages[i].role === "user" && !lastUser){
+      lastUser = currentMessages[i].content;
+    }
+    if(lastUser && lastAI) break;
+  }
+
+  // FALLBACK
+  if(!lastUser) lastUser = "Hello?";
+  if(!lastAI) lastAI = "No response yet.";
+
+  // ENCODE
+  let userText = encodeURIComponent(lastUser);
+  let aiText = encodeURIComponent(lastAI);
+
+  let shareUrl = `https://quadron.pages.dev/share.html?user=${userText}&ai=${aiText}`;
+
+  let tweetText = encodeURIComponent(
+    "Quadron AI Is Getting Sussy Day By Day"
+  );
+
+  let final = `https://twitter.com/intent/tweet?text=${tweetText}&url=${encodeURIComponent(shareUrl)}`;
+
+  window.open(final, "_blank");
+};
 </script>
 </body>
 </html>
