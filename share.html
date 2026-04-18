@@ -2,15 +2,14 @@
 <html>
 <head>
 <meta charset="UTF-8">
-
 <title>Quadron AI Share</title>
 
-<!-- OG TAGS -->
 <meta property="og:title" content="Quadron AI 🔥">
-<meta property="og:description" content="AI roasting users 😂">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 
+<meta property="og:image" id="ogImg">
+<meta name="twitter:image" id="twImg">
 <style>
 body{
   background:#0a0a0a;
@@ -48,15 +47,29 @@ body{
 </style>
 
 <script>
-const params = new URLSearchParams(window.location.search);
+const params = new URLSearchParams(location.search);
 
 let user = params.get("user") || "Hello?";
 let ai = params.get("ai") || "Roasted 😂";
 
-// SET OG IMAGE USING DYNAMIC HTML RENDER (TRICK)
+// BUILD STATIC IMAGE URL (IMPORTANT FIX)
+let base = "https://quickchart.io/chart?c=";
 
+let payload = encodeURIComponent(JSON.stringify({
+  type: "text",
+  data: {
+    text: `User: ${user}\nAI: ${ai}`
+  }
+}));
+
+let img = base + payload;
+
+// SET STATIC META (NO document.write)
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("ogImg").setAttribute("content", img);
+  document.getElementById("twImg").setAttribute("content", img);
+});
 </script>
-
 </head>
 
 <body>
