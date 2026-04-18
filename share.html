@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+
+<title>Quadron AI Share</title>
+
+<!-- OG TAGS -->
+<meta property="og:title" content="Quadron AI 🔥">
+<meta property="og:description" content="AI roasting users 😂">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+
+<style>
+body{
+  background:#0a0a0a;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  margin:0;
+  font-family:Arial;
+}
+
+/* FAKE CHAT BOX */
+.chatBox{
+  width:600px;
+  background:#111;
+  border:2px solid #ffd900;
+  border-radius:20px;
+  padding:20px;
+  box-shadow:0 0 40px #ffd900;
+}
+
+.msg{
+  margin:10px 0;
+}
+
+.user{
+  color:#ffd900;
+  text-shadow:0 0 10px #ffd900;
+}
+
+.ai{
+  color:#fff;
+  text-shadow:0 0 10px #fff;
+}
+</style>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+
+let user = params.get("user") || "Hello?";
+let ai = params.get("ai") || "Roasted 😂";
+
+// SET OG IMAGE USING DYNAMIC HTML RENDER (TRICK)
+document.write(`
+<meta property="og:image" content="https://image.thum.io/get/width/1200/crop/600/https://quadron.pages.dev/share.html?user=${encodeURIComponent(user)}&ai=${encodeURIComponent(ai)}">
+`);
+</script>
+
+</head>
+
+<body>
+
+<div class="chatBox">
+  <div class="msg user">You: <span id="u"></span></div>
+  <div class="msg ai">Quadron: <span id="a"></span></div>
+</div>
+
+<script>
+document.getElementById("u").innerText = user;
+document.getElementById("a").innerText = ai;
+</script>
+
+</body>
+</html>
