@@ -1,17 +1,19 @@
 <!DOCTYPE html>
-
-<html>
-
+<html lang="en">
 <head>
+
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-9XL06NFSXP"></script>
 <script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-9XL06NFSXP');
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-9XL06NFSXP');
 </script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Quadron Terms</title>
 
 <style>
@@ -19,68 +21,84 @@
 body{
 margin:0;
 background:#050505;
-font-family:Arial;
+font-family:Arial, sans-serif;
 color:#ffd900;
-padding:40px;
+padding:20px;
 }
 
 /* WORLD MAP */
-
 .world{
-
 position:fixed;
-
 top:0;
-
 left:0;
-
 width:100%;
-
 height:100%;
-
 background:url("https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg") center/cover no-repeat;
-
-opacity:0.07;
-
+opacity:0.05;
 filter:invert(90%) sepia(70%) saturate(600%);
-
 z-index:-1;
-
 }
 
+/* CONTAINER */
+.container{
+max-width:1000px;
+margin:auto;
+}
+
+/* HEADINGS */
 h1{
-
-font-size:40px;
-
-text-shadow:0 0 20px #ffd900;
-
-}
-
-.section{
-
-margin-top:35px;
-
-background:#111;
-
-padding:25px;
-
-border-radius:8px;
-
-border:1px solid #ffd900;
-
-box-shadow:0 0 20px #ffd90033;
-
+font-size:32px;
+text-shadow:0 0 15px #ffd900;
+text-align:center;
 }
 
 h2{
-
 margin-top:0;
+font-size:20px;
+}
 
+/* SECTIONS */
+.section{
+margin-top:25px;
+background:#111;
+padding:20px;
+border-radius:10px;
+border:1px solid #ffd900;
+box-shadow:0 0 15px #ffd90033;
+}
+
+/* TEXT */
+p{
+line-height:1.7;
+font-size:14px;
+}
+
+ul{
+padding-left:18px;
+}
+
+li{
+margin-bottom:10px;
+}
+
+/* MOBILE OPTIMIZATION */
+@media (max-width:600px){
+
+body{
+padding:15px;
+}
+
+h1{
+font-size:24px;
+}
+
+.section{
+padding:15px;
 }
 
 p{
-
-line-height:1.7;
+font-size:13px;
+}
 
 }
 
@@ -92,68 +110,128 @@ line-height:1.7;
 
 <div class="world"></div>
 
-<h1>Quadron Terms & Conditions</h1>
+<div class="container">
+
+<h1>Quadron AI Terms and Conditions</h1>
+
+<p><b>Effective Date:</b> April 17, 2026</p>
 
 <div class="section">
-
-<h2>1. Acceptance of Terms</h2>
-
 <p>
-By accessing or using Quadron AI you agree to comply with these terms and conditions established by Rawat Systems.  
-If you do not agree with these terms, you should discontinue using the service.
+These Terms and Conditions ("Terms") constitute a legally binding agreement between you ("User," "you," or "your") and Rawat Systems ("Company," "we," "us," or "our"), governing your access to and use of the Quadron AI service ("Service"). By accessing, using, or registering for the Service, you acknowledge that you have read, understood, and agree to be bound by these Terms. IF YOU DO NOT AGREE TO THESE TERMS, YOU MUST NOT ACCESS OR USE THE SERVICE.
+</p>
+</div>
+
+<div class="section">
+<h2>1. Acceptance of Terms (Clickwrap Agreement)</h2>
+<p>
+By clicking "I Agree," "Accept," "Continue," or any similar button or checkbox presented to you when accessing or using the Service, you are entering into a legally binding contract with Rawat Systems. You acknowledge that you have had the opportunity to review these Terms and our Privacy Policy. Your affirmative action constitutes your electronic signature and agreement to be bound by these Terms.
+</p>
+</div>
+
+<div class="section">
+<h2>2. Nature of the Service and Disclaimers</h2>
+<p>
+Quadron AI is an experimental artificial intelligence system designed for informational, conversational, and entertainment purposes only. The Service is provided on an "AS IS" and "AS AVAILABLE" basis.
+</p>
+
+<p><b>NO PROFESSIONAL ADVICE:</b> Responses may be inaccurate or misleading. Do not rely on Quadron AI for legal, financial, medical, or critical decisions.</p>
+
+<p><b>NO WARRANTY:</b> Rawat Systems disclaims all warranties including accuracy, reliability, and availability.</p>
+</div>
+
+<div class="section">
+<h2>3. User Responsibility and Prohibited Conduct</h2>
+
+<h3>3.1 User Conduct</h3>
+<p>
+You agree to use the Service lawfully and are responsible for all content you submit.
+</p>
+
+<h3>3.2 Prohibited Usage</h3>
+<ul>
+<li>Illegal, harmful, abusive, or offensive content</li>
+<li>Impersonation or misrepresentation</li>
+<li>Uploading content without rights</li>
+<li>Copyright infringement</li>
+<li>Disrupting service or servers</li>
+<li>Unauthorized access attempts</li>
+<li>Introducing malware or harmful code</li>
+<li>Reverse engineering the system</li>
+</ul>
+
+</div>
+
+<div class="section">
+<h2>4. Intellectual Property Rights</h2>
+
+<h3>4.1 Company's IP</h3>
+<p>
+All system components belong to Rawat Systems.
+</p>
+
+<h3>4.2 User Content & AI Output</h3>
+<p>
+You retain ownership of your input. AI output is generally yours but may not be unique or copyrightable.
 </p>
 
 </div>
 
 <div class="section">
-
-<h2>2. Nature of the Service</h2>
-
+<h2>5. Data Privacy</h2>
 <p>
-Quadron AI is an experimental artificial intelligence system designed for informational, conversational, and entertainment purposes.  
-Responses generated by the AI may be inaccurate, incomplete, or misleading.
+Your data is handled according to the Privacy Policy.
 </p>
-
 </div>
 
 <div class="section">
-
-<h2>3. User Responsibility</h2>
-
+<h2>6. Limitation of Liability</h2>
 <p>
-Users must not rely on Quadron AI for professional, legal, financial, medical, or critical decision-making advice.  
-All information should be independently verified before use.
+Rawat Systems is not liable for indirect, incidental, or consequential damages. Total liability is limited to $100 or amount paid.
 </p>
-
 </div>
 
 <div class="section">
-
-<h2>4. Restricted Usage</h2>
-
+<h2>7. Indemnification</h2>
 <p>
-Users agree not to misuse the system, attempt to exploit the service, or engage in illegal activities through the platform.
+You agree to indemnify Rawat Systems from any claims arising from your use.
 </p>
-
 </div>
 
 <div class="section">
-
-<h2>5. Limitation of Liability</h2>
-
+<h2>8. Governing Law and Dispute Resolution</h2>
 <p>
-Rawat Systems shall not be held liable for any damages, losses, or consequences arising from the use of Quadron AI or reliance on its outputs.
+Governed by Delaware law. Disputes resolved via arbitration.
 </p>
-
 </div>
 
 <div class="section">
-
-<h2>6. Changes to Terms</h2>
-
+<h2>9. Changes to Terms</h2>
 <p>
-Rawat Systems reserves the right to modify these terms at any time. Continued use of Quadron AI constitutes acceptance of any updated policies.
+Terms may change anytime. Continued use means acceptance.
 </p>
+</div>
+
+<div class="section">
+<h2>10. Termination</h2>
+<p>
+Access may be terminated at any time for violations.
+</p>
+</div>
+
+<div class="section">
+<h2>11. Miscellaneous</h2>
+<p>
+Entire agreement, severability, waiver, and assignment rules apply.
+</p>
+</div>
+
+<div class="section">
+<h2>Contact Information</h2>
+<p>
+If you have questions, contact: [Insert Email]
+</p>
+</div>
 
 </div>
 
