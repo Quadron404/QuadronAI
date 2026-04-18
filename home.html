@@ -968,7 +968,21 @@ function createCodeBox(parent,code, instant=false){
 
 msg.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
 window.addEventListener("DOMContentLoaded", autoGreeting);
-document.getElementById("postXBtn").onclick = () => { let lastUser = currentMessages.filter(m => m.role === "user").slice(-1)[0]?.content || "Hello?", lastAI = currentMessages.filter(m => m.role === "ai").slice(-1)[0]?.content || "No response.", tweetText = encodeURIComponent("Quadron AI Is Getting Sussy Day By Day"), shareUrl = `https://quadron.pages.dev/share.html?user=${encodeURIComponent(lastUser)}&ai=${encodeURIComponent(lastAI)}`; window.open(`https://twitter.com/intent/tweet?text=${tweetText}&url=${encodeURIComponent(shareUrl)}`, "_blank"); };
-</script>
+document.getElementById("postXBtn").onclick = () => {
+  // 1. Get last interaction
+  let lastUser = currentMessages.filter(m => m.role === "user").slice(-1)[0]?.content || "Hello?";
+  let lastAI = currentMessages.filter(m => m.role === "ai").slice(-1)[0]?.content || "No response.";
+
+  // 2. Prepare the OG Image URL (Using the /api/og route we added earlier)
+  let shareUrl = `${window.location.origin}/api/og?user=${encodeURIComponent(lastUser)}&ai=${encodeURIComponent(lastAI)}`;
+  
+  // 3. Prepare Tweet Text
+  let tweetText = encodeURIComponent("Quadron AI Is Getting Sussy Day By Day 😂");
+
+  // 4. Final Twitter Intent URL
+  let twitterLink = `https://twitter.com/intent/tweet?text=${tweetText}&url=${encodeURIComponent(shareUrl)}`;
+
+  window.open(twitterLink, "_blank");
+};</script>
 </body>
 </html>
