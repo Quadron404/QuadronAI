@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
+<script>
+if(localStorage.lastReset!==new Date().toDateString()){
+  localStorage.usage=0;
+  localStorage.lastReset=new Date().toDateString();
+}
+</script>
+
+<script src="chat.js"></script>
+</head>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-9XL06NFSXP"></script>
 <script>
@@ -771,7 +780,7 @@ async function send(){
   if(currentPlan === 'premium') limit = 100;
 
   let limitKey = "limit_" + (user.email || "guest");
-  let limitData = JSON.parse(localStorage.getItem(limitKey)) || {count: 0};
+  let limitData = JSON.parse(localStorage.getItem(limitKey)) || {count: 0, date: new Date().toDateString()};
   
   if(limitData.count >= limit){
       alert("LIMIT CROSSED FOR YOUR PLAN , YOU CAN UPGRADE FOR WITHOUT MONEY! . OR COME TOMMOROW");
