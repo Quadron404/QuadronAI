@@ -326,7 +326,7 @@ speaking = false
 
 
 function speak(text){
-
+speechSynthesis.cancel();
 stopSpeech();
 
 try { recognition.stop(); } catch(e) {}
