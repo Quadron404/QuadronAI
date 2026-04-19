@@ -689,7 +689,7 @@ function injectAd(){
   ad.href = "https://omg10.com/4/10878572";
   ad.target = "_blank";
   ad.innerHTML = "SPONSORED AD <br> Click to visit";
-  messages.appendChild(ad);
+  setTimeout(() => { messages.appendChild(ad); messages.scrollTop = messages.scrollHeight; }, 12000);
   messages.scrollTop = messages.scrollHeight;
 }
 
