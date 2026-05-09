@@ -1,540 +1,458 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-9XL06NFSXP"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-9XL06NFSXP');
-</script>
-
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Quadron Voice Mode</title>
-
-
-
+<title>Quadron Voice</title>
+<link rel="icon" type="image/png" href="favicon.png">
 <style>
-
+:root{
+  --yellow:#ffda00;
+  --text:#f7f4e8;
+  --muted:#9a9a9a;
+  --line:rgba(255,255,255,.12);
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
 body{
-
-background:#050505;
-
-font-family:Arial, Helvetica, sans-serif;
-
-margin:0;
-
-overflow:hidden;
-
-display:flex;
-
-flex-direction:column;
-
-align-items:center;
-
-justify-content:center;
-
-height:100vh;
-
-color:white;
-
+  margin:0;
+  overflow:hidden;
+  background:#000;
+  color:var(--text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
 }
-
-
-
-/* --- BACK BUTTON STYLE --- */
-
-#backBtn {
-
-    position: absolute;
-
-    top: 20px;
-
-    left: 20px;
-
-    background: rgba(255, 230, 0, 0.1);
-
-    border: 1px solid #ffe600;
-
-    color: #ffe600;
-
-    padding: 10px 15px;
-
-    border-radius: 8px;
-
-    cursor: pointer;
-
-    font-size: 14px;
-
-    font-weight: bold;
-
-    text-decoration: none;
-
-    transition: 0.3s;
-
-    z-index: 2000;
-
-    box-shadow: 0 0 10px rgba(255, 230, 0, 0.3);
-
+#space{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  z-index:0;
+  background:#000;
 }
-
-
-
-#backBtn:hover {
-
-    background: #ffe600;
-
-    color: black;
-
-    box-shadow: 0 0 20px #ffe600;
-
+.shell{
+  position:relative;
+  z-index:1;
+  min-height:100vh;
+  display:grid;
+  grid-template-rows:76px 1fr 112px;
+  padding:0 24px;
 }
-
-
-
-#waveCanvas{
-
-width:900px;
-
-max-width:90%;
-
-height:220px;
-
+.top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
 }
-
-
-
-#caption{
-
-position:absolute;
-
-bottom:120px;
-
-font-size:34px;
-
-font-weight:bold;
-
-color:#ffe600;
-
-text-shadow:
-
-0 0 10px #ffe600,
-
-0 0 25px #ffd000,
-
-0 0 50px #ffc400;
-
+.back,.voice-trigger{
+  height:44px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:rgba(255,255,255,.055);
+  color:#f2f2f2;
+  backdrop-filter:blur(22px);
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:0 16px;
+  text-decoration:none;
+  font-weight:740;
+  cursor:pointer;
+  transition:background .18s var(--ease),border-color .18s var(--ease),transform .18s var(--ease);
 }
-
-
-
-#footer{
-
-position:absolute;
-
-bottom:20px;
-
-font-size:13px;
-
-opacity:.65;
-
+.back:hover,.voice-trigger:hover{
+  background:rgba(255,255,255,.09);
+  border-color:rgba(255,255,255,.20);
+  transform:translateY(-1px);
 }
-
-
-
-@media (max-width: 600px){
-
-#backBtn {
-
-    top: 15px;
-
-    left: 15px;
-
-    padding: 8px 12px;
-
-    font-size: 12px;
-
+.voice-picker{position:relative}
+.voice-menu{
+  position:absolute;
+  right:0;
+  top:54px;
+  width:254px;
+  border:1px solid var(--line);
+  border-radius:22px;
+  background:rgba(16,16,16,.92);
+  box-shadow:0 28px 90px rgba(0,0,0,.62);
+  backdrop-filter:blur(26px);
+  padding:8px;
+  opacity:0;
+  transform:translateY(-8px) scale(.98);
+  pointer-events:none;
+  transition:opacity .18s var(--ease),transform .18s var(--ease);
 }
-
-#waveCanvas{
-
-width:100%;
-
-height:180px;
-
+.voice-menu.open{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+.voice-option{
+  width:100%;
+  min-height:54px;
+  border:0;
+  border-radius:16px;
+  background:transparent;
+  color:#ececec;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 12px;
+  text-align:left;
+  cursor:pointer;
 }
-
-#caption{
-
-font-size:22px;
-
-bottom:100px;
-
-text-align:center;
-
-padding:0 10px;
-
+.voice-option:hover,.voice-option.active{background:rgba(255,255,255,.075)}
+.voice-option strong{display:block;font-size:14px}
+.voice-option span span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.check{color:var(--yellow);opacity:0;text-shadow:0 0 16px rgba(255,218,0,.6)}
+.voice-option.active .check{opacity:1}
+.stage{
+  display:grid;
+  place-items:center;
+  min-height:0;
+  text-align:center;
 }
-
-#footer{
-
-font-size:11px;
-
-bottom:10px;
-
-text-align:center;
-
-padding:0 10px;
-
+.wave-wrap{
+  width:min(920px,82vw);
+  height:260px;
+  position:relative;
+  display:grid;
+  place-items:center;
 }
-
-html{
-
-font-size:16px;
-
+#wave{
+  width:100%;
+  height:100%;
+  display:block;
+  filter:drop-shadow(0 0 16px rgba(255,218,0,.75)) drop-shadow(0 0 48px rgba(255,218,0,.22));
 }
-
+.caption{
+  min-height:54px;
+  margin:18px auto 0;
+  max-width:840px;
+  color:#fff;
+  font-size:clamp(26px,5vw,52px);
+  line-height:1.05;
+  letter-spacing:-.045em;
+  font-weight:760;
 }
-
+.status{
+  color:var(--muted);
+  margin-top:12px;
+  font-size:14px;
+}
+.controls{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:20px;
+}
+.control{
+  width:62px;
+  height:62px;
+  border-radius:50%;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.07);
+  color:#fff;
+  backdrop-filter:blur(22px);
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  transition:transform .18s var(--ease),background .18s var(--ease),box-shadow .18s var(--ease);
+}
+.control:hover{transform:translateY(-2px);background:rgba(255,255,255,.11)}
+.control.active{background:rgba(255,218,0,.16);box-shadow:0 0 32px rgba(255,218,0,.16)}
+.end{
+  width:66px;
+  height:66px;
+  background:#ef3f38;
+  border-color:rgba(239,63,56,.45);
+  box-shadow:0 20px 50px rgba(239,63,56,.16);
+}
+.end:hover{background:#ff4b43}
+.control svg{
+  width:24px;
+  height:24px;
+  stroke:currentColor;
+  fill:none;
+  stroke-width:2.4;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+@media(max-width:680px){
+  .shell{grid-template-rows:66px 1fr 104px;padding:0 14px}
+  .back span{display:none}
+  .voice-trigger{max-width:178px}
+  .voice-menu{width:230px}
+  .wave-wrap{width:92vw;height:220px}
+}
 </style>
-
 </head>
-
-
-
 <body>
+<canvas id="space"></canvas>
+<div class="shell">
+  <header class="top">
+    <a class="back" href="home.html">← <span>Back</span></a>
+    <div class="voice-picker">
+      <button class="voice-trigger" id="voiceTrigger" aria-expanded="false" aria-haspopup="listbox">
+        <span id="voiceName">Fritz</span>
+        <span style="color:#999">voice</span>
+        <span>⌄</span>
+      </button>
+      <div class="voice-menu" id="voiceMenu" role="listbox">
+        <button class="voice-option active" data-voice="Fritz-PlayAI" data-label="Fritz"><span><strong>Fritz</strong><span>Sharp and direct</span></span><b class="check">✓</b></button>
+        <button class="voice-option" data-voice="Arista-PlayAI" data-label="Arista"><span><strong>Arista</strong><span>Calm and smooth</span></span><b class="check">✓</b></button>
+        <button class="voice-option" data-voice="Atlas-PlayAI" data-label="Atlas"><span><strong>Atlas</strong><span>Deep and grounded</span></span><b class="check">✓</b></button>
+        <button class="voice-option" data-voice="Basil-PlayAI" data-label="Basil"><span><strong>Basil</strong><span>Bright and energetic</span></span><b class="check">✓</b></button>
+      </div>
+    </div>
+  </header>
 
+  <main class="stage">
+    <div>
+      <div class="wave-wrap"><canvas id="wave"></canvas></div>
+      <div class="caption" id="caption">Listening</div>
+      <div class="status" id="status">Listening. Make the waveform earn its glow.</div>
+    </div>
+  </main>
 
-
-<a href="home.html" id="backBtn">← Back</a>
-
-
-
-<canvas id="waveCanvas"></canvas>
-
-<div id="caption"></div>
-
-<div id="footer">
-
-English-only voice mode, using other languages would be devastating
-
+  <footer class="controls">
+    <button class="control" id="holdBtn" title="Hold"><svg viewBox="0 0 24 24"><path d="M9 7v10"/><path d="M15 7v10"/></svg></button>
+    <button class="control end" id="endBtn" title="End"><svg viewBox="0 0 24 24"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg></button>
+  </footer>
 </div>
-
-
-
 <script>
+const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+const caption=document.getElementById("caption");
+const statusEl=document.getElementById("status");
+const voiceTrigger=document.getElementById("voiceTrigger");
+const voiceMenu=document.getElementById("voiceMenu");
+const waveCanvas=document.getElementById("wave");
+const waveCtx=waveCanvas.getContext("2d");
+let selectedVoice="Fritz-PlayAI",recognition,active=true,held=false,speaking=false,lastText="",silenceTimer=null,audio=null;
+let audioCtx,micAnalyser,speechAnalyser,micData,speechData,sourceCreated=false,syntheticSpeech=0;
 
-/* ---------------- WAVE VISUALIZER ---------------- */
-
-const canvas = document.getElementById("waveCanvas")
-
-const ctx = canvas.getContext("2d")
-
-
-
-canvas.width = 900
-
-canvas.height = 220
-
-
-
-let phase = 0
-
-let speaking = false
-
-
-
-function drawWave(){
-
-ctx.clearRect(0,0,canvas.width,canvas.height)
-
-let amp = speaking ? 42 : 18
-
-
-
-function wave(speed,opacity,width){
-
-ctx.beginPath()
-
-ctx.lineWidth = width
-
-ctx.strokeStyle = `rgba(255,230,0,${opacity})`
-
-ctx.shadowBlur = 35
-
-ctx.shadowColor = "#ffe600"
-
-for(let x=0;x<canvas.width;x++){
-
-let y = canvas.height/2 + Math.sin((x+phase)*speed)*amp
-
-ctx.lineTo(x,y)
-
+function toggleVoiceMenu(force){
+  const open=typeof force==="boolean"?force:!voiceMenu.classList.contains("open");
+  voiceMenu.classList.toggle("open",open);
+  voiceTrigger.setAttribute("aria-expanded",String(open));
 }
+voiceTrigger.onclick=()=>toggleVoiceMenu();
+document.addEventListener("click",e=>{if(!e.target.closest(".voice-picker"))toggleVoiceMenu(false)});
+document.querySelectorAll(".voice-option").forEach(btn=>{
+  btn.onclick=()=>{
+    selectedVoice=btn.dataset.voice;
+    voiceName.textContent=btn.dataset.label;
+    document.querySelectorAll(".voice-option").forEach(o=>o.classList.toggle("active",o===btn));
+    toggleVoiceMenu(false);
+  };
+});
 
-ctx.stroke()
-
+async function ensureAudio(){
+  if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==="suspended") await audioCtx.resume();
 }
-
-wave(.02,.9,3)
-
-wave(.025,.5,2)
-
-wave(.03,.3,1)
-
-phase += 2
-
-requestAnimationFrame(drawWave)
-
+async function setupMicAnalyser(){
+  try{
+    await ensureAudio();
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    micAnalyser=audioCtx.createAnalyser();
+    micAnalyser.fftSize=1024;
+    micData=new Uint8Array(micAnalyser.fftSize);
+    audioCtx.createMediaStreamSource(stream).connect(micAnalyser);
+  }catch{
+    statusEl.textContent="Microphone visual access was blocked. The waveform will still move, less honestly.";
+  }
 }
-
-drawWave()
-
-
-
-/* ---------------- SPEECH OUTPUT ---------------- */
-
-const caption = document.getElementById("caption")
-
-let currentUtterance = null
-
-
-
-function stopSpeech(){
-
-if(currentUtterance){
-
-speechSynthesis.cancel()
-
-currentUtterance = null
-
+function attachSpeechAnalyser(el){
+  try{
+    if(!audioCtx||sourceCreated)return;
+    speechAnalyser=audioCtx.createAnalyser();
+    speechAnalyser.fftSize=1024;
+    speechData=new Uint8Array(speechAnalyser.fftSize);
+    const src=audioCtx.createMediaElementSource(el);
+    src.connect(speechAnalyser);
+    speechAnalyser.connect(audioCtx.destination);
+    sourceCreated=true;
+  }catch{}
 }
-
-caption.innerText = ""
-
-speaking = false
-
+function rmsFromAnalyser(analyser,data){
+  if(!analyser||!data)return 0;
+  analyser.getByteTimeDomainData(data);
+  let sum=0;
+  for(let i=0;i<data.length;i++){const v=(data[i]-128)/128;sum+=v*v}
+  return Math.min(1,Math.sqrt(sum/data.length)*3.6);
 }
-
-
-
-function speak(text){
-speechSynthesis.cancel();
-stopSpeech();
-
-try { recognition.stop(); } catch(e) {}
-
-
-
-let words = text.split(" ")
-
-let index = 0
-
-let utter = new SpeechSynthesisUtterance(text)
-
-utter.lang = "en-US"
-
-utter.rate = 1
-
-
-
-currentUtterance = utter
-
-speaking = true
-
-
-
-utter.onboundary = function(event){
-
-if(event.name === "word"){
-
-caption.innerText = words[index] || ""
-
-index++
-
+function currentIntensity(){
+  if(speaking){
+    const real=rmsFromAnalyser(speechAnalyser,speechData);
+    syntheticSpeech*=.92;
+    return Math.max(real,syntheticSpeech,.16);
+  }
+  if(active&&!held)return Math.max(rmsFromAnalyser(micAnalyser,micData),.06);
+  return .025;
 }
+function setState(text){statusEl.textContent=text}
 
+function speakBrowser(text){
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang="en-US";
+  u.rate=1.02;
+  u.onstart=()=>{speaking=true;syntheticSpeech=.75;setState("Speaking. Browser voice fallback is doing its honest little job.")};
+  u.onboundary=()=>{syntheticSpeech=Math.min(1,syntheticSpeech+.22)};
+  u.onend=()=>{speaking=false;syntheticSpeech=0;caption.textContent="Listening";start()};
+  speechSynthesis.speak(u);
 }
-
-
-
-utter.onend = function(){
-
-caption.innerText = ""
-
-speaking = false
-
-currentUtterance = null
-
-startRecognition();
-
+async function speak(text){
+  caption.textContent=text.split(/\s+/).slice(0,11).join(" ");
+  try{
+    await ensureAudio();
+    const r=await fetch("/api/tts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text,voice:selectedVoice})});
+    if(!r.ok)throw 0;
+    const blob=await r.blob();
+    if(audio)audio.pause();
+    audio=new Audio(URL.createObjectURL(blob));
+    attachSpeechAnalyser(audio);
+    speaking=true;
+    setState("Speaking with selected voice.");
+    audio.onended=()=>{speaking=false;caption.textContent="Listening";start()};
+    await audio.play();
+  }catch{
+    speakBrowser(text);
+  }
 }
-
-
-
-speechSynthesis.speak(utter)
-
+async function ask(text){
+  setState("Thinking.");
+  caption.textContent=text;
+  try{
+    const r=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:"Reply conversationally with helpful sarcasm in every response. User said: "+text})});
+    const d=await r.json();
+    speak(d.reply||"No reply. Stunning commitment to mystery.");
+  }catch{
+    speak("Connection failed. Even the network needed a timeout nap.");
+  }
 }
-
-
-
-/* ---------------- VOICE INPUT ---------------- */
-
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-
-const recognition = new SpeechRecognition()
-
-
-
-recognition.lang = "en-US"
-
-recognition.continuous = true
-
-recognition.interimResults = true
-
-
-
-let transcriptBuffer = ""
-
-let silenceTimer = null
-
-
-
-function startRecognition(){
-
-    if(speaking) return; 
-
-    try{ 
-
-        recognition.start();
-
-    } catch(e){}
-
+function start(){
+  if(!active||held||speaking||!recognition)return;
+  try{recognition.start();setState("Listening.")}catch{}
 }
-
-
-
-recognition.onresult = function(event){
-
-let result = event.results[event.results.length-1]
-
-let text = result[0].transcript.trim()
-
-
-
-if(speaking){
-
-stopSpeech()
-
+function stopRecognition(){try{recognition&&recognition.stop()}catch{}}
+function endSession(){
+  active=false;
+  held=false;
+  holdBtn.classList.remove("active");
+  stopRecognition();
+  speechSynthesis.cancel();
+  if(audio)audio.pause();
+  speaking=false;
+  setState("Ended.");
+  caption.textContent="Ended";
 }
-
-
-
-transcriptBuffer = text
-
-clearTimeout(silenceTimer)
-
-
-
-silenceTimer = setTimeout(async ()=>{
-
-if(!transcriptBuffer) return
-
-let speech = transcriptBuffer
-
-transcriptBuffer = ""
-
-
-
-try{
-
-let response = await fetch("/api/chat",{
-
-method:"POST",
-
-headers:{"Content-Type":"application/json"},
-
-body:JSON.stringify({message:speech})
-
-})
-
-
-
-const resText = await response.text()
-
-let data
-
-try{
-
-data = JSON.parse(resText)
-
-}catch{
-
-speak("Error understanding server response")
-
-return
-
+if(!SpeechRecognition){
+  caption.textContent="Speech recognition unavailable";
+  statusEl.textContent="Use Chrome or Edge. The web remains a thrilling compatibility puzzle.";
+}else{
+  recognition=new SpeechRecognition();
+  recognition.lang="en-US";
+  recognition.continuous=true;
+  recognition.interimResults=true;
+  recognition.onresult=e=>{
+    lastText=e.results[e.results.length-1][0].transcript.trim();
+    caption.textContent=lastText;
+    clearTimeout(silenceTimer);
+    silenceTimer=setTimeout(()=>{
+      if(lastText&&!speaking&&!held){
+        const t=lastText;
+        lastText="";
+        stopRecognition();
+        ask(t);
+      }
+    },850);
+  };
+  recognition.onend=()=>setTimeout(start,340);
+  recognition.onerror=()=>setTimeout(start,720);
+  setupMicAnalyser().finally(start);
 }
+holdBtn.onclick=()=>{
+  held=!held;
+  holdBtn.classList.toggle("active",held);
+  if(held){stopRecognition();setState("Held.");caption.textContent="Held"}
+  else{active=true;caption.textContent="Listening";start()}
+};
+endBtn.onclick=endSession;
 
-
-
-if(!response.ok){
-
-speak("API error occurred")
-
-return
-
+function resizeWave(){
+  const dpr=devicePixelRatio||1;
+  const rect=waveCanvas.getBoundingClientRect();
+  waveCanvas.width=rect.width*dpr;
+  waveCanvas.height=rect.height*dpr;
 }
-
-speak(data.reply || "No response from AI")
-
-}catch(e){
-
-console.log("API error",e)
-
-speak("Connection error")
-
-}
-
-}, 1000)
-
-}
-
-
-
-recognition.onend = function(){
-
-    if(!speaking) {
-
-        setTimeout(startRecognition, 400)
-
+function drawWave(ts){
+  const dpr=devicePixelRatio||1;
+  const w=waveCanvas.width,h=waveCanvas.height;
+  waveCtx.clearRect(0,0,w,h);
+  const intensity=currentIntensity();
+  const mid=h/2;
+  const grad=waveCtx.createLinearGradient(0,0,w,0);
+  grad.addColorStop(0,"rgba(255,218,0,0)");
+  grad.addColorStop(.32,"rgba(255,218,0,.72)");
+  grad.addColorStop(.5,"rgba(255,248,180,1)");
+  grad.addColorStop(.68,"rgba(255,218,0,.72)");
+  grad.addColorStop(1,"rgba(255,218,0,0)");
+  waveCtx.lineCap="round";
+  for(let layer=0;layer<4;layer++){
+    const amp=(18+layer*14)*dpr*(.35+intensity*1.85);
+    const freq=.009+layer*.003;
+    const speed=ts*.0022*(1+layer*.22);
+    waveCtx.beginPath();
+    for(let x=0;x<=w;x+=3*dpr){
+      const n=Math.sin(x*freq+speed)+Math.sin(x*(freq*.43)+speed*1.7)*.42;
+      const y=mid+n*amp*(layer===0?1:.72);
+      if(x===0)waveCtx.moveTo(x,y);else waveCtx.lineTo(x,y);
     }
-
+    waveCtx.strokeStyle=grad;
+    waveCtx.globalAlpha=.88-layer*.16;
+    waveCtx.lineWidth=(5-layer*.75)*dpr;
+    waveCtx.shadowBlur=(24+intensity*44)*dpr;
+    waveCtx.shadowColor="rgba(255,218,0,.95)";
+    waveCtx.stroke();
+  }
+  waveCtx.globalAlpha=1;
+  waveCtx.shadowBlur=0;
+  requestAnimationFrame(drawWave);
 }
+addEventListener("resize",resizeWave);
+resizeWave();
+requestAnimationFrame(drawWave);
 
-
-
-recognition.onerror = function(event){
-
-    setTimeout(startRecognition, 800)
-
+const spaceCanvas=space,ctx=spaceCanvas.getContext("2d");
+let stars=[],shooters=[],sw=0,sh=0,last=0,lastShot=0;
+function resizeSpace(){
+  sw=spaceCanvas.width=innerWidth*devicePixelRatio;
+  sh=spaceCanvas.height=innerHeight*devicePixelRatio;
+  stars=Array.from({length:80},()=>({
+    x:Math.random()*sw,y:Math.random()*sh,r:(Math.random()*1+.22)*devicePixelRatio,
+    a:Math.random()*.5+.12,s:(Math.random()*4+2)*devicePixelRatio,t:Math.random()*Math.PI*2
+  }));
 }
-
-
-
-startRecognition()
-
-
-
+function spawnShootingPair(){
+  for(let i=0;i<2;i++)shooters.push({x:Math.random()*sw*.72+sw*.22,y:-80*devicePixelRatio-(i*130*devicePixelRatio),len:(Math.random()*115+125)*devicePixelRatio,v:(Math.random()*320+410)*devicePixelRatio,life:0,max:1.35});
+}
+function drawSpace(ts){
+  const dt=Math.min((ts-last)/1000,.033)||.016;last=ts;
+  ctx.clearRect(0,0,sw,sh);ctx.fillStyle="#000";ctx.fillRect(0,0,sw,sh);
+  for(const s of stars){
+    s.x+=s.s*dt;s.t+=dt*1.15;if(s.x>sw+8){s.x=-8;s.y=Math.random()*sh}
+    ctx.globalAlpha=s.a*(.45+.55*((Math.sin(s.t)+1)/2));ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();
+  }
+  if(!lastShot)lastShot=ts;if(ts-lastShot>=12000){spawnShootingPair();lastShot=ts}
+  shooters=shooters.filter(o=>(o.life+=dt)<o.max);
+  for(const o of shooters){
+    o.x-=o.v*.42*dt;o.y+=o.v*dt;const p=o.life/o.max;ctx.globalAlpha=(1-p)*.42;
+    const x2=o.x+o.len*.42,y2=o.y-o.len,g=ctx.createLinearGradient(o.x,o.y,x2,y2);
+    g.addColorStop(0,"rgba(255,255,255,.82)");g.addColorStop(.34,"rgba(255,218,0,.34)");g.addColorStop(1,"rgba(255,255,255,0)");
+    ctx.strokeStyle=g;ctx.lineWidth=1.6*devicePixelRatio;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(o.x,o.y);ctx.lineTo(x2,y2);ctx.stroke();
+  }
+  ctx.globalAlpha=1;requestAnimationFrame(drawSpace);
+}
+addEventListener("resize",resizeSpace);
+resizeSpace();
+requestAnimationFrame(drawSpace);
 </script>
-
 </body>
-
 </html>
