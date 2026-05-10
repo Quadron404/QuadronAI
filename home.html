@@ -117,6 +117,34 @@ body.chatting .stage{padding-bottom:132px}
   gap:22px;
   padding:0 30px;
 }
+.view-toggle{
+  margin-right:auto;
+  height:42px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:rgba(255,255,255,.055);
+  padding:4px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:4px;
+  backdrop-filter:blur(20px);
+}
+.view-toggle button{
+  min-width:86px;
+  height:32px;
+  border-radius:999px;
+  display:grid;
+  place-items:center;
+  color:#cfcfcf;
+  background:transparent;
+  font-weight:760;
+  transition:background .18s var(--ease),color .18s var(--ease),box-shadow .18s var(--ease);
+}
+.view-toggle button.active{
+  background:#f4f4f4;
+  color:#050505;
+  box-shadow:0 10px 28px rgba(0,0,0,.22);
+}
 .topbar button,.topbar a{
   background:transparent;
   color:#ededed;
@@ -138,6 +166,17 @@ body.chatting .stage{padding-bottom:132px}
   stroke-linecap:round;
   stroke-linejoin:round;
 }
+.topbar .view-toggle button{
+  background:transparent;
+  color:#cfcfcf;
+  opacity:1;
+  display:grid;
+  gap:0;
+}
+.topbar .view-toggle button.active{
+  background:#f4f4f4;
+  color:#050505;
+}
 .stage{
   min-height:0;
   overflow:auto;
@@ -146,6 +185,76 @@ body.chatting .stage{padding-bottom:132px}
   scrollbar-width:none;
 }
 .stage::-webkit-scrollbar{display:none}
+.gallery-view{
+  min-height:0;
+  overflow:auto;
+  display:none;
+  padding:0 0 52px;
+  background:#000;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(255,218,0,.45) rgba(255,255,255,.06);
+}
+.gallery-view.show{display:block}
+.gallery-head{
+  min-height:54px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:0 clamp(14px,2.4vw,24px);
+}
+.gallery-title{
+  margin:0;
+  font-size:23px;
+  line-height:1;
+  letter-spacing:-.04em;
+  color:#fff;
+}
+.gallery-status{
+  color:var(--muted);
+  font-size:13px;
+  white-space:nowrap;
+}
+.gallery-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(238px,1fr));
+  gap:2px;
+  background:#000;
+}
+.gallery-card{
+  position:relative;
+  min-height:278px;
+  aspect-ratio:1/1.12;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:#070707;
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+}
+.gallery-card img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.gallery-empty{
+  min-height:calc(100vh - 124px);
+  display:grid;
+  place-items:center;
+  color:var(--muted);
+}
+.gallery-sentinel{
+  height:120px;
+  display:grid;
+  place-items:center;
+  color:var(--muted);
+  font-size:13px;
+}
+.main.gallery-mode .stage{display:none}
+.main.gallery-mode .gallery-view{display:block}
+.main.gallery-mode + *{}
 .center{
   width:min(980px,100%);
   min-height:calc(100vh - 230px);
@@ -491,7 +600,12 @@ textarea::placeholder{color:#8e8e8e}
   .navbtn{width:40px;height:40px;border-radius:13px}
   .topbar{height:58px;padding:0 14px;gap:14px}
   .topbar span{display:none}
+  .view-toggle button{min-width:72px}
   .stage{padding:18px 12px 120px}
+  .gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gallery-card{min-height:206px}
+  .gallery-head{align-items:flex-start;flex-direction:column;padding:12px}
+  .gallery-status{white-space:normal}
   .center{min-height:calc(100vh - 180px)}
   .subtitle{font-size:14px;text-align:center}
   .composer{grid-template-columns:44px minmax(0,1fr) 44px;min-height:64px;border-radius:30px}
@@ -518,6 +632,10 @@ textarea::placeholder{color:#8e8e8e}
 
   <main class="main">
     <header class="topbar">
+      <div class="view-toggle" aria-label="Switch view">
+        <button class="active" id="chatViewBtn" type="button">Chat</button>
+        <button id="galleryViewBtn" type="button">Gallery</button>
+      </div>
       <button id="imageSuggest"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="m4 15 4-4 3 3 2-2 7 7"/><circle cx="15" cy="9" r="1"/></svg><span>Imagine</span></button>
       <button id="stealthBtn" type="button"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg><span id="profileLabel">Stealth</span></button>
     </header>
@@ -541,6 +659,15 @@ textarea::placeholder{color:#8e8e8e}
         <div class="thread" id="thread"></div>
       </div>
     </section>
+    <section class="gallery-view" id="galleryView" aria-label="Quadron image gallery">
+      <div class="gallery-head">
+        <h2 class="gallery-title">Gallery</h2>
+        <div class="gallery-status" id="galleryStatus">Preparing image collection</div>
+      </div>
+      <div class="gallery-grid" id="galleryGrid"></div>
+      <div class="gallery-empty" id="galleryEmpty">Images will appear here as they are collected</div>
+      <div class="gallery-sentinel" id="gallerySentinel">Scroll to reveal saved images</div>
+    </section>
   </main>
 </div>
 
@@ -554,8 +681,23 @@ const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll
 const LIMITS={messages:100,images:5};
 const GROQ_ATTACHMENT_KEY="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";
 const GROQ_ATTACHMENT_MODELS=["llama-3.2-90b-vision-preview","llama-3.2-11b-vision-preview","meta-llama/llama-4-scout-17b-16e-instruct"];
+const GALLERY_WORDS=[
+  "water","fire","earth","air","sky","cloud","rain","snow","ice","fog","storm","wind","sun","moon","star","light","darkness","shadow","tree","forest",
+  "leaf","flower","grass","plant","seed","root","mountain","hill","valley","river","lake","ocean","sea","beach","sand","stone","rock","cliff","cave","island",
+  "desert","field","road","path","bridge","city","town","village","house","building","tower","castle","temple","church","school","hospital","shop","market","car","bus",
+  "train","bike","roadway","street","lamp","door","window","wall","roof","floor","table","chair","bed","room","kitchen","bathroom","computer","phone","screen","keyboard",
+  "mouse","robot","machine","engine","gear","clock","watch","circle","square","triangle","line","point","shape","color","red","blue","green","yellow","black","white",
+  "orange","purple","pink","gold","silver","metal","wood","glass","plastic","fabric","cloth","paper","book","page","pen","pencil","ink","paint","brush","canvas",
+  "art","music","sound","voice","song","noise","silence","emotion","smile","face","eye","hand","foot","body","head","hair","skin","animal","dog","cat",
+  "bird","fish","horse","cow","sheep","lion","tiger","bear","wolf","fox","rabbit","insect","ant","bee","spider","dragon","ghost","spirit","energy","power",
+  "electricity","magnet","gravity","atom","molecule","space","planet","galaxy","universe","nebula","comet","asteroid","rocket","satellite","alien","technology","future","past","present","memory",
+  "dream","reality","life","death","birth","growth","time","speed","motion","stillness","pattern","code","data","signal","network","system","logic","order","chaos","balance",
+  "harmony","peace","war","battle","weapon","shield","armor","king","queen","prince","princess","soldier","crowd","crowdless","isolation","freedom","prison","key","lock","doorway",
+  "portal","dimension","horizon","distance","infinity"
+];
 const SARCASM="Every response must include a light, useful sarcastic remark while staying professional.";
 let db,currentChatId=null,currentMessages=[],mode="normal",attachedFiles=[],pendingAction=null,stealthMode=false;
+let galleryDB=null,galleryItems=[],galleryShown=0,galleryCollecting=false,galleryObserver=null;
 const user=getUser();
 avatar.src=user.picture;
 profileLabel.textContent="Stealth";
@@ -889,6 +1031,107 @@ function extractSources(reply,q){
   const urls=[...reply.matchAll(/https?:\/\/[^\s)]+/g)].map(m=>m[0].replace(/[.,;]+$/,""));
   return urls.length?[...new Set(urls)].slice(0,5).map(url=>({url})):[{title:"Search the web",url:"https://www.google.com/search?q="+encodeURIComponent(q)}];
 }
+function setView(view){
+  const gallery=view==="gallery";
+  document.querySelector(".main").classList.toggle("gallery-mode",gallery);
+  chatViewBtn.classList.toggle("active",!gallery);
+  galleryViewBtn.classList.toggle("active",gallery);
+  imageSuggest.style.display=gallery?"none":"flex";
+  stealthBtn.style.display=gallery?"none":"flex";
+  if(gallery)renderMoreGallery();
+}
+function openGalleryDB(){
+  return new Promise(resolve=>{
+    const req=indexedDB.open("quadronGalleryStore_v1",1);
+    req.onupgradeneeded=e=>{
+      const database=e.target.result;
+      if(!database.objectStoreNames.contains("images"))database.createObjectStore("images",{keyPath:"word"});
+    };
+    req.onsuccess=e=>{galleryDB=e.target.result;resolve()};
+    req.onerror=()=>resolve();
+  });
+}
+function galleryStore(){
+  if(!galleryDB)return null;
+  return galleryDB.transaction("images","readwrite").objectStore("images");
+}
+function loadGalleryItems(){
+  if(!galleryDB)return Promise.resolve([]);
+  return new Promise(resolve=>{
+    const req=galleryDB.transaction("images","readonly").objectStore("images").getAll();
+    req.onsuccess=()=>{
+      galleryItems=req.result.sort((a,b)=>a.index-b.index);
+      galleryShown=0;
+      galleryGrid.innerHTML="";
+      galleryEmpty.style.display=galleryItems.length?"none":"grid";
+      renderMoreGallery();
+      resolve(galleryItems);
+    };
+    req.onerror=()=>resolve([]);
+  });
+}
+function imageSrcFromItem(item){
+  if(item.blob)return URL.createObjectURL(item.blob);
+  return item.url;
+}
+function renderMoreGallery(count=24){
+  if(!galleryItems.length){
+    galleryEmpty.style.display="grid";
+    return;
+  }
+  galleryEmpty.style.display="none";
+  const end=Math.min(galleryItems.length,galleryShown+count);
+  for(let i=galleryShown;i<end;i++){
+    const item=galleryItems[i];
+    if(document.querySelector(`[data-gallery-word="${item.word}"]`))continue;
+    const card=document.createElement("button");
+    card.className="gallery-card";
+    card.type="button";
+    card.dataset.galleryWord=item.word;
+    const img=document.createElement("img");
+    img.alt=item.word;
+    img.src=imageSrcFromItem(item);
+    card.appendChild(img);
+    card.onclick=()=>window.open(item.url,"_blank","noopener");
+    galleryGrid.appendChild(card);
+  }
+  galleryShown=end;
+}
+function saveGalleryImage(item){
+  const store=galleryStore();
+  if(!store)return;
+  store.put(item);
+}
+async function collectGalleryImages(){
+  if(galleryCollecting)return;
+  galleryCollecting=true;
+  await openGalleryDB();
+  await loadGalleryItems();
+  const existing=new Set(galleryItems.map(item=>item.word));
+  for(let i=0;i<GALLERY_WORDS.length;i++){
+    const word=GALLERY_WORDS[i];
+    if(existing.has(word))continue;
+    galleryStatus.textContent=`Collecting ${i+1}/${GALLERY_WORDS.length}: ${word}`;
+    const url=`https://image.pollinations.ai/prompt/${encodeURIComponent(word)}`;
+    try{
+      const response=await fetch(url,{cache:"no-store"});
+      if(!response.ok)throw new Error("image");
+      const blob=await response.blob();
+      if(!blob.type.startsWith("image/"))throw new Error("not image");
+      const item={word,index:i,url,blob,createdAt:Date.now()};
+      saveGalleryImage(item);
+      galleryItems.push(item);
+      galleryItems.sort((a,b)=>a.index-b.index);
+      if(document.querySelector(".main").classList.contains("gallery-mode"))renderMoreGallery(1);
+      existing.add(word);
+    }catch{
+      galleryStatus.textContent=`Skipped ${word}, retrying later`;
+    }
+    await new Promise(resolve=>setTimeout(resolve,650));
+  }
+  galleryStatus.textContent=`Saved ${galleryItems.length} images`;
+  galleryCollecting=false;
+}
 async function generateMedia(kind,prompt){
   if(kind!=="image")return toast("Video generation has been removed.");
   if(!prompt)return toast("Describe the image first. I left telepathy in the other build.");
@@ -918,6 +1161,8 @@ composerTop.onsubmit=send;
 sendBtn.onclick=send;
 msg.oninput=autoresize;
 msg.onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send(e)}};
+chatViewBtn.onclick=()=>setView("chat");
+galleryViewBtn.onclick=()=>setView("gallery");
 attachBtn.onclick=()=>fileInput.click();
 fileInput.onchange=async e=>{attachedFiles=attachedFiles.concat(await readFiles(e.target.files));fileInput.value="";renderFiles()};
 newChatBtn.onclick=newChat;
@@ -936,6 +1181,11 @@ searchBtn.onclick=()=>{setMode("explore");msg.focus()};
 $$(".navbtn[data-mode]").forEach(b=>b.onclick=()=>{setMode(b.dataset.mode);msg.focus()});
 $$(".quick-actions button").forEach(b=>b.onclick=()=>setPendingAction(b.dataset.action));
 openDB().then(loadChatList);
+openGalleryDB().then(()=>loadGalleryItems()).then(()=>collectGalleryImages());
+galleryObserver=new IntersectionObserver(entries=>{
+  if(entries.some(entry=>entry.isIntersecting))renderMoreGallery(24);
+},{rootMargin:"700px 0px"});
+galleryObserver.observe(gallerySentinel);
 
 const canvas=$("#space"),ctx=canvas.getContext("2d");
 let stars=[],shooters=[],w=0,h=0,last=0,lastShot=0;
