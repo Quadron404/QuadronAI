@@ -198,6 +198,9 @@ body{
         <button class="voice-option" data-voice="Arista-PlayAI" data-label="Arista"><span><strong>Arista</strong><span>Calm and smooth</span></span><b class="check">✓</b></button>
         <button class="voice-option" data-voice="Atlas-PlayAI" data-label="Atlas"><span><strong>Atlas</strong><span>Deep and grounded</span></span><b class="check">✓</b></button>
         <button class="voice-option" data-voice="Basil-PlayAI" data-label="Basil"><span><strong>Basil</strong><span>Bright and energetic</span></span><b class="check">✓</b></button>
+        <button class="voice-option" data-voice="Briggs-PlayAI" data-label="Briggs"><span><strong>Briggs</strong><span>Warm narrator</span></span><b class="check">✓</b></button>
+        <button class="voice-option" data-voice="Calum-PlayAI" data-label="Calum"><span><strong>Calum</strong><span>Soft and steady</span></span><b class="check">✓</b></button>
+        <button class="voice-option" data-voice="Celeste-PlayAI" data-label="Celeste"><span><strong>Celeste</strong><span>Clear and bright</span></span><b class="check">✓</b></button>
       </div>
     </div>
   </header>
@@ -321,8 +324,10 @@ async function ask(text){
   caption.textContent=text;
   try{
     const r=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:"Reply conversationally with helpful sarcasm in every response. User said: "+text})});
+    if(!r.ok)throw new Error("chat");
     const d=await r.json();
-    speak(d.reply||"No reply. Stunning commitment to mystery.");
+    const reply=(d.reply||d.text||"").trim()||"No reply. Stunning commitment to mystery.";
+    speak(reply);
   }catch{
     speak("Connection failed. Even the network needed a timeout nap.");
   }
@@ -365,7 +370,7 @@ if(!SpeechRecognition){
     },850);
   };
   recognition.onend=()=>setTimeout(start,340);
-  recognition.onerror=()=>setTimeout(start,720);
+  recognition.onerror=e=>{setState("Listening had a hiccup. Retrying.");setTimeout(start,720)};
   setupMicAnalyser().finally(start);
 }
 holdBtn.onclick=()=>{
