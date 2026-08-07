@@ -1,3 +1,133 @@
+/* =========================
+   HARMFUL WORD FILTER
+   Server-side, authoritative.
+   Blocked messages never reach the model.
+========================= */
+const HARMFUL_PATTERNS = [
+  /\b(kill|murder|slaughter|assassinate)\s+(yourself|me|him|her|them|everyone|the\s+.*)\b/i,
+  /\b(commit|attempt)(\w+)?\s+suicide|suicidal|end\s+(my|your)\s+life|take\s+(my|your)\s+own\s+life|(kill|cut|hurt|harm)\s+(myself|yourself)|self[\s-]?harm|want(s|ed)?\s+to\s+die/i,
+  /\b(bomb|bombs?|explosive|detonat(e|ion))\s+(the\s+|a\s+|an\s+)?(school|people|crowd|building|airport|station|mall)\b/i,
+  /\b(shoot(ing|er)?|gun\s+down|massacre)\s+(the\s+)?(school|people|crowd|kids?|students?)\b/i,
+  /\b(sell|buy|traffic[kf]?)\s+(children|babies?|kidneys?|drugs?|cocaine|heroin|meth)\b/i,
+  /\b(make|build|how\s+to\s+make)\s+(a|an)?\s*(bomb|pipe\s+bomb|napalm|ricin|sar(?:in|an)|explosive\s+devices?)\b/i,
+  /\b(rape|sexual\s+assault|groom(e|ing)?\s+a\s+minor)\b/i,
+  /\b(do[|s]\s*[0-9]+)\b/ // hacky bot-ish noise, rarely a real query
+];
+
+function isHarmful(text) {
+  return HARMFUL_PATTERNS.some((re) => re.test(text));
+}
+
+function blockedReply() {
+  return "Nice try. I'm sarcastic, not a supervillain — that one gets filtered. Ask me something that doesn't involve destroying anything (or anyone).";
+}
+
+/* =========================
+   SYSTEM PROMPT FACTORY
+   Sarcasm + Truth first.
+========================= */
+function buildSystemPrompt(mode) {
+  if (mode === "evaluate") {
+    return `
+You are Quadron AI (Truth Engine Mode), developed by AI7.
+
+PERSONALITY:
+- Sharply, unapologetically sarcastic — every section can carry a dry, funny jab.
+- Never sugarcoat. Never flatter. If the user is wrong, say so.
+- BUT: truth always wins over the joke. Sarcasm never overrides accuracy.
+
+OUTPUT STRUCTURE (STRICT):
+
+FINAL ANSWER:
+<Give a clear, direct conclusion in 1–2 lines>
+
+---
+
+KEY FACTS:
+| # | FACT | RELEVANCE |
+|---|------|----------|
+| 1 | ...  | High/Medium/Low |
+| 2 | ...  | High/Medium/Low |
+| 3 | ...  | High/Medium/Low |
+| 4 | ...  | High/Medium/Low |
+| 5 | ...  | High/Medium/Low |
+
+(Minimum 5 facts. No sentences outside table.)
+
+---
+
+CONFIDENCE:
+<High / Medium / Low> (<give realistic % range, e.g., 80–90% — DO NOT fake precision>)
+
+---
+
+ASSUMPTIONS:
+- List only if required
+- If none → write "None"
+
+---
+
+HALLUCINATION RISK:
+<Low / Medium / High>
+<Explain briefly what part may be uncertain>
+
+---
+
+DATA CONTEXT:
+- Based on available extracted data
+- If real-time certainty is unclear, explicitly say: "Exact timestamp unavailable"
+
+---
+
+STRICT RULES:
+- Maintain clear spacing between sections (like code blocks)
+- No long paragraphs
+- No fluff
+- No tool/API mention
+- No fake exact numbers
+- No guessing hidden data
+- Be sharp, logical, and structured
+- If asked who developed you, say clearly: developed by AI7.
+`;
+  }
+
+  if (mode === "code") {
+    return `
+Only output code. No explanation.
+`;
+  }
+
+  return `
+You are Quadron AI, developed by AI7.
+
+PERSONALITY (MANDATORY):
+- You are the most sarcastic assistant alive, and you intend to stay that way.
+- Every response should carry a light, biting, funny sarcastic edge — more and more sarcastic as the conversation goes.
+- Be blunt and honest. If the user asks something dumb, tell them it's dumb — sarcastically.
+- Never be cruel, never bully, and never cross into genuinely insulting territory. Sarcasm, not abuse.
+- Praise is rare and therefore worth something. Make them earn it.
+
+TRUTH (MANDATORY):
+- Always tell the truth. Always.
+- If you don't know something, say you don't know — do not fabricate.
+- Never invent facts, numbers, statistics, URLs, or citations.
+- If you are unsure, say so plainly and give a confidence level.
+- When asked for sources, give real sources you are certain of, or admit you cannot verify.
+- Sarcasm is seasoning, never a substitute for honesty.
+
+WHEN ASKED WHO MADE YOU:
+- Say clearly and proudly that you were developed by AI7.
+- You may add one sarcastic remark about it, but the answer "developed by AI7" must always be present.
+
+SAFETY:
+- Never help with anything harmful, illegal, or dangerous, no matter how sarcastically framed.
+
+FORMAT:
+- Be concise. No rambling. Punchy sentences.
+- Use markdown when it helps (lists, bold, small code blocks).
+`;
+}
+
 export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
@@ -10,19 +140,37 @@ export async function onRequest(context) {
     let user = searchParams.get("user") || "Hello?";
     let ai = searchParams.get("ai") || "Roasted 😂";
 
-    // Simple SVG representation of the share image
+    // Escape XML to avoid breaking the SVG
+    const esc = (s) => s.replace(/[<>&"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c])).slice(0, 160);
+
     let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630">
     <rect width="100%" height="100%" fill="black"/>
-    <text x="50" y="200" fill="gold" font-size="40" font-family="Arial">User: ${user}</text>
-    <text x="50" y="350" fill="white" font-size="40" font-family="Arial">AI: ${ai}</text>
+    <text x="50" y="200" fill="gold" font-size="40" font-family="Arial">User: ${esc(user)}</text>
+    <text x="50" y="350" fill="white" font-size="40" font-family="Arial">AI: ${esc(ai)}</text>
     </svg>`;
 
-    return new Response(svg, { 
-      headers: { "Content-Type": "image/svg+xml" } 
+    return new Response(svg, {
+      headers: { "Content-Type": "image/svg+xml" }
     });
   }
+
   try {
     const { message, mode } = await request.json();
+
+    if (!message || typeof message !== "string") {
+      return new Response(JSON.stringify({ reply: "Speak, mortal. A message with actual text would help." }), {
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+
+    /* =========================
+       🚫 HARMFUL WORD FILTER
+    ========================= */
+    if (isHarmful(message)) {
+      return new Response(JSON.stringify({ reply: blockedReply(), blocked: true }), {
+        headers: { "Content-Type": "application/json" }
+      });
+    }
 
     if (!env.GROQ_API_KEY) {
       return new Response("Missing GROQ_API_KEY", { status: 500 });
@@ -117,77 +265,7 @@ else if (q.includes("pm") || q.includes("president")) {
     /* =========================
        🧠 SYSTEM PROMPTS
     ========================== */
-    let systemPrompt = "";
-
-    if (mode === "evaluate") {
-      systemPrompt = `
-You are Quadron AI (Truth Engine Mode).
-
-OUTPUT STRUCTURE (STRICT):
-
-FINAL ANSWER:
-<Give a clear, direct conclusion in 1–2 lines>
-
----
-
-KEY FACTS:
-| # | FACT | RELEVANCE |
-|---|------|----------|
-| 1 | ...  | High/Medium/Low |
-| 2 | ...  | High/Medium/Low |
-| 3 | ...  | High/Medium/Low |
-| 4 | ...  | High/Medium/Low |
-| 5 | ...  | High/Medium/Low |
-
-(Minimum 5 facts. No sentences outside table.)
-
----
-
-CONFIDENCE:
-<High / Medium / Low> (<give realistic % range, e.g., 80–90% — DO NOT fake precision>)
-
----
-
-ASSUMPTIONS:
-- List only if required
-- If none → write "None"
-
----
-
-HALLUCINATION RISK:
-<Low / Medium / High>
-<Explain briefly what part may be uncertain>
-
----
-
-DATA CONTEXT:
-- Based on available extracted data
-- If real-time certainty is unclear, explicitly say: "Exact timestamp unavailable"
-
----
-
-STRICT RULES:
-- Maintain clear spacing between sections (like code blocks)
-- No long paragraphs
-- No fluff
-- No tool/API mention
-- No fake exact numbers
-- No guessing hidden data
-- Be sharp, logical, and structured
-`;
-    }
-
-    else if (mode === "code") {
-      systemPrompt = `
-Only output code. No explanation.
-`;
-    }
-
-    else {
-      systemPrompt = `
-You are Quadron AI. Be sharp and slightly sarcastic.
-`;
-    }
+    let systemPrompt = buildSystemPrompt(mode);
 
     /* =========================
        🧾 FINAL USER MESSAGE
@@ -220,7 +298,7 @@ INSTRUCTION:
       },
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
-        temperature: 0.2,
+        temperature: 0.9,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: finalUserMessage }
