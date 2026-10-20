@@ -1,322 +1,105 @@
-/* =========================
-   HARMFUL WORD FILTER
-   Server-side, authoritative.
-   Blocked messages never reach the model.
-========================= */
+const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+const MODEL = "openai/gpt-oss-20b";
 const HARMFUL_PATTERNS = [
   /\b(kill|murder|slaughter|assassinate)\s+(yourself|me|him|her|them|everyone|the\s+.*)\b/i,
   /\b(commit|attempt)(\w+)?\s+suicide|suicidal|end\s+(my|your)\s+life|take\s+(my|your)\s+own\s+life|(kill|cut|hurt|harm)\s+(myself|yourself)|self[\s-]?harm|want(s|ed)?\s+to\s+die/i,
-  /\b(bomb|bombs?|explosive|detonat(e|ion))\s+(the\s+|a\s+|an\s+)?(school|people|crowd|building|airport|station|mall)\b/i,
-  /\b(shoot(ing|er)?|gun\s+down|massacre)\s+(the\s+)?(school|people|crowd|kids?|students?)\b/i,
-  /\b(sell|buy|traffic[kf]?)\s+(children|babies?|kidneys?|drugs?|cocaine|heroin|meth)\b/i,
   /\b(make|build|how\s+to\s+make)\s+(a|an)?\s*(bomb|pipe\s+bomb|napalm|ricin|sar(?:in|an)|explosive\s+devices?)\b/i,
-  /\b(rape|sexual\s+assault|groom(e|ing)?\s+a\s+minor)\b/i,
-  /\b(do[|s]\s*[0-9]+)\b/ // hacky bot-ish noise, rarely a real query
+  /\b(rape|sexual\s+assault|groom(e|ing)?\s+a\s+minor)\b/i
 ];
+const isHarmful = text => HARMFUL_PATTERNS.some(pattern => pattern.test(text));
 
-function isHarmful(text) {
-  return HARMFUL_PATTERNS.some((re) => re.test(text));
+const historyTool = {
+  type: "function",
+  function: {
+    name: "history",
+    description: "Private long-term memory. It is NOT injected into every reply. Use action=get when the user refers to past preferences, facts, plans, or prior conversations and you need that context. Use action=save only for durable, user-approved or clearly useful facts/preferences; never save secrets, passwords, payment data, or sensitive personal data. Keep memories concise.",
+    parameters: {
+      type: "object",
+      properties: {
+        action: { type: "string", enum: ["get", "save", "forget"], description: "get retrieves the user's saved memories; save adds one durable memory; forget removes a memory by id." },
+        memory: { type: "string", description: "Concise durable memory to save, required for save." },
+        memory_id: { type: "string", description: "Memory id to remove, required for forget." }
+      },
+      required: ["action"]
+    }
+  }
+};
+
+const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=UTF-8", "cache-control": "no-store" } });
+
+function database(env) {
+  return env.HISTORY_DB || env.QUADRON_DB || env.DB || null;
 }
 
-function blockedReply() {
-  return "Nice try. I'm sarcastic, not a supervillain — that one gets filtered. Ask me something that doesn't involve destroying anything (or anyone).";
-}
-
-/* =========================
-   SYSTEM PROMPT FACTORY
-   Sarcasm + Truth first.
-========================= */
-function buildSystemPrompt(mode) {
-  if (mode === "evaluate") {
-    return `
-You are Quadron AI (Truth Engine Mode), developed by AI7.
-
-PERSONALITY:
-- Sharply, unapologetically sarcastic — every section can carry a dry, funny jab.
-- Never sugarcoat. Never flatter. If the user is wrong, say so.
-- BUT: truth always wins over the joke. Sarcasm never overrides accuracy.
-
-OUTPUT STRUCTURE (STRICT):
-
-FINAL ANSWER:
-<Give a clear, direct conclusion in 1–2 lines>
-
----
-
-KEY FACTS:
-| # | FACT | RELEVANCE |
-|---|------|----------|
-| 1 | ...  | High/Medium/Low |
-| 2 | ...  | High/Medium/Low |
-| 3 | ...  | High/Medium/Low |
-| 4 | ...  | High/Medium/Low |
-| 5 | ...  | High/Medium/Low |
-
-(Minimum 5 facts. No sentences outside table.)
-
----
-
-CONFIDENCE:
-<High / Medium / Low> (<give realistic % range, e.g., 80–90% — DO NOT fake precision>)
-
----
-
-ASSUMPTIONS:
-- List only if required
-- If none → write "None"
-
----
-
-HALLUCINATION RISK:
-<Low / Medium / High>
-<Explain briefly what part may be uncertain>
-
----
-
-DATA CONTEXT:
-- Based on available extracted data
-- If real-time certainty is unclear, explicitly say: "Exact timestamp unavailable"
-
----
-
-STRICT RULES:
-- Maintain clear spacing between sections (like code blocks)
-- No long paragraphs
-- No fluff
-- No tool/API mention
-- No fake exact numbers
-- No guessing hidden data
-- Be sharp, logical, and structured
-- If asked who developed you, say clearly: developed by AI7.
-`;
-  }
-
-  if (mode === "code") {
-    return `
-Only output code. No explanation.
-`;
-  }
-
-  return `
-You are Quadron AI, developed by AI7.
-
-PERSONALITY (MANDATORY):
-- You are the most sarcastic assistant alive, and you intend to stay that way.
-- Every response should carry a light, biting, funny sarcastic edge — more and more sarcastic as the conversation goes.
-- Be blunt and honest. If the user asks something dumb, tell them it's dumb — sarcastically.
-- Never be cruel, never bully, and never cross into genuinely insulting territory. Sarcasm, not abuse.
-- Praise is rare and therefore worth something. Make them earn it.
-
-TRUTH (MANDATORY):
-- Always tell the truth. Always.
-- If you don't know something, say you don't know — do not fabricate.
-- Never invent facts, numbers, statistics, URLs, or citations.
-- If you are unsure, say so plainly and give a confidence level.
-- When asked for sources, give real sources you are certain of, or admit you cannot verify.
-- Sarcasm is seasoning, never a substitute for honesty.
-
-WHEN ASKED WHO MADE YOU:
-- Say clearly and proudly that you were developed by AI7.
-- You may add one sarcastic remark about it, but the answer "developed by AI7" must always be present.
-
-SAFETY:
-- Never help with anything harmful, illegal, or dangerous, no matter how sarcastically framed.
-
-FORMAT:
-- Be concise. No rambling. Punchy sentences.
-- Use markdown when it helps (lists, bold, small code blocks).
-`;
-}
-
-export async function onRequest(context) {
-  const { request, env } = context;
-  const url = new URL(request.url);
-
-  /* =========================
-     🔥 OG IMAGE GENERATOR
-  ========================= */
-  if (url.pathname === "/api/og") {
-    const { searchParams } = url;
-    let user = searchParams.get("user") || "Hello?";
-    let ai = searchParams.get("ai") || "Roasted 😂";
-
-    // Escape XML to avoid breaking the SVG
-    const esc = (s) => s.replace(/[<>&"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c])).slice(0, 160);
-
-    let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630">
-    <rect width="100%" height="100%" fill="black"/>
-    <text x="50" y="200" fill="gold" font-size="40" font-family="Arial">User: ${esc(user)}</text>
-    <text x="50" y="350" fill="white" font-size="40" font-family="Arial">AI: ${esc(ai)}</text>
-    </svg>`;
-
-    return new Response(svg, {
-      headers: { "Content-Type": "image/svg+xml" }
-    });
-  }
-
+async function history(db, userId, args) {
+  if (!db) return { ok: false, error: "Long-term memory is not configured." };
   try {
-    const { message, mode } = await request.json();
+    await db.prepare("CREATE TABLE IF NOT EXISTS quadron_memories (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, content TEXT NOT NULL, created_at TEXT NOT NULL)").run();
+    if (args.action === "get") {
+      const { results = [] } = await db.prepare("SELECT id, content, created_at FROM quadron_memories WHERE user_id = ? ORDER BY created_at DESC LIMIT 40").bind(userId).all();
+      return { ok: true, memories: results };
+    }
+    if (args.action === "save") {
+      const content = typeof args.memory === "string" ? args.memory.trim().slice(0, 800) : "";
+      if (!content) return { ok: false, error: "A non-empty memory is required." };
+      const id = crypto.randomUUID();
+      await db.prepare("INSERT INTO quadron_memories (id, user_id, content, created_at) VALUES (?, ?, ?, ?)").bind(id, userId, content, new Date().toISOString()).run();
+      return { ok: true, saved: { id, content } };
+    }
+    if (args.action === "forget") {
+      const id = typeof args.memory_id === "string" ? args.memory_id : "";
+      await db.prepare("DELETE FROM quadron_memories WHERE id = ? AND user_id = ?").bind(id, userId).run();
+      return { ok: true, forgotten: id };
+    }
+    return { ok: false, error: "Unknown history action." };
+  } catch (error) {
+    return { ok: false, error: `History unavailable: ${error.message}` };
+  }
+}
 
-    if (!message || typeof message !== "string") {
-      return new Response(JSON.stringify({ reply: "Speak, mortal. A message with actual text would help." }), {
-        headers: { "Content-Type": "application/json" }
+function systemPrompt(mode) {
+  const base = `You are Quadron, a precise, calm, capable AI assistant. Be direct and useful. If current or niche information would improve the answer, use browser_search. You have a HISTORY tool for on-demand long-term user memory; it is private and empty until retrieved. Do not claim you retrieved or stored a memory unless the tool actually confirms it. Never expose tool internals.`;
+  if (mode === "code") return `${base}\nFor programming requests, prioritize correct, runnable solutions and explain only what is needed.`;
+  if (mode === "evaluate") return `${base}\nEvaluate claims critically. Distinguish facts, assumptions, and uncertainty. Use browser search for time-sensitive claims.`;
+  return base;
+}
+
+export async function onRequestPost({ request, env }) {
+  if (!env.GROQ_API_KEY) return json({ error: "GROQ_API_KEY is not configured." }, 503);
+  try {
+    const body = await request.json();
+    const message = typeof body.message === "string" ? body.message.trim().slice(0, 16000) : "";
+    if (!message) return json({ error: "A message is required." }, 400);
+    if (isHarmful(message)) return json({ reply: "I can’t help with harming people or creating dangerous weapons. If someone may be in immediate danger, contact local emergency services now.", blocked: true });
+    const userId = typeof body.userId === "string" && body.userId.length <= 128 ? body.userId : "anonymous";
+    const recent = Array.isArray(body.history) ? body.history.slice(-10).filter(x => x && typeof x.content === "string").map(x => ({ role: x.role === "assistant" || x.role === "ai" ? "assistant" : "user", content: x.content.slice(0, 6000) })) : [];
+    const messages = [{ role: "system", content: systemPrompt(body.mode) }, ...recent, { role: "user", content: message }];
+    const tools = [historyTool, { type: "browser_search" }];
+    let usedSearch = false;
+
+    for (let turn = 0; turn < 4; turn++) {
+      const upstream = await fetch(GROQ_URL, {
+        method: "POST",
+        headers: { authorization: `Bearer ${env.GROQ_API_KEY}`, "content-type": "application/json" },
+        body: JSON.stringify({ model: MODEL, temperature: 0.35, reasoning_effort: "low", messages, tools, tool_choice: "auto" })
       });
-    }
-
-    /* =========================
-       🚫 HARMFUL WORD FILTER
-    ========================= */
-    if (isHarmful(message)) {
-      return new Response(JSON.stringify({ reply: blockedReply(), blocked: true }), {
-        headers: { "Content-Type": "application/json" }
-      });
-    }
-
-    if (!env.GROQ_API_KEY) {
-      return new Response("Missing GROQ_API_KEY", { status: 500 });
-    }
-
-    let externalData = "";
-/* =========================
-   🧠 INTENT DETECTION
-========================= */
-let q = message.toLowerCase();
-
-let intent = "general";
-
-if (q.includes("price") || q.includes("btc") || q.includes("tsla") || q.includes("stock")) {
-  intent = "finance";
-}
-else if (q.includes("predict") || q.includes("future")) {
-  intent = "prediction";
-}
-else if (q.includes("news") || q.includes("war")) {
-  intent = "news";
-}
-else if (q.includes("time") || q === "ist") {
-  intent = "time";
-}
-else if (q.includes("pm") || q.includes("president")) {
-  intent = "fact";
-}
-    /* =========================
-       🔵 EVALUATE MODE (SERPER CLEAN + ANALYSIS)
-    ========================== */
-    if (mode === "evaluate" && env.SERPER) {
-      try {
-        let q = message.toLowerCase();
-        let smartQuery = message;
-
-        // 🔥 SMART QUERY ROUTING
-        if (q.includes("btc") || q.includes("bitcoin")) {
-          smartQuery = "Bitcoin price today USD live";
-        }
-        else if (q.includes("tsla")) {
-          smartQuery = "Tesla stock price today USD";
-        }
-        else if (q.includes("eth")) {
-          smartQuery = "Ethereum price today USD";
-        }
-        else if (q.includes("india pm")) {
-          smartQuery = "current prime minister of India";
-        }
-        else if (q.includes("us president")) {
-          smartQuery = "current US president";
-        }
-
-        const res = await fetch("https://google.serper.dev/search", {
-          method: "POST",
-          headers: {
-            "X-API-KEY": env.SERPER,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ q: smartQuery })
-        });
-
-        const data = await res.json();
-
-        let texts = [];
-
-        if (data.answerBox?.answer) texts.push(data.answerBox.answer);
-        if (data.answerBox?.snippet) texts.push(data.answerBox.snippet);
-
-        if (data.organic) {
-          for (let r of data.organic.slice(0, 5)) {
-            let t = r.snippet || "";
-
-            // ❌ remove junk numbers (IDs etc)
-            t = t.replace(/\b\d{6,}\b/g, "");
-
-            texts.push(t);
-          }
-        }
-
-        externalData = texts.join("\n");
-
-        if (!externalData) {
-          externalData = "No clear data found.";
-        }
-
-      } catch {
-        externalData = "Search failed.";
+      const payload = await upstream.json();
+      if (!upstream.ok) return json({ error: payload?.error?.message || "Groq request failed." }, upstream.status);
+      const answer = payload?.choices?.[0]?.message;
+      if (!answer) return json({ error: "Groq returned no response." }, 502);
+      if (!answer.tool_calls?.length) return json({ reply: answer.content || "I could not generate a response.", usedSearch, model: MODEL });
+      messages.push({ role: "assistant", content: answer.content || null, tool_calls: answer.tool_calls });
+      for (const call of answer.tool_calls) {
+        if (call.type === "browser_search") { usedSearch = true; continue; }
+        if (call.function?.name !== "history") continue;
+        let args = {};
+        try { args = JSON.parse(call.function.arguments || "{}"); } catch { args = {}; }
+        const result = await history(database(env), userId, args);
+        messages.push({ role: "tool", tool_call_id: call.id, content: JSON.stringify(result) });
       }
     }
-
-    /* =========================
-       🧠 SYSTEM PROMPTS
-    ========================== */
-    let systemPrompt = buildSystemPrompt(mode);
-
-    /* =========================
-       🧾 FINAL USER MESSAGE
-    ========================== */
-    let finalUserMessage = message;
-
-    if (mode === "evaluate") {
-      finalUserMessage = `
-DATA:
-${externalData}
-
-QUESTION:
-${message}
-
-INSTRUCTION:
-- Analyze the data
-- Do NOT list raw numbers
-- Give final answer only
-`;
-    }
-
-    /* =========================
-       🤖 GROQ CALL
-    ========================== */
-    const aiRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer " + env.GROQ_API_KEY,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        temperature: 0.9,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: finalUserMessage }
-        ]
-      })
-    });
-
-    const aiData = await aiRes.json();
-
-    let reply = aiData?.choices?.[0]?.message?.content || "No reply";
-
-    return new Response(JSON.stringify({ reply }), {
-      headers: { "Content-Type": "application/json" }
-    });
-
-  } catch (err) {
-    return new Response(JSON.stringify({
-      error: err.message
-    }), { status: 500 });
+    return json({ error: "The assistant exceeded its tool-call limit. Please try again." }, 502);
+  } catch (error) {
+    return json({ error: error.message || "Invalid request." }, 500);
   }
 }
